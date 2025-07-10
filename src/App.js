@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, Calendar, TrendingUp, Clock, Zap, Target, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
+import { Plus, Calendar, TrendingUp, Clock, Zap, Target, ChevronLeft, ChevronRight, Activity, Download, Upload, Database } from 'lucide-react';
 
 const AthleticTracker = () => {
   const [currentView, setCurrentView] = useState('log'); // 'log' or 'history'
@@ -13,6 +13,7 @@ const AthleticTracker = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showDataOptions, setShowDataOptions] = useState(false);
   
   // Ref to maintain focus on duration input
   const durationInputRef = useRef(null);
@@ -34,6 +35,18 @@ const AthleticTracker = () => {
       setWorkouts([]);
     }
   }, []);
+
+  // Close data options when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showDataOptions && !event.target.closest('.data-options-container')) {
+        setShowDataOptions(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDataOptions]);
 
   // Save workouts to localStorage whenever workouts change
   useEffect(() => {
@@ -140,6 +153,46 @@ const AthleticTracker = () => {
       });
     }
   }, []);
+
+  const exportData = () => {
+    const dataToExport = {
+      workouts: workouts,
+      exportDate: new Date().toISOString(),
+      version: '1.0'
+    };
+    
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = `athletic-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+  };
+
+  const importData = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        if (importedData.workouts && Array.isArray(importedData.workouts)) {
+          setWorkouts(importedData.workouts);
+          alert(`Successfully imported ${importedData.workouts.length} workouts!`);
+        } else {
+          alert('Invalid backup file format.');
+        }
+      } catch (error) {
+        alert('Error reading backup file. Please check the file format.');
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset file input
+    event.target.value = '';
+  };
 
   const LogWorkoutView = () => (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -295,8 +348,49 @@ const AthleticTracker = () => {
               <h1 className="text-3xl font-bold text-white mb-2">Your Journey</h1>
               <p className="text-purple-200">Every workout counts</p>
             </div>
-            <div className="w-12"></div>
+            <button
+              onClick={() => setShowDataOptions(!showDataOptions)}
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200 relative data-options-container"
+            >
+              <Database className="w-6 h-6 text-white" />
+            </button>
           </div>
+
+          {/* Data Options Dropdown */}
+          {showDataOptions && (
+            <div className="absolute right-6 top-20 bg-white rounded-xl shadow-2xl p-4 z-50 min-w-48 data-options-container">
+              <h3 className="font-bold text-gray-800 mb-3">Backup & Restore</h3>
+              
+              <button
+                onClick={() => {
+                  exportData();
+                  setShowDataOptions(false);
+                }}
+                className="w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-gray-50 transition-colors mb-2"
+              >
+                <Download className="w-4 h-4 text-blue-600" />
+                <span className="text-gray-700">Export Data</span>
+              </button>
+              
+              <label className="w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                <Upload className="w-4 h-4 text-green-600" />
+                <span className="text-gray-700">Import Data</span>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={(e) => {
+                    importData(e);
+                    setShowDataOptions(false);
+                  }}
+                  className="hidden"
+                />
+              </label>
+              
+              <div className="mt-3 pt-3 border-t text-xs text-gray-500">
+                Use this to backup your workouts or sync between devices
+              </div>
+            </div>
+          )}
 
           {/* Stats Cards */}
           <div className="grid grid-cols-3 gap-4 mb-8">
