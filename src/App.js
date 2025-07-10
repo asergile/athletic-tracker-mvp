@@ -23,14 +23,8 @@ const AthleticTracker = () => {
         setWorkouts(parsed);
       } catch (error) {
         console.error('Error loading workouts:', error);
-        // If there's an error, start with sample data
-        const sampleData = [
-          { id: 1, type: 'Swimming', duration: 60, rating: 3, date: '2025-07-08' },
-          { id: 2, type: 'Running', duration: 45, rating: 2, date: '2025-07-07' },
-          { id: 3, type: 'Weight Training', duration: 75, rating: 3, date: '2025-07-05' },
-        ];
-        setWorkouts(sampleData);
-        localStorage.setItem('athletic-tracker-workouts', JSON.stringify(sampleData));
+        // If there's an error, start with empty array
+        setWorkouts([]);
       }
     } else {
       // First time user - start with empty array
@@ -113,6 +107,18 @@ const AthleticTracker = () => {
     return { count: weekWorkouts.length, totalTime, avgRating };
   };
 
+  const formatTime = (minutes) => {
+    if (minutes < 60) {
+      return `${minutes}m`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    if (remainingMinutes === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}h ${remainingMinutes}m`;
+  };
+
   const LogWorkoutView = () => (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Success Animation */}
@@ -192,6 +198,9 @@ const AthleticTracker = () => {
                 value={currentWorkout.duration}
                 onChange={(e) => setCurrentWorkout(prev => ({ ...prev, duration: e.target.value }))}
                 placeholder="45"
+                autoComplete="off"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 focus:outline-none text-lg transition-colors"
               />
             </div>
@@ -275,7 +284,7 @@ const AthleticTracker = () => {
             </div>
             <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 text-center">
               <Clock className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{Math.round(weeklyStats.totalTime / 60)}h</p>
+              <p className="text-2xl font-bold text-white">{formatTime(weeklyStats.totalTime)}</p>
               <p className="text-purple-200 text-sm">Total Time</p>
             </div>
             <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 text-center">
@@ -311,7 +320,7 @@ const AthleticTracker = () => {
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-1 text-gray-600">
                           <Clock className="w-4 h-4" />
-                          <span>{workout.duration} min</span>
+                          <span>{formatTime(workout.duration)}</span>
                         </div>
                         <div className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-gradient-to-r ${ratingConfig.color} text-white text-sm font-medium`}>
                           <span>{ratingConfig.emoji}</span>
