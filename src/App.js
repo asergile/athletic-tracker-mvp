@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Calendar, TrendingUp, Clock, Zap, Target, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
 
 const AthleticTracker = () => {
@@ -13,6 +13,9 @@ const AthleticTracker = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  // Ref to maintain focus on duration input
+  const durationInputRef = useRef(null);
 
   // Load workouts from localStorage on component mount
   useEffect(() => {
@@ -119,6 +122,21 @@ const AthleticTracker = () => {
     return `${hours}h ${remainingMinutes}m`;
   };
 
+  const handleDurationChange = useCallback((e) => {
+    const value = e.target.value;
+    const cursorPosition = e.target.selectionStart;
+    
+    setCurrentWorkout(prev => ({ ...prev, duration: value }));
+    
+    // Restore focus and cursor position after re-render
+    requestAnimationFrame(() => {
+      if (durationInputRef.current) {
+        durationInputRef.current.focus();
+        durationInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+      }
+    });
+  }, []);
+
   const LogWorkoutView = () => (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Success Animation */}
@@ -194,9 +212,10 @@ const AthleticTracker = () => {
             <div className="relative">
               <Clock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
+                ref={durationInputRef}
                 type="number"
                 value={currentWorkout.duration}
-                onChange={(e) => setCurrentWorkout(prev => ({ ...prev, duration: e.target.value }))}
+                onChange={handleDurationChange}
                 placeholder="45"
                 autoComplete="off"
                 inputMode="numeric"
