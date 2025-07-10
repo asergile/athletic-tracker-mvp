@@ -59,7 +59,7 @@ const AthleticTracker = () => {
     const newWorkout = {
       id: Date.now(),
       ...currentWorkout,
-      duration: parseInt(currentWorkout.duration),
+      duration: parseInt(currentWorkout.duration) || 0,
       date: new Date().toISOString().split('T')[0]
     };
     
@@ -124,17 +124,21 @@ const AthleticTracker = () => {
 
   const handleDurationChange = useCallback((e) => {
     const value = e.target.value;
-    const cursorPosition = e.target.selectionStart;
     
-    setCurrentWorkout(prev => ({ ...prev, duration: value }));
-    
-    // Restore focus and cursor position after re-render
-    requestAnimationFrame(() => {
-      if (durationInputRef.current) {
-        durationInputRef.current.focus();
-        durationInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-      }
-    });
+    // Only allow numbers
+    if (value === '' || /^\d+$/.test(value)) {
+      const cursorPosition = e.target.selectionStart;
+      
+      setCurrentWorkout(prev => ({ ...prev, duration: value }));
+      
+      // Restore focus and cursor position after re-render
+      requestAnimationFrame(() => {
+        if (durationInputRef.current) {
+          durationInputRef.current.focus();
+          durationInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
+      });
+    }
   }, []);
 
   const LogWorkoutView = () => (
@@ -213,7 +217,7 @@ const AthleticTracker = () => {
               <Clock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 ref={durationInputRef}
-                type="number"
+                type="text"
                 value={currentWorkout.duration}
                 onChange={handleDurationChange}
                 placeholder="45"
