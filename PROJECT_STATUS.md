@@ -26,3 +26,5 @@
 **Architecture:** React + Supabase + Tailwind (NO voice processing)
 
 **Read:** `project-docs/project-status.md` for complete details
+
+**Next Session:** Use `project-docs/session-handoffs/2025-07-11-phase1-complete.md`
