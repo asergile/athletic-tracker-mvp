@@ -1,0 +1,34 @@
+import React from 'react'
+import { AuthProvider, useAuth } from './lib/AuthContext'
+import LoadingScreen from './components/LoadingScreen'
+import AuthScreen from './components/AuthScreen'
+import AthleticTracker from './components/AthleticTracker'
+
+// Main App Component that handles auth routing
+function AppContent() {
+  const { user, loading } = useAuth()
+
+  // Show loading screen while checking auth state
+  if (loading) {
+    return <LoadingScreen message=\"Checking authentication...\" />
+  }
+
+  // Show auth screen if no user is logged in
+  if (!user) {
+    return <AuthScreen />
+  }
+
+  // Show main app if user is authenticated
+  return <AthleticTracker />
+}
+
+// Root App Component with AuthProvider
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  )
+}
+
+export default App

@@ -1,0 +1,42 @@
+{
+  "name": "Athletic Tracker - Voice-Powered Workout Logging",
+  "short_name": "Athletic Tracker",
+  "description": "Log your swimming workouts with voice. Simple, fast, and built for athletes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512x512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "fitness", "health"],
+  "shortcuts": [
+    {
+      "name": "Record Workout",
+      "short_name": "Record",
+      "description": "Quickly record a new workout",
+      "url": "/?action=record",
+      "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-mobile.png",
+      "sizes": "375x812",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}
