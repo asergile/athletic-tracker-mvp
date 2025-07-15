@@ -65,10 +65,8 @@ const AthleticTracker = () => {
 
   // Initialize goal hours and minutes from weeklyGoal
   useEffect(() => {
-    console.log('useEffect triggered - weeklyGoal changed to:', weeklyGoal);
     const newGoalHours = Math.floor(weeklyGoal);
     const newGoalMinutes = Math.round((weeklyGoal % 1) * 60);
-    console.log('Setting goalHours/goalMinutes to:', newGoalHours, newGoalMinutes);
     setGoalHours(newGoalHours);
     setGoalMinutes(newGoalMinutes);
   }, [weeklyGoal]);
@@ -258,9 +256,6 @@ const AthleticTracker = () => {
   const handleWeeklyGoalChange = async (hours, minutes) => {
     const newGoal = hours + (minutes / 60);
     
-    console.log('Goal change requested:', { hours, minutes, newGoal });
-    console.log('Current state before change:', { weeklyGoal, goalHours, goalMinutes });
-    
     // Capture previous values for potential revert
     const previousGoal = weeklyGoal;
     const previousHours = goalHours;
@@ -271,28 +266,30 @@ const AthleticTracker = () => {
     setGoalHours(hours);
     setGoalMinutes(minutes);
     
-    console.log('State updated to:', { newGoal, hours, minutes });
-    
     try {
-      console.log('Saving weekly goal:', newGoal);
       const { error } = await dbHelpers.updateUserSettings({ weekly_goal_hours: newGoal });
       if (error) {
         console.error('Database error saving weekly goal:', error);
+        setError('Failed to save weekly goal. Please try again.');
         // Revert on failure
         setWeeklyGoal(previousGoal);
         setGoalHours(previousHours);
         setGoalMinutes(previousMinutes);
       } else {
-        console.log('Weekly goal saved successfully');
+        // Clear any previous errors
+        setError('');
       }
     } catch (error) {
       console.error('Error saving weekly goal:', error);
+      setError('Failed to save weekly goal. Please try again.');
       // Revert on failure
       setWeeklyGoal(previousGoal);
       setGoalHours(previousHours);
       setGoalMinutes(previousMinutes);
     }
   };
+
+
 
   // Show loading screen while data loads
   if (isLoading) {
@@ -333,8 +330,6 @@ const AthleticTracker = () => {
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Log Workout</h1>
               <p className="text-blue-200">Keep the momentum going</p>
-              {/* DEBUG: Show current goal values */}
-              <p className="text-yellow-200 text-xs mt-1">Debug: weeklyGoal={weeklyGoal}, goalHours={goalHours}, goalMinutes={goalMinutes}</p>
             </div>
             <div className="flex space-x-2">
               <button
@@ -360,16 +355,16 @@ const AthleticTracker = () => {
                 <span className="text-blue-200 text-sm">Weekly Goal</span>
               </div>
               <p className="text-2xl font-bold text-white">{weeklyGoalProgress.current}</p>
-              <div className="w-full bg-blue-900 rounded-full h-2 mt-2 relative overflow-hidden">
-                {/* Base progress bar - shows up to 100% */}
+              <div className="w-full bg-gray-300 rounded-full h-3 mt-2 relative overflow-hidden">
+                {/* Base progress bar - solid green for work done */}
                 <div 
-                  className="bg-yellow-400 h-2 rounded-full transition-all duration-300 absolute" 
+                  className="bg-green-500 h-3 rounded-full transition-all duration-500 absolute" 
                   style={{width: `${Math.min(weeklyGoalProgress.percentage, 100)}%`}}
                 ></div>
-                {/* Overflow progress - shows excess over 100% in different color */}
+                {/* Overflow progress - golden gradient when goal exceeded */}
                 {weeklyGoalProgress.percentage > 100 && (
                   <div 
-                    className="bg-gradient-to-r from-green-400 to-emerald-500 h-2 rounded-full transition-all duration-300 absolute"
+                    className="bg-gradient-to-r from-yellow-400 to-amber-600 h-3 rounded-full transition-all duration-500 absolute"
                     style={{
                       left: '100%',
                       width: `${Math.min(weeklyGoalProgress.percentage - 100, 100)}%`,
@@ -377,14 +372,21 @@ const AthleticTracker = () => {
                     }}
                   ></div>
                 )}
-                {/* Vertical line at 100% */}
-                {weeklyGoalProgress.percentage >= 100 && (
-                  <div className="absolute top-0 h-2 w-px bg-white opacity-75" style={{left: '100%', transform: 'translateX(-50%)'}}></div>
-                )}
+                {/* Grey vertical line at 100% - clearly visible above and below */}
+                <div 
+                  className="absolute bg-gray-500 rounded-full"
+                  style={{
+                    left: '100%',
+                    top: '-4px',
+                    width: '2px',
+                    height: '20px',
+                    transform: 'translateX(-50%)'
+                  }}
+                ></div>
               </div>
               <p className="text-blue-200 text-xs mt-1">
                 {weeklyGoalProgress.percentage}% of {weeklyGoalProgress.goal}
-                {weeklyGoalProgress.percentage > 100 && " 🔥"}
+                {weeklyGoalProgress.percentage >= 100 && " 🎯"}
               </p>
             </div>
             <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4">
@@ -532,17 +534,17 @@ const AthleticTracker = () => {
 
 
 
-          {/* Stats Cards - Reordered to match main page: Workouts, Total Time, Avg Feel */}
+          {/* Stats Cards - Reordered: Total Time, Workouts This Week, Avg Feel */}
           <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 text-center">
-              <Activity className="w-6 h-6 text-green-400 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{weeklyStats.count} workouts</p>
-              <p className="text-purple-200 text-sm">This Week</p>
-            </div>
             <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 text-center">
               <Clock className="w-6 h-6 text-blue-400 mx-auto mb-2" />
               <p className="text-2xl font-bold text-white">{formatTime(weeklyStats.totalTime)}</p>
               <p className="text-purple-200 text-sm">Total Time</p>
+            </div>
+            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 text-center">
+              <Activity className="w-6 h-6 text-green-400 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-white">{weeklyStats.count} workouts</p>
+              <p className="text-purple-200 text-sm">This Week</p>
             </div>
             <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 text-center">
               <Target className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
