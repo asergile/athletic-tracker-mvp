@@ -1,6 +1,6 @@
 'use client'
 
-import { Workout } from '@/types'
+import { Workout, ProcessedWorkoutData, StrokeDistribution } from '@/types'
 import { formatDate, formatDistance, formatDuration, getRatingText, getRatingColor, getWorkoutTypeIcon } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
 
@@ -108,11 +108,11 @@ function WorkoutCard({ workout, onClick }: WorkoutCardProps) {
   )
 }
 
-function ProcessedDataPreview({ data }: { data: any }) {
+function ProcessedDataPreview({ data }: { data: ProcessedWorkoutData }) {
   if (!data || typeof data !== 'object') return null
 
   const sets = data.sets || []
-  const strokeDist = data.stroke_distribution || {}
+  const strokeDist = data.stroke_distribution as StrokeDistribution | undefined
   const achievements = data.achievements || []
 
   return (
@@ -120,19 +120,19 @@ function ProcessedDataPreview({ data }: { data: any }) {
       {/* Set count */}
       {sets.length > 0 && (
         <div className="text-xs text-gray-600">
-          {sets.length} sets • {sets.filter((s: any) => s.type === 'main').length} main sets
+          {sets.length} sets • {sets.filter(s => s.type === 'main').length} main sets
         </div>
       )}
 
       {/* Stroke distribution */}
-      {Object.keys(strokeDist).length > 0 && (
+      {strokeDist && Object.keys(strokeDist).length > 0 && (
         <div className="flex gap-3 text-xs">
           {Object.entries(strokeDist)
-            .filter(([_, percentage]) => (percentage as number) > 5)
+            .filter(([_, percentage]) => typeof percentage === 'number' && percentage > 5)
             .slice(0, 3)
             .map(([stroke, percentage]) => (
               <span key={stroke} className="text-gray-600">
-                {stroke}: {percentage}%
+                {stroke}: {Math.round(percentage as number)}%
               </span>
             ))
           }
