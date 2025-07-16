@@ -19,7 +19,7 @@ export function WorkoutReview({ parseResult, onSave, onDiscard }: WorkoutReviewP
     return {
       duration_minutes: parseResult.recording_duration ? Math.max(Math.round(parseResult.recording_duration / 60), 30) : 60,
       distance_yards: data?.sets?.reduce((sum, set) => sum + (set.distance || 0), 0) || 0,
-      workout_type: 'pool' as const,
+      workout_type: 'pool' as 'pool' | 'dryland' | 'weights',
       rating: 2 as 1 | 2 | 3,
       notes: ''
     }
@@ -262,7 +262,7 @@ function SetCard({ set, editMode, onUpdate, onDelete }: SetCardProps) {
             <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
             <select
               value={set.type}
-              onChange={(e) => onUpdate({ ...set, type: e.target.value as any })}
+              onChange={(e) => onUpdate({ ...set, type: e.target.value as 'warmup' | 'main' | 'cooldown' | 'drill' })}
               className="w-full px-2 py-1 text-sm border rounded"
             >
               <option value="warmup">Warm-up</option>
@@ -287,7 +287,7 @@ function SetCard({ set, editMode, onUpdate, onDelete }: SetCardProps) {
             <label className="block text-xs font-medium text-gray-700 mb-1">Stroke</label>
             <select
               value={set.stroke || 'freestyle'}
-              onChange={(e) => onUpdate({ ...set, stroke: e.target.value as any })}
+              onChange={(e) => onUpdate({ ...set, stroke: e.target.value as 'freestyle' | 'backstroke' | 'breaststroke' | 'butterfly' | 'IM' | 'kick' | 'drill' })}
               className="w-full px-2 py-1 text-sm border rounded"
             >
               <option value="freestyle">Freestyle</option>
