@@ -108,7 +108,7 @@ function WorkoutCard({ workout, onClick }: WorkoutCardProps) {
   )
 }
 
-function ProcessedDataPreview({ data }: { data: ProcessedWorkoutData }) {
+function ProcessedDataPreview({ data }: { data: ProcessedWorkoutData | undefined }) {
   if (!data || typeof data !== 'object') return null
 
   const sets = data.sets || []
