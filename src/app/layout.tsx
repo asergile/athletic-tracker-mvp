@@ -8,7 +8,6 @@ export const metadata: Metadata = {
   title: 'Athletic Tracker - Voice-Powered Workout Logging',
   description: 'Log your swimming workouts with voice. Simple, fast, and built for athletes.',
   manifest: '/manifest.json',
-  themeColor: '#3b82f6',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -25,6 +24,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#3b82f6',
 }
 
 export default function RootLayout({

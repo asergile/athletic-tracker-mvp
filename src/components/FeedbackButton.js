@@ -17,14 +17,18 @@ const FeedbackButton = () => {
     setError('');
 
     try {
-      const { error: submitError } = await dbHelpers.submitFeedback({
+      console.log('Submitting feedback:', { message: message.trim() });
+      const { data, error: submitError } = await dbHelpers.submitFeedback({
         message: message.trim(),
         page_context: window.location.pathname,
         user_agent: navigator.userAgent
       });
 
+      console.log('Feedback result:', { data, error: submitError });
+
       if (submitError) {
-        setError('Failed to send feedback. Please try again.');
+        console.error('Feedback submission error:', submitError);
+        setError(`Failed to send feedback: ${submitError.message || 'Unknown error'}`);
         return;
       }
 
@@ -36,7 +40,8 @@ const FeedbackButton = () => {
       }, 2000);
 
     } catch (err) {
-      setError('Failed to send feedback. Please try again.');
+      console.error('Feedback catch error:', err);
+      setError(`Failed to send feedback: ${err.message || 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }

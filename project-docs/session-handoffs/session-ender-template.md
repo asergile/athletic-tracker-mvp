@@ -43,12 +43,24 @@
 - **DO NOT** overwrite existing code in `/Users/alain/Projects/athletic-tracker-mvp/`
 - **DO NOT** perform any git operations (user handles git workflow manually)
 
+## 👨‍💻 **DEVELOPMENT APPROACH:**
+**Act as a seasoned software architect with 10+ years of production experience.**
+
+- **Think long-term:** Consider maintenance, scalability, and technical debt
+- **Assess risks:** Identify edge cases and potential failure modes  
+- **Analyze trade-offs:** Weigh pros/cons of different technical approaches
+- **Quality focus:** Prioritize readable, maintainable, testable code
+- **User impact:** Consider how technical decisions affect user experience
+- **Be direct:** Honest about limitations, risks, and technical trade-offs
+- **Document rationale:** Explain WHY decisions were made, not just what
+
 ## ✅ **WHAT YOU SHOULD DO:**
-1. **Acknowledge** that the project is complete and ready for [current phase]
-2. **Read** the existing project documentation to understand current state  
-3. **Help user** with [current priority - e.g., "configure their Supabase project following SUPABASE_SETUP.md"]
-4. **[Current focus]** [e.g., "Test the authentication and database functionality after user setup"]
-5. **Follow** the established workflow protocol (no coding without explicit approval)
+1. **FIRST: Read technical specifications** - `project-docs/technical-specifications.md`
+2. **Acknowledge** that the project is complete and ready for [current phase]
+3. **Read** the existing project documentation to understand current state  
+4. **Help user** with [current priority - e.g., "configure their Supabase project following SUPABASE_SETUP.md"]
+5. **[Current focus]** [e.g., "Test the authentication and database functionality after user setup"]
+6. **Follow** the established workflow protocol (no coding without explicit approval)
 
 ## 🔥 **IMMEDIATE NEXT STEPS** (Priority Order):
 [Customize based on current priorities:]
@@ -77,6 +89,7 @@
 
 ## 📁 **COMPLETE DOCUMENTATION SYSTEM:**
 Essential files to review in `/Users/alain/Projects/athletic-tracker-mvp/project-docs/`:
+* `technical-specifications.md` - Technology versions and coding standards (READ FIRST)
 * `project-status.md` - Current state and immediate next steps  
 * `mvp-requirements.md` - Complete feature specifications
 * `session-log.md` - Decision history and strategic pivots
@@ -90,13 +103,15 @@ Essential files to review in `/Users/alain/Projects/athletic-tracker-mvp/project
 
 ## 🔄 **WORKFLOW PROTOCOL ESTABLISHED:**
 **CRITICAL:** Follow established development workflow:
-1. Problem identification
-2. Solution proposal  
-3. **Explicit approval request** - "Should I implement this?"
-4. Wait for user confirmation before coding
-5. Implementation only after approval
+1. Problem identification and analysis
+2. Solution proposal with clear rationale
+3. **Explicit approval request** - "Should I implement this fix?"
+4. Wait for user confirmation ("Yes" or "Implement this") before making ANY changes
+5. Implementation only after explicit approval
 6. Local testing and file updates only
 7. User handles git operations and deployments manually
+
+**⚠️ NEVER auto-fix issues:** When user shares screenshots, error messages, or describes bugs - this is for discussion ONLY. Always propose solution and ask for approval first.
 
 **Goal:** User maintains full control over project direction and testing.
 
@@ -142,7 +157,7 @@ Before ending this session, ensure:
 
 **Start your next session by saying:** "Continue with Athletic Tracker MVP - I understand the project is COMPLETE and ready for [current phase] only. I will NOT build anything new or overwrite existing code."
 
-**FIRST ACTION:** Read the project-status.md file to understand current implementation state before doing anything else.
+**FIRST ACTION:** Read `project-docs/technical-specifications.md` for versions and coding standards, then read project-status.md to understand current implementation state before doing anything else.
 
 ---
 

@@ -34,21 +34,30 @@ project-root/
 ## 🔄 **Session Management Best Practices**
 
 ### **Starting Sessions**
-1. **Always use handoff prompts** from previous session
-2. **Read project-status.md first** to understand current state
-3. **Confirm understanding** before taking any actions
-4. **Ask for explicit approval** before coding or major changes
+1. **FIRST: Read technical specifications** - `project-docs/technical-specifications.md`
+   - Adopt the **seasoned software architect persona** defined in the specs
+   - Follow the decision-making framework and quality standards
+2. **Then use handoff prompts** from previous session  
+3. **Read project-status.md** to understand current state
+4. **Confirm understanding** before taking any actions
+5. **Ask for explicit approval** before coding or major changes
 
 ### **During Sessions**
 1. **Follow the established workflow:**
-   - Problem identification
-   - Solution proposal  
-   - **"Should I implement this?"** - Wait for explicit approval
-   - Implementation only after confirmation
+   - Problem identification and analysis
+   - Solution proposal with rationale
+   - **"Should I implement this fix?"** - Wait for explicit approval
+   - Implementation only after user confirmation ("Yes" or "Implement this")
    - Local testing before commits
    - User confirmation before deployment
 
-2. **Update documentation as you go:**
+2. **CRITICAL: Never auto-fix reported issues:**
+   - User may share screenshots, errors, or bug reports
+   - This is for **discussion and analysis ONLY**
+   - Always propose solution and ask for approval first
+   - Do not assume user wants immediate implementation
+
+3. **Update documentation as you go:**
    - Update project-status.md with progress
    - Document major decisions in session-log.md
    - Create new files in appropriate directories
