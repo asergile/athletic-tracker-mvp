@@ -2,7 +2,40 @@
 
 **Based on Athletic Tracker MVP development experience**
 
-## 📁 **Project Organization Best Practices**
+## 🚨 CRITICAL SESSION STARTUP PROTOCOL
+
+**BEFORE RESPONDING TO ANY REQUEST:**
+
+### 1. READ REQUIRED STRATEGIC CONTEXT
+- **FIRST:** `/project-docs/north-star-strategy.md` - Definitive business model and strategic vision
+- **SECOND:** `/project-docs/project-status.md` - Current technical and development status
+
+### 2. VALIDATE UNDERSTANDING
+- Primary customers: Parents & coaches (not athletes)
+- Athlete-first design with parent/coach monetization
+- Voice processing was REMOVED (not deferred) - will rebuild in Phase 3
+- Current focus: Alpha testing goal-driven athlete engagement
+
+### 3. AVOID COMMON MISUNDERSTANDINGS
+- ❌ Don't assume this is a direct-pay fitness app
+- ❌ Don't suggest voice processing features (removed from codebase)
+- ❌ Don't recommend athlete monetization strategies
+- ❌ Don't ignore the parent/coach business model
+
+**Failure to read north-star-strategy.md first will result in strategic misalignment and wasted session time.**
+
+---
+
+## 📁 **Project Organization & File Access**
+
+### **Claude File System Access**
+**IMPORTANT:** Claude has full access to the project file system at `/Users/alain/Projects/athletic-tracker-mvp/` and can:
+- Read any file in the project directory structure
+- View the complete codebase, configurations, and documentation
+- Examine environment files, build configurations, and deployment settings
+- Access all project documentation and session handoffs
+
+**USE THIS ACCESS:** Instead of asking users to copy/paste code or describe files, directly examine the relevant files to understand issues, debug problems, and propose solutions.
 
 ### **Directory Structure**
 ```
@@ -127,7 +160,7 @@ project-root/
 ## 📋 **File Management Best Practices**
 
 ### **Naming Conventions**
-- **Session handoffs:** `YYYY-MM-DD-brief-description.md`
+- **Session handoffs:** `YYYY-MM-DD-brief-description.md` with current date
 - **Documentation:** `kebab-case-descriptive-names.md`
 - **Templates:** `*-template.md` suffix for reusable files
 - **Status files:** Clear, obvious names at appropriate levels

@@ -17,7 +17,20 @@ const FeedbackButton = () => {
     setError('');
 
     try {
+      // Debug logging for production
+      console.log('Environment check:', {
+        hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        dbHelpers: typeof dbHelpers,
+        submitFeedback: typeof dbHelpers?.submitFeedback
+      });
+      
       console.log('Submitting feedback:', { message: message.trim() });
+      
+      if (!dbHelpers || typeof dbHelpers.submitFeedback !== 'function') {
+        throw new Error(`dbHelpers not properly initialized: ${typeof dbHelpers}`);
+      }
+      
       const { data, error: submitError } = await dbHelpers.submitFeedback({
         message: message.trim(),
         page_context: window.location.pathname,
