@@ -4,7 +4,14 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+console.log('Supabase initialization debug:', {
+  hasUrl: !!supabaseUrl,
+  hasKey: !!supabaseAnonKey,
+  url: supabaseUrl?.substring(0, 20) + '...'
+});
+
 if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables:', { supabaseUrl, supabaseAnonKey });
   throw new Error('Missing Supabase environment variables. Please check your .env.local file.')
 }
 
@@ -179,6 +186,50 @@ export const dbHelpers = {
     }
 
     return { data: stats, error: null }
+  },
+
+  // Submit user feedback
+  submitFeedback: async (feedbackData) => {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('User not authenticated') }
+    }
+
+    const { data, error } = await supabase
+      .from('feedback')
+      .insert([{
+        user_id: user.id,
+        message: feedbackData.message,
+        user_email: user.email,
+        page_context: feedbackData.page_context || 'unknown',
+        user_agent: feedbackData.user_agent || 'unknown'
+      }])
+      .select()
+    
+    return { data, error }
+  },
+
+  // Submit user feedback
+  submitFeedback: async (feedbackData) => {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('User not authenticated') }
+    }
+
+    const { data, error } = await supabase
+      .from('feedback')
+      .insert([{
+        user_id: user.id,
+        message: feedbackData.message,
+        user_email: user.email,
+        page_context: feedbackData.page_context || 'unknown',
+        user_agent: feedbackData.user_agent || 'unknown'
+      }])
+      .select()
+    
+    return { data, error }
   }
 }
 
@@ -227,3 +278,10 @@ function calculateAverageRating(workouts) {
   const total = workouts.reduce((sum, w) => sum + w.rating, 0)
   return Math.round((total / workouts.length) * 10) / 10
 }
+
+// Debug logging for exports
+console.log('dbHelpers export debug:', {
+  hasCreateWorkout: typeof dbHelpers.createWorkout,
+  hasSubmitFeedback: typeof dbHelpers.submitFeedback,
+  allMethods: Object.keys(dbHelpers)
+});
