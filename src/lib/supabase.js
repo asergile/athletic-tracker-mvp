@@ -188,8 +188,10 @@ export const dbHelpers = {
     return { data: stats, error: null }
   },
 
-  // Submit user feedback
-  submitFeedback: async (feedbackData) => {
+  // EVENT AND GOAL MANAGEMENT
+  
+  // Create a new event
+  createEvent: async (eventData) => {
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
@@ -197,15 +199,190 @@ export const dbHelpers = {
     }
 
     const { data, error } = await supabase
-      .from('feedback')
+      .from('events')
       .insert([{
-        user_id: user.id,
-        message: feedbackData.message,
-        user_email: user.email,
-        page_context: feedbackData.page_context || 'unknown',
-        user_agent: feedbackData.user_agent || 'unknown'
+        name: eventData.name,
+        event_date: eventData.eventDate,
+        goal: eventData.goal || null,
+        created_by: user.id
       }])
       .select()
+      .single()
+    
+    return { data, error }
+  },
+
+  // Get user's events (created by them)
+  getUserEvents: async () => {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: [], error: new Error('User not authenticated') }
+    }
+
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('created_by', user.id)
+      .order('event_date', { ascending: true })
+    
+    return { data, error }
+  },
+
+  // Create a goal (athlete joins an event)
+  createGoal: async (eventId, customTargetWorkouts = null) => {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('User not authenticated') }
+    }
+
+    // Get user's weekly workout frequency
+    const { data: settings, error: settingsError } = await supabase
+      .from('user_settings')
+      .select('weekly_workout_frequency')
+      .eq('user_id', user.id)
+      .single()
+    
+    if (settingsError && settingsError.code !== 'PGRST116') {
+      return { data: null, error: settingsError }
+    }
+
+    const weeklyFrequency = settings?.weekly_workout_frequency || 4
+
+    // Calculate target workouts if not provided
+    let targetWorkouts = customTargetWorkouts
+    if (!targetWorkouts) {
+      // Get event date to calculate weeks remaining
+      const { data: event, error: eventError } = await supabase
+        .from('events')
+        .select('event_date')
+        .eq('id', eventId)
+        .single()
+      
+      if (eventError) {
+        return { data: null, error: eventError }
+      }
+
+      // Calculate weeks remaining
+      const eventDate = new Date(event.event_date)
+      const today = new Date()
+      const weeksRemaining = Math.max(0.1, (eventDate - today) / (7 * 24 * 60 * 60 * 1000))
+      targetWorkouts = Math.ceil(weeksRemaining * weeklyFrequency)
+    }
+
+    // Create the goal
+    const { data, error } = await supabase
+      .from('athlete_goals')
+      .insert([{
+        athlete_id: user.id,
+        event_id: eventId,
+        target_workouts: targetWorkouts
+      }])
+      .select(`
+        *,
+        events!inner(name, event_date, goal)
+      `)
+      .single()
+    
+    return { data, error }
+  },
+
+  // Get user's active goals with banking progress
+  getUserGoals: async () => {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: [], error: new Error('User not authenticated') }
+    }
+
+    // Get goals with event information
+    const { data: goals, error } = await supabase
+      .from('athlete_goals')
+      .select(`
+        *,
+        events!inner(name, event_date, goal)
+      `)
+      .eq('athlete_id', user.id)
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      return { data: [], error }
+    }
+
+    // Calculate banking progress for each goal
+    const goalsWithProgress = await Promise.all(
+      goals.map(async (goal) => {
+        // Count workouts since goal was created
+        const { data: workouts, error: workoutError } = await supabase
+          .from('workouts')
+          .select('duration')
+          .eq('user_id', user.id)
+          .gte('date', goal.created_at.split('T')[0]) // Only count workouts after goal creation
+        
+        if (workoutError) {
+          console.error('Error counting workouts for goal:', workoutError)
+          return {
+            ...goal,
+            workouts_completed: 0,
+            hours_completed: 0,
+            days_remaining: 0
+          }
+        }
+
+        const workoutsCompleted = workouts.length
+        const hoursCompleted = workouts.reduce((sum, w) => sum + w.duration, 0) / 60
+        
+        // Calculate days remaining
+        const eventDate = new Date(goal.events.event_date)
+        const today = new Date()
+        const daysRemaining = Math.max(0, Math.ceil((eventDate - today) / (24 * 60 * 60 * 1000)))
+        
+        return {
+          ...goal,
+          workouts_completed: workoutsCompleted,
+          hours_completed: Math.round(hoursCompleted * 10) / 10,
+          days_remaining: daysRemaining
+        }
+      })
+    )
+
+    return { data: goalsWithProgress, error: null }
+  },
+
+  // Delete a goal
+  deleteGoal: async (goalId) => {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('User not authenticated') }
+    }
+
+    const { data, error } = await supabase
+      .from('athlete_goals')
+      .delete()
+      .eq('id', goalId)
+      .eq('athlete_id', user.id) // Ensure user can only delete their own goals
+    
+    return { data, error }
+  },
+
+  // Update user's weekly workout frequency
+  updateWeeklyFrequency: async (frequency) => {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('User not authenticated') }
+    }
+
+    const { data, error } = await supabase
+      .from('user_settings')
+      .upsert({
+        user_id: user.id,
+        weekly_workout_frequency: frequency
+      })
+      .select()
+      .single()
     
     return { data, error }
   },
@@ -283,5 +460,7 @@ function calculateAverageRating(workouts) {
 console.log('dbHelpers export debug:', {
   hasCreateWorkout: typeof dbHelpers.createWorkout,
   hasSubmitFeedback: typeof dbHelpers.submitFeedback,
+  hasCreateEvent: typeof dbHelpers.createEvent,
+  hasCreateGoal: typeof dbHelpers.createGoal,
   allMethods: Object.keys(dbHelpers)
 });
