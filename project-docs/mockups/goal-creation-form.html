@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athletic Tracker - Goal Creation Form</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.294.0/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .mockup-container {
+            max-width: 375px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .status-bar {
+            height: 44px;
+            background: #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .header {
+            padding: 20px;
+            background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .content {
+            padding: 20px;
+            background: #f8fafc;
+            min-height: 600px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .create-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .goal-creation-form {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .preview-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            margin-top: 20px;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .event-info h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .event-date {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .countdown {
+            text-align: right;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .countdown-number {
+            font-size: 24px;
+            font-weight: 700;
+            display: block;
+        }
+        
+        .combined-metric {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .dual-progress {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .progress-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px;
+        }
+        
+        .progress-item h4 {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .progress-item .value {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .mini-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .mini-progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 3px;
+        }
+        
+        .mockup-note {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            max-width: 300px;
+            z-index: 1000;
+        }
+        
+        .mockup-note h4 {
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="mockup-note">
+        <h4>Goal Creation Form</h4>
+        <p>Simple form for event name, date, and personal goal. Shows preview of banking card.</p>
+    </div>
+
+    <div class="mockup-container">
+        <div class="status-bar">
+            <span>9:41</span>
+            <span>Athletic Tracker</span>
+            <span>100%</span>
+        </div>
+        
+        <div class="header">
+            <h1>Create Goal</h1>
+            <p>Set up your event tracking</p>
+        </div>
+        
+        <div class="content">
+            <div class="goal-creation-form">
+                <h3 style="margin-bottom: 20px; color: #1f2937;">Add New Goal</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Event Name</label>
+                    <input type="text" class="form-input" placeholder="e.g., State Championships" id="eventName" oninput="updatePreview()" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Event Date</label>
+                    <input type="date" class="form-input" id="eventDate" oninput="updatePreview()" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Personal Goal</label>
+                    <input type="text" class="form-input" placeholder="e.g., Set PB in freestyle" id="personalGoal" oninput="updatePreview()" />
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Weekly Workouts</label>
+                        <select class="form-select" id="weeklyFrequency" onchange="updatePreview()">
+                            <option value="3">3 per week</option>
+                            <option value="4" selected>4 per week</option>
+                            <option value="5">5 per week</option>
+                            <option value="6">6 per week</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sport</label>
+                        <select class="form-select">
+                            <option>Swimming</option>
+                            <option>Running</option>
+                            <option>Cycling</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="create-button">Create Goal</button>
+                
+                <!-- Preview Card -->
+                <div class="preview-card" id="previewCard">
+                    <div class="preview-header">
+                        <div class="event-info">
+                            <h3 id="previewName">State Championships</h3>
+                            <div class="event-date" id="previewDate">March 15, 2025</div>
+                        </div>
+                        <div class="countdown">
+                            <span class="countdown-number" id="previewDays">--</span>
+                            days left
+                        </div>
+                    </div>
+                    
+                    <div class="combined-metric">0 workouts • 0 hours banked</div>
+                    
+                    <div class="dual-progress">
+                        <div class="progress-item">
+                            <h4>Sessions</h4>
+                            <div class="value" id="previewTarget">0 of --</div>
+                            <div class="mini-progress-bar">
+                                <div class="mini-progress-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <h4>Hours</h4>
+                            <div class="value">0 of --</div>
+                            <div class="mini-progress-bar">
+                                <div class="mini-progress-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Set default date to 8 weeks from now
+        const defaultDate = new Date();
+        defaultDate.setDate(defaultDate.getDate() + 56); // 8 weeks
+        document.getElementById('eventDate').value = defaultDate.toISOString().split('T')[0];
+        
+        function updatePreview() {
+            const eventName = document.getElementById('eventName').value || 'State Championships';
+            const eventDate = document.getElementById('eventDate').value;
+            const personalGoal = document.getElementById('personalGoal').value;
+            const weeklyFrequency = parseInt(document.getElementById('weeklyFrequency').value);
+            
+            // Update preview name
+            document.getElementById('previewName').textContent = eventName;
+            
+            // Update preview date
+            if (eventDate) {
+                const date = new Date(eventDate);
+                const formatted = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                document.getElementById('previewDate').textContent = formatted;
+                
+                // Calculate days remaining
+                const today = new Date();
+                const diffTime = date - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                document.getElementById('previewDays').textContent = Math.max(0, diffDays);
+                
+                // Calculate target workouts
+                const weeksRemaining = Math.max(0.1, diffDays / 7);
+                const targetWorkouts = Math.ceil(weeksRemaining * weeklyFrequency);
+                document.getElementById('previewTarget').textContent = `0 of ${targetWorkouts}`;
+            }
+            
+            // Show personal goal in name if provided
+            if (personalGoal) {
+                document.getElementById('previewName').textContent = `${eventName} - ${personalGoal}`;
+            }
+        }
+        
+        // Initialize preview
+        updatePreview();
+    </script>
+</body>
+</html>

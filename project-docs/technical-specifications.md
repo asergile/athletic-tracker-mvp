@@ -128,7 +128,40 @@ src/
 ├── lib/                # Utilities, Supabase client, contexts
 ├── types/              # TypeScript interface definitions
 └── styles/             # Global CSS (globals.css)
+
+project-docs/
+├── mockups/            # Interactive HTML prototypes and design artifacts
+├── session-handoffs/   # Session continuation documents
+└── [other-docs].md     # Project documentation
 ```
+
+### **Mockups and Design Artifacts**
+
+**All UI mockups, prototypes, and design artifacts MUST be saved in `project-docs/mockups/`**
+
+**Mockup Standards:**
+- **Format:** Interactive HTML files with CSS and JavaScript
+- **Mobile-first:** 375px container width (iPhone standard)
+- **Self-contained:** All styles and scripts inline (only cdnjs.cloudflare.com external)
+- **Realistic data:** Use example data that reflects real use cases
+- **Documentation:** Include notes explaining design decisions
+
+**When to Create Mockups:**
+- New UI components or features
+- Design explorations and alternatives
+- User flow prototypes
+- Layout and interaction validation
+
+**File Naming:**
+- Use kebab-case: `feature-name-component.html`
+- Include version if iterating: `dashboard-v2.html`
+- Be descriptive: `goal-creation-form.html`
+
+**Integration with Development:**
+- Mockups serve as source of truth for UI implementation
+- Include exact styling, spacing, and interaction patterns
+- Reference mockups in session handoff documents
+- Update mockups README.md with new additions
 
 ## 🎯 **Architecture Principles**
 
