@@ -78,6 +78,14 @@ export const dbHelpers = {
       return { data: null, error: new Error('User not authenticated') }
     }
 
+    // Create timezone-aware date if none provided
+    let workoutDate = workoutData.date;
+    if (!workoutDate) {
+      const today = new Date();
+      const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+      workoutDate = localDate.toISOString().split('T')[0];
+    }
+
     const { data, error } = await supabase
       .from('workouts')
       .insert([{
@@ -85,7 +93,7 @@ export const dbHelpers = {
         workout_type: workoutData.type,
         duration: workoutData.duration,
         rating: workoutData.rating,
-        date: workoutData.date || new Date().toISOString().split('T')[0]
+        date: workoutDate
       }])
       .select()
     
