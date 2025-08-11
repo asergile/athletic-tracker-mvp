@@ -1,0 +1,30 @@
+import React, { useState } from 'react';
+
+const TestInput = () => {
+  const [value, setValue] = useState('');
+
+  const handleChange = (e) => {
+    const inputValue = e.target.value;
+    if (inputValue === '' || /^\d+$/.test(inputValue)) {
+      setValue(inputValue);
+    }
+  };
+
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl mb-4">Input Test</h1>
+      <input
+        type="text"
+        value={value}
+        onChange={handleChange}
+        placeholder="Type numbers here"
+        className="border-2 border-gray-300 p-4 text-lg rounded"
+        inputMode="numeric"
+        pattern="[0-9]*"
+      />
+      <p className="mt-4">Current value: {value}</p>
+    </div>
+  );
+};
+
+export default TestInput;
