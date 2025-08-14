@@ -294,10 +294,33 @@ npm run lint         # ESLint validation
 ### **Code Changes Protocol**
 1. **Propose:** Present solution with rationale
 2. **Approve:** Wait for explicit "Yes, implement this"
-3. **Implement:** Code following these specifications
+3. **Implement:** Code following these specifications **USING EFFICIENT UPDATE OPERATIONS**
 4. **Test locally:** Verify build + functionality
 5. **Commit:** With descriptive commit messages
 6. **Deploy:** Push to trigger Vercel deployment
+
+### **CRITICAL: Efficient Development Protocol**
+**ALWAYS use `update` operations instead of rewriting entire files to conserve tokens and maintain efficiency.**
+
+**When to use `update` vs `rewrite`:**
+- **Use `update`:** For targeted changes, bug fixes, adding/modifying specific functions, replacing components
+- **Use `rewrite`:** Only when structural changes require rebuilding the entire file architecture
+- **Maximum efficiency:** Break large changes into multiple small `update` operations
+- **Token conservation:** Never recreate 500+ line files when targeted updates will work
+
+**Update Operation Guidelines:**
+- Use `update` for changes affecting <20 lines and <5 locations
+- Can call `update` up to 4 times per response for multiple targeted changes
+- Always ensure `old_str` matches exactly (including whitespace)
+- Make `old_str` unique enough to appear exactly once in the file
+- **Priority:** Efficiency over convenience - always choose the most token-efficient approach
+
+**Examples:**
+- ✅ **Good:** Replace single component with `update`
+- ✅ **Good:** Fix bug with targeted `update` to specific function
+- ✅ **Good:** Add new import with `update` at top of file
+- ❌ **Bad:** Rewrite entire 800-line file to change one component
+- ❌ **Bad:** Use `rewrite` when 3-4 `update` operations would work
 
 ### **Git Standards**
 ```bash

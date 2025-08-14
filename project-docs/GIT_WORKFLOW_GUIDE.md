@@ -1,6 +1,69 @@
 # Git Workflow Guide - Athletic Tracker MVP
 
-**Quick reference for what files to commit vs exclude from git operations**
+**Complete git workflow for multi-session development and production deployment**
+
+## 🔥 **MULTI-SESSION DEVELOPMENT WORKFLOW (CRITICAL)**
+
+### **BEFORE starting ANY new session:**
+```bash
+# 1. Always pull latest changes first
+git pull origin main
+
+# 2. Check what branch you're on
+git branch
+
+# 3. Check if you have uncommitted changes
+git status
+```
+
+### **AFTER each session (NEVER skip this):**
+```bash
+# 1. Stage all changes
+git add .
+
+# 2. Commit with descriptive message
+git commit -m "08/13/25 - Fixed custom activities to use database table"
+
+# 3. Push immediately
+git push origin main
+```
+
+### **IF you forget to push and start a new session:**
+```bash
+# When you realize you have unpushed local changes:
+
+# 1. Check what you have locally
+git log --oneline -5
+
+# 2. Stash your current work
+git stash push -m "WIP: current session changes"
+
+# 3. Pull remote changes
+git pull origin main
+
+# 4. Apply your stashed changes back
+git stash pop
+
+# 5. Resolve any conflicts manually
+# 6. Commit and push
+git add .
+git commit -m "Merged previous session changes"
+git push origin main
+```
+
+### **BRUTAL PREVENTION RULE:**
+
+**NEVER end a development session without these 4 commands:**
+```bash
+git add .
+git commit -m "Session complete - [brief description]"
+git push origin main
+git status  # Should show "nothing to commit, working tree clean"
+```
+
+**Set a phone alarm or reminder** - seriously. The 30 seconds it takes to commit/push saves hours of merge hell later.
+
+---
 
 ## 🟢 **ALWAYS COMMIT TO GIT:**
 

@@ -1,21 +1,43 @@
 # Athletic Tracker MVP - Project Status
 
-**Last Updated:** July 24, 2025  
-**Status:** 🎯 GOALS VIEW COMPLETE - Event Banking System Fully Operational  
+**Last Updated:** August 13, 2025  
+**Status:** 🔄 GOALS MERGE ATTEMPTED - CUSTOM ACTIVITIES STABLE - REQUIRES COMPLETION  
 **Location:** `/Users/alain/Projects/athletic-tracker-mvp`  
 **Production URL:** https://athletic-tracker-kuh17lzh-alain-sergiles-projects.vercel.app
 
 ## 🎯 Current State
 
-### 🎉 **GOALS VIEW IMPLEMENTATION COMPLETE (This Session):**
-- **✅ GoalsView Component Built:** Complete event banking dashboard with goal creation form
-- **✅ Banking Cards Display:** Vertical stacking shows all goals simultaneously
-- **✅ Goal Creation Form:** Event name, date, personal goal with live preview
-- **✅ Navigation Consistency:** Added Plus icon for Log Workout across all pages
-- **✅ Event Sorting:** Goals automatically sorted by event date (soonest first)
-- **✅ Date Issues Fixed:** Resolved timezone problems causing "Yesterday" labels
-- **✅ RLS Policy Fixed:** Applied migration 002 to resolve infinite recursion
-- **✅ Day of Week Display:** Enhanced date labels with "Mon, Jul 22" format
+### 🔄 **GOALS + CUSTOM ACTIVITIES MERGE (August 13, 2025 Session - INCOMPLETE):**
+- **🔍 Production Code Recovery:** Successfully extracted working Goals functionality from July 24, 2025 commit (`7be427c`)
+- **🏗️ Merge Attempted:** Started combining custom activities database improvements with working GoalsView component
+- **⚠️ Session Ended:** Merge process was interrupted - file partially implemented as AthleticTracker-MERGED-INCOMPLETE.js
+- **🔄 Backup Restored:** Current AthleticTracker.js restored from pre-merge backup with stable custom activities
+- **🎯 Next Session Goal:** Complete the Goals + Custom Activities merge and test unified functionality
+
+### ✅ **CUSTOM ACTIVITIES DATABASE INTEGRATION (August 13, 2025 Session - STABLE):**
+- **✅ Database-First Implementation:** Migrated from JSON field to `custom_workout_types` table
+- **✅ ProfileView Working:** Custom activities display and management in user settings
+- **✅ Unified Add/Delete Logic:** Both workout logging and profile pages use same database operations
+- **✅ Authentication Bug Fixed:** Sign-out button properly calls signOut() function
+- **✅ Data Persistence:** Custom activities persist across sessions and browser refreshes
+- **✅ Cross-Page Consistency:** Activities added from any page appear everywhere immediately
+- **✅ Database Reality Confirmed:** Working with existing `custom_workout_types` table structure
+
+### ✅ **UX FIXES IMPLEMENTED (August 12, 2025 Session):**
+- **✅ Success Screen Consistency:** Standardized success animation across all workflows - eliminated jarring button flash
+- **✅ Duplicate Prevention:** Custom activities now validate against existing names with case-insensitive checking
+- **✅ Custom Activity Management:** Added deletion functionality in profile page with confirmation dialogs
+- **✅ Database Migration 004:** Applied successfully - function returns ID field enabling deletion
+- **✅ Error Handling Enhanced:** Specific user-friendly error messages for validation failures
+- **✅ UX Polish Complete:** All reported friction points resolved while maintaining <30s logging flow
+
+### ✅ **RETROACTIVE LOGGING & DISTANCE FEATURES (August 9, 2025 Session):**
+- **✅ Distance Tracking:** Optional distance field with smart unit dropdown (miles/km/meters/yards)
+- **✅ Custom Workout Types:** "+ Add Activity" button for user-specific activities  
+- **✅ Retroactive Logging:** "Add Workout" button on history page with date picker
+- **✅ Enhanced UX:** Interactive distance unit selector per workout
+- **✅ Smart Defaulting:** Units default to user preferences but changeable per workout
+- **✅ Database Migration 003:** Applied successfully with distance fields and custom types
 
 ### 💾 **DATABASE FOUNDATION READY (Previous Session):**
 - **🏗️ Database Migration Applied:** Successfully ran `001_add_events_and_goals.sql` migration
@@ -24,7 +46,9 @@
 - **🛠️ Database Helpers Complete:** Added 6 new functions to `src/lib/supabase.js` for event/goal management
 - **📊 Banking Logic Implemented:** Automatic target calculation based on weeks remaining × weekly frequency
 
-### 🎯 **EVENT-DRIVEN BANKING SYSTEM FULLY OPERATIONAL:**
+### 🎯 **EVENT-DRIVEN BANKING SYSTEM READY FOR INTEGRATION:**
+- **Working Code Available:** Complete Goals functionality extracted from July 24 commit in `working-goals-full.js`
+- **Database Functions Ready:** All Goals database helpers exist in `src/lib/supabase.js`
 - **Core Banking Features:** Athletes create events ("State Championships - March 15") with personal goals
 - **Forward-Looking Banking:** Only workouts after goal creation count toward targets
 - **Multi-Event Support:** One workout contributes to all active goals simultaneously
@@ -42,40 +66,20 @@
 - **✅ Cross-Device Sync:** Real-time data synchronization working
 - **✅ Navigation System:** Consistent 4-icon navigation across all pages
 
-### ✅ **COMPLETED FOUNDATION WORK:**
-- **Strategic Pivot:** Eliminated voice/LLM complexity for brutal simplicity
-- **Working MVP:** Premium React app with 3-field logging (type, duration, rating)
-- **Local Development:** Full project structure in Projects folder
-- **GitHub Repository:** `https://github.com/asergile/athletic-tracker-mvp`
-- **UX Refinements:** Fixed input focus issues and time display formatting
-- **Workflow Protocol:** Established proper development process
-- **Architecture Decision:** Selected Supabase for growth path vs Firebase
-- **Complete Wireframes:** Auth flow, profile/settings, and navigation approved
-- **✅ Phase 1 Implementation:** Complete Supabase integration with auth and database
-- **✅ Authentication System:** Google OAuth + email/password with verification
-- **✅ Cloud Database:** PostgreSQL with Row Level Security policies
-- **✅ Session Management:** 48-hour timeout with activity-based reset
-- **✅ Profile Screen:** Account management and sign-out functionality
-- **✅ Auto-Navigation:** Successful workout → history view transition
-- **✅ Documentation:** Comprehensive setup guide and project docs
-- **✅ GitHub Sync:** All changes committed to repository
-- **✅ Session Handoff System:** Complete session management system implemented
-- **✅ Best Practices Guide:** Claude collaboration guidelines established
-
 ## 📊 **Key Metrics Validated:**
 - **Logging Speed:** Currently <30 seconds average
 - **User Experience:** Premium design with smooth interactions
 - **Technical Performance:** <100ms interaction response time
 - **Mobile Optimization:** Touch-friendly, responsive design
 - **Production Stability:** TypeScript foundation ensures reliability
-- **Banking System:** Real-time progress tracking operational
+- **Custom Activities:** Database persistence working properly
 
 ## 🎯 **Immediate Next Steps:**
-1. **🧪 Alpha User Testing:** Test event banking concept with real users
-2. **📊 User Feedback Collection:** Gather data on banking vs. generic goals
-3. **⚙️ Weekly Frequency Settings:** Move to Profile page (remove from goal creation)
-4. **🔄 Icon Feedback:** Collect user input on Plus icon vs. Lightning/Activity
-5. **📈 Engagement Analysis:** Measure banking system impact on consistency
+1. **🔄 Complete Goals Merge:** Finish integrating Goals functionality with current custom activities system
+2. **🧪 Test Unified System:** Verify both Goals banking and custom activities work together
+3. **📝 Git Commit:** Commit merged solution once functionality confirmed
+4. **🚀 Production Deploy:** Deploy unified solution for alpha testing
+5. **📊 User Feedback Collection:** Test complete system with real users
 
 ## 💡 **Core Value Proposition Confirmed:**
 **"Log your workout in under 30 seconds. See your progress instantly."**
@@ -86,7 +90,7 @@
 - Zero complexity barriers to adoption
 - **✅ Cross-device sync without manual backup**
 - **✅ Production-ready reliability**
-- **✅ Event-driven banking for concrete motivation**
+- **🔄 Event-driven banking for concrete motivation (pending merge completion)**
 
 ## 🔧 **Technical Foundation (Production Ready):**
 - **✅ TypeScript Strict Mode:** All components properly typed
@@ -97,6 +101,7 @@
 - **✅ Authentication Flow:** Complete user management system
 - **✅ Navigation Consistency:** 4-icon pattern across all pages
 - **✅ Date Handling:** Timezone-aware workout logging
+- **✅ Custom Activities Database:** Persistent storage working
 
 ## 🔄 **Project Philosophy Maintained:**
 **"Brutal honesty and realistic takes over being led down paths of maybes"**
@@ -113,7 +118,7 @@
 athletic-tracker-mvp/
 ├── src/               # React application code (TypeScript compliant)
 │   ├── lib/           # Supabase client and auth context
-│   ├── components/    # UI components (Auth, Loading, Main app, Goals)
+│   ├── components/    # UI components (Auth, Loading, Main app, Working custom activities)
 │   ├── types/         # TypeScript interface definitions
 │   └── App.js         # Root component with auth routing
 ├── database/          # Database schema and migrations
@@ -132,6 +137,9 @@ athletic-tracker-mvp/
 │   ├── supabase-implementation-plan.md
 │   ├── alpha-testing-protocol.md
 │   └── deployment-guide.md
+├── working-goals-full.js          # Complete working Goals component (extracted)
+├── working-supabase.js           # Goals database helpers (extracted)
+├── AthleticTracker-MERGED-INCOMPLETE.js # Partial merge attempt
 ├── vercel.json        # Vercel deployment configuration
 ├── SUPABASE_SETUP.md  # Phase 1 setup instructions
 ├── package.json       # Dependencies and scripts
@@ -146,38 +154,32 @@ athletic-tracker-mvp/
 - **Performance:** <500KB bundle, <100ms interactions
 - **Type Safety:** Strict TypeScript compliance
 
-## 🧪 **Alpha Testing Ready:**
-**Primary Question:** Will event-driven banking improve engagement vs. generic weekly goals?
+## 🧪 **Alpha Testing Status:**
+**Current State:** Custom activities working perfectly, Goals system ready for integration
+
+**Integration Questions:**
+- Will event-driven banking improve engagement vs. generic weekly goals?
+- How do custom activities work within the Goals banking system?
+- Does the unified system maintain <30s logging speed?
 
 **Success Signals:**
 - Users create events with concrete deadlines
 - Banking progress motivates consistent logging
+- Custom activities work seamlessly within Goals
 - "Days remaining" creates urgency
-- Users prefer event targets over generic weekly goals
 - Logging consistency improves with banking concept
 
 ## 📋 **Implementation Status:**
 - ✅ **Phase 1 Complete:** Supabase integration with auth and database
-- ✅ **Phase 2 Complete:** Event banking system UI and database
-- ✅ **User workflows and wireframes:** Implemented and functional
-- ✅ **Database schema:** Designed and deployed to production with fixes
-- ✅ **Component structure:** Complete and tested locally + production
-- ✅ **GitHub Repository:** All changes committed and synced
-- ✅ **Session Management System:** Complete handoff protocols established
-- ✅ **TypeScript Foundation:** Strict mode compliance achieved
-- ✅ **Production Deployment:** Live and working at Vercel
-- ✅ **Environment Configuration:** Supabase credentials active
-- 🎯 **Current Phase:** Alpha testing scale-up → User feedback collection
+- ✅ **Phase 2 Complete:** Custom activities database integration
+- ✅ **Phase 3 Partial:** Goals system extracted and ready for integration
+- 🔄 **Phase 4 In Progress:** Goals + Custom Activities merge (needs completion)
+- 🎯 **Phase 5 Next:** Unified system testing and production deployment
 
 ## 🎯 **Strategic Position:**
-**Event-driven banking addresses the core engagement problem where alpha users abandoned generic weekly goals. The banking concept provides:**
-- Concrete deadlines ("State Championships - March 15")
-- Visual progress toward specific events
-- Multi-event tracking where workouts count toward all goals
-- Automatic target calculation based on user's training frequency
-- Days remaining countdown creating urgency
+**Strong foundation with working custom activities and extracted Goals functionality. Ready to complete the merge and create the unified solution for alpha testing. Both systems are proven to work independently - integration will provide the complete vision.**
 
-**Next Session Goal:** Collect alpha user feedback on banking concept effectiveness vs. traditional goal setting.
+**Next Session Goal:** Complete the Goals + Custom Activities merge and deploy unified solution for comprehensive user testing.
 
 ## 🤝 **Development Workflow:**
 **Established Protocol:**
@@ -192,14 +194,17 @@ athletic-tracker-mvp/
 
 ## 📄 **Session Handoff:**
 
-**For Next Claude Session:** Use the most recent session handoff file in `project-docs/session-handoffs/` directory.
+**For Next Claude Session:** Use the session handoff file created for this session in `project-docs/session-handoffs/` directory.
 
 **Key Files for Next Session:**
 - `project-docs/technical-specifications.md` - Technology versions and coding standards (READ FIRST)
 - Latest session handoff file - Context for next Claude session
+- `working-goals-full.js` - Complete working Goals component
 - `project-docs/project-status.md` - This current status document
 - Production URL: https://athletic-tracker-kuh17lzh-alain-sergiles-projects.vercel.app
 
-**Goal:** Collect alpha user feedback on event banking system effectiveness and iterate based on real usage data.
+**Goal:** Complete Goals + Custom Activities merge and deploy unified solution for alpha testing.
 
 ---
+
+**Status: GOALS MERGE READY - CUSTOM ACTIVITIES STABLE - UNIFIED SYSTEM PENDING COMPLETION**

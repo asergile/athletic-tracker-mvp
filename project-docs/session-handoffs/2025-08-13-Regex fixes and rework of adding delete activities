@@ -1,0 +1,35 @@
+08/13/25 - Athletic Tracker MVP Handoff Document
+PROJECT STATUS
+We're adding custom activity management functionality to the user settings page. The app is functional - users can log workouts and add custom activities during workout logging, but we need to complete the profile/settings management features.
+COMPLETED TODAY
+✅ Fixed Database Function Calls - Updated all dbHelpers calls to match supabase.js:
+* getWorkouts(user.id) → getUserWorkouts()
+* addWorkout() → createWorkout()
+* Removed user.id parameters from updateUserSettings() calls
+* Fixed parameter structure for workout creation
+✅ Improved Success Message - Removed buttons from confirmation modal, added auto-navigation to history after 2 seconds
+✅ Added Handler Functions - Created handleDeleteCustomActivity() and handleAddNewActivityFromProfile() functions
+✅ Added State Variables - Added showAddNewActivity and newActivityName state
+CURRENTLY IN PROGRESS
+🔄 Adding Custom Activity Management UI to ProfileView - Need to complete the UI section that shows:
+* List of custom activities with delete buttons
+* Add new activity form
+* Integration with existing handlers
+NEXT STEPS NEEDED
+1. Update ProfileView component - Add the "CUSTOM ACTIVITIES" section between "DISTANCE UNITS" and "WEEKLY GOAL"
+2. Pass new props to ProfileView - Add the new handlers and state to the ProfileView component call
+3. Test functionality - Ensure add/delete works from profile page
+KEY FILES
+* Primary: /src/components/AthleticTracker.js - Main component with all functionality
+* Database: /src/lib/supabase.js - Contains correct function signatures
+CURRENT ISSUE
+The ProfileView component needs the UI added but we couldn't complete the exact text matching for the edit. The functions are ready, just need to:
+1. Add the "CUSTOM ACTIVITIES" section HTML to ProfileView
+2. Update the ProfileView function signature to accept the new props
+3. Update the ProfileView call in the main render to pass the new props
+FUNCTION SIGNATURES CONFIRMED WORKING
+* dbHelpers.getUserWorkouts() - returns {data: [], error: null}
+* dbHelpers.createWorkout(workoutData) - expects {type, duration, rating, date, distance, distance_unit}
+* dbHelpers.updateUserSettings(settingsObj) - expects settings object without user.id
+USER PREFERENCE NOTED
+User prefers brutal honesty and realistic takes over "maybes" and "it can work" responses.

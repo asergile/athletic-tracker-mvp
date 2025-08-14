@@ -415,62 +415,6 @@ export const dbHelpers = {
       .select()
     
     return { data, error }
-  },
-
-  // CUSTOM WORKOUT TYPES TABLE OPERATIONS
-  
-  // Get user's custom workout types from table
-  getUserCustomWorkoutTypes: async () => {
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    if (userError || !user) {
-      return { data: [], error: new Error('User not authenticated') }
-    }
-
-    const { data, error } = await supabase
-      .from('custom_workout_types')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('name')
-    
-    return { data: data || [], error }
-  },
-
-  // Add custom workout type to table
-  addCustomWorkoutType: async (typeName) => {
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    if (userError || !user) {
-      return { data: null, error: new Error('User not authenticated') }
-    }
-
-    const { data, error } = await supabase
-      .from('custom_workout_types')
-      .insert([{
-        user_id: user.id,
-        name: typeName.trim()
-      }])
-      .select()
-      .single()
-    
-    return { data, error }
-  },
-
-  // Delete custom workout type from table
-  deleteCustomWorkoutType: async (typeName) => {
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    if (userError || !user) {
-      return { data: null, error: new Error('User not authenticated') }
-    }
-
-    const { data, error } = await supabase
-      .from('custom_workout_types')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('name', typeName)
-    
-    return { data, error }
   }
 }
 
