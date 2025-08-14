@@ -1,18 +1,26 @@
 # Athletic Tracker MVP - Project Status
 
-**Last Updated:** August 13, 2025  
-**Status:** 🔄 GOALS MERGE ATTEMPTED - CUSTOM ACTIVITIES STABLE - REQUIRES COMPLETION  
+**Last Updated:** August 14, 2025  
+**Status:** ✅ GOALS + CUSTOM ACTIVITIES UI COMPLETE - DATABASE MIGRATION PENDING  
 **Location:** `/Users/alain/Projects/athletic-tracker-mvp`  
 **Production URL:** https://athletic-tracker-kuh17lzh-alain-sergiles-projects.vercel.app
 
 ## 🎯 Current State
 
-### 🔄 **GOALS + CUSTOM ACTIVITIES MERGE (August 13, 2025 Session - INCOMPLETE):**
-- **🔍 Production Code Recovery:** Successfully extracted working Goals functionality from July 24, 2025 commit (`7be427c`)
-- **🏗️ Merge Attempted:** Started combining custom activities database improvements with working GoalsView component
-- **⚠️ Session Ended:** Merge process was interrupted - file partially implemented as AthleticTracker-MERGED-INCOMPLETE.js
-- **🔄 Backup Restored:** Current AthleticTracker.js restored from pre-merge backup with stable custom activities
-- **🎯 Next Session Goal:** Complete the Goals + Custom Activities merge and test unified functionality
+### ✅ **UI ARCHITECTURE COMPLETE (August 14, 2025 Session):**
+- **🎯 Goals & Events View:** Renamed and restructured with clear Events vs Goals separation
+- **📝 New Form Structure:** Distinct Event section (competition details) and Goal section (personal achievement)
+- **🔍 Similar Events Detection:** Smart suggestions when users type event names
+- **👥 User Choice Architecture:** Join existing events or create new ones (foundation for coach features)
+- **🏃 Streamlined Workout Types:** Reduced from 10 to 4 default types (Walking, Running, Swimming, Dryland)
+- **💻 Local Development:** All UI changes working and tested locally
+
+### 🗄️ **DATABASE MIGRATION NEEDED:**
+- **📋 Migration Created:** `database/migrations/005_create_shared_events_architecture.sql`
+- **⚠️ Syntax Issues:** DO block syntax errors preventing Supabase deployment
+- **🔍 Schema Discovered:** Existing `athlete_goals` table uses `athlete_id` (not `user_id`)
+- **📊 Existing Tables:** athlete_goals, events, custom_workout_types, workouts, user_settings, feedback
+- **🎯 Next Step:** Clean migration without DO blocks needed for production deployment
 
 ### ✅ **CUSTOM ACTIVITIES DATABASE INTEGRATION (August 13, 2025 Session - STABLE):**
 - **✅ Database-First Implementation:** Migrated from JSON field to `custom_workout_types` table
@@ -67,19 +75,19 @@
 - **✅ Navigation System:** Consistent 4-icon navigation across all pages
 
 ## 📊 **Key Metrics Validated:**
-- **Logging Speed:** Currently <30 seconds average
-- **User Experience:** Premium design with smooth interactions
+- **Logging Speed:** Currently <30 seconds average (maintained)
+- **User Experience:** Enhanced with streamlined workflow and clear Events vs Goals separation
 - **Technical Performance:** <100ms interaction response time
 - **Mobile Optimization:** Touch-friendly, responsive design
 - **Production Stability:** TypeScript foundation ensures reliability
-- **Custom Activities:** Database persistence working properly
+- **Custom Activities:** Database persistence working properly (4 default types)
 
 ## 🎯 **Immediate Next Steps:**
-1. **🔄 Complete Goals Merge:** Finish integrating Goals functionality with current custom activities system
-2. **🧪 Test Unified System:** Verify both Goals banking and custom activities work together
-3. **📝 Git Commit:** Commit merged solution once functionality confirmed
-4. **🚀 Production Deploy:** Deploy unified solution for alpha testing
-5. **📊 User Feedback Collection:** Test complete system with real users
+1. **🗄️ Complete Database Migration:** Create clean SQL migration without DO blocks for Supabase
+2. **🔗 Update Helper Functions:** Modify shared-events-helpers.js to use `athlete_id` instead of `user_id`
+3. **🧪 Test New Architecture:** Verify Goals & Events functionality with database backend
+4. **🚀 Production Deploy:** Deploy unified solution with database migration
+5. **📊 Alpha Testing:** Comprehensive testing with real athletes using complete feature set
 
 ## 💡 **Core Value Proposition Confirmed:**
 **"Log your workout in under 30 seconds. See your progress instantly."**

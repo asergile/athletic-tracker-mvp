@@ -283,7 +283,7 @@ export const dbHelpers = {
     const { data, error } = await supabase
       .from('athlete_goals')
       .insert([{
-        athlete_id: user.id,
+        user_id: user.id,  // UPDATED: Use user_id instead of athlete_id
         event_id: eventId,
         target_workouts: targetWorkouts
       }])
@@ -311,7 +311,7 @@ export const dbHelpers = {
         *,
         events!inner(name, event_date, goal)
       `)
-      .eq('athlete_id', user.id)
+      .eq('user_id', user.id)  // UPDATED: Use user_id instead of athlete_id
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -370,7 +370,7 @@ export const dbHelpers = {
       .from('athlete_goals')
       .delete()
       .eq('id', goalId)
-      .eq('athlete_id', user.id) // Ensure user can only delete their own goals
+      .eq('user_id', user.id) // UPDATED: Use user_id instead of athlete_id
     
     return { data, error }
   },

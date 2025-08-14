@@ -25,8 +25,8 @@ const getWeekStart = (date) => {
   return new Date(d.setDate(diff));
 };
 
-// Enhanced workout types with default types
-const defaultWorkoutTypes = ['Swimming', 'Running', 'Cycling', 'Weight Training', 'Dryland', 'CrossFit', 'Walking', 'Soccer', 'Tennis', 'Other'];
+// Streamlined default workout types - users add custom activities as needed
+const defaultWorkoutTypes = ['Walking', 'Running', 'Swimming', 'Dryland'];
 
 // Distance unit options
 const distanceUnits = {
@@ -497,46 +497,55 @@ const LogWorkoutView = ({
   );
 };
 
-// GOALS VIEW COMPONENT
-const GoalsView = ({ setCurrentView, onGoalCreated }) => {
+// GOALS AND EVENTS VIEW COMPONENT
+const GoalsAndEventsView = ({ setCurrentView, onGoalCreated }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [goals, setGoals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   
-  // Form state
-  const [formData, setFormData] = useState({
-    eventName: '',
+  // Form state - separated Events from Goals
+  const [eventData, setEventData] = useState({
+    name: '',
     eventDate: '',
-    personalGoal: '',
+    location: '',
+    isDiscoverable: false
+  });
+  
+  const [goalData, setGoalData] = useState({
+    goalDescription: '',
     weeklyFrequency: 4,
     sport: 'Swimming'
   });
+  
+  const [showSimilarEvents, setShowSimilarEvents] = useState(false);
+  const [similarEvents, setSimilarEvents] = useState([]);
+  const [selectedEventId, setSelectedEventId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Set default date to 8 weeks from now
   useEffect(() => {
     const defaultDate = new Date();
     defaultDate.setDate(defaultDate.getDate() + 56); // 8 weeks
-    setFormData(prev => ({
+    setEventData(prev => ({
       ...prev,
       eventDate: defaultDate.toISOString().split('T')[0]
     }));
-  }, []);
+  }, []); 
   
-  // Load user's goals
+  // Load user's goals using existing schema
   const loadGoals = async () => {
     setIsLoading(true);
     setError('');
     
     try {
-      const { data, error } = await dbHelpers.getUserGoals();
-      if (error) {
-        console.error('Error loading goals:', error);
+      const result = await dbHelpers.getUserGoals();
+      if (result.error) {
+        console.error('Error loading goals:', result.error);
         setError('Failed to load goals');
       } else {
         // Sort goals by event date (soonest first)
-        const sortedGoals = (data || []).sort((a, b) => {
+        const sortedGoals = (result.data || []).sort((a, b) => {
           const dateA = new Date(a.events.event_date);
           const dateB = new Date(b.events.event_date);
           return dateA - dateB; // Ascending order (soonest first)
@@ -555,13 +564,18 @@ const GoalsView = ({ setCurrentView, onGoalCreated }) => {
     loadGoals();
   }, []);
   
-  const handleFormChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleEventChange = (field, value) => {
+    setEventData(prev => ({ ...prev, [field]: value }));
+    // Note: Similar events detection disabled for now - using existing schema
+  };
+  
+  const handleGoalChange = (field, value) => {
+    setGoalData(prev => ({ ...prev, [field]: value }));
   };
   
   const handleCreateGoal = async () => {
-    if (!formData.eventName || !formData.eventDate) {
-      setError('Please fill in event name and date');
+    if (!eventData.name || !eventData.eventDate || !goalData.goalDescription) {
+      setError('Please fill in event name, date, and your goal');
       return;
     }
     
@@ -569,32 +583,34 @@ const GoalsView = ({ setCurrentView, onGoalCreated }) => {
     setError('');
     
     try {
-      // First create the event
-      const { data: event, error: eventError } = await dbHelpers.createEvent({
-        name: formData.eventName,
-        eventDate: formData.eventDate,
-        goal: formData.personalGoal
+      // Create event first using existing schema
+      const eventResult = await dbHelpers.createEvent({
+        name: eventData.name,
+        eventDate: eventData.eventDate,
+        goal: goalData.goalDescription // Store goal description in event
       });
       
-      if (eventError) {
-        throw eventError;
+      if (eventResult.error) {
+        throw eventResult.error;
       }
       
-      // Update user's weekly frequency if changed
-      await dbHelpers.updateWeeklyFrequency(formData.weeklyFrequency);
+      // Create the personal goal for this event using existing schema
+      const goalResult = await dbHelpers.createGoal(eventResult.data.id);
       
-      // Create the goal
-      const { data: goal, error: goalError } = await dbHelpers.createGoal(event.id);
-      
-      if (goalError) {
-        throw goalError;
+      if (goalResult.error) {
+        throw goalResult.error;
       }
       
       // Reset form and reload goals
-      setFormData({
-        eventName: '',
+      setEventData({
+        name: '',
         eventDate: '',
-        personalGoal: '',
+        location: '',
+        isDiscoverable: false
+      });
+      
+      setGoalData({
+        goalDescription: '',
         weeklyFrequency: 4,
         sport: 'Swimming'
       });
@@ -602,13 +618,16 @@ const GoalsView = ({ setCurrentView, onGoalCreated }) => {
       // Set default date again
       const defaultDate = new Date();
       defaultDate.setDate(defaultDate.getDate() + 56);
-      setFormData(prev => ({
+      setEventData(prev => ({
         ...prev,
         eventDate: defaultDate.toISOString().split('T')[0]
       }));
       
+      setSelectedEventId(null);
+      setShowSimilarEvents(false);
+      setSimilarEvents([]);
       setIsCreating(false);
-      await loadGoals(); // This will reload and sort the goals
+      await loadGoals();
       
       if (onGoalCreated) {
         onGoalCreated();
@@ -623,15 +642,15 @@ const GoalsView = ({ setCurrentView, onGoalCreated }) => {
   };
   
   const calculatePreviewValues = () => {
-    if (!formData.eventDate) return { daysLeft: '--', targetWorkouts: '--' };
+    if (!eventData.eventDate) return { daysLeft: '--', targetWorkouts: '--' };
     
-    const eventDate = new Date(formData.eventDate);
+    const eventDate = new Date(eventData.eventDate);
     const today = new Date();
     const diffTime = eventDate - today;
     const daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
     
     const weeksRemaining = Math.max(0.1, daysLeft / 7);
-    const targetWorkouts = Math.ceil(weeksRemaining * formData.weeklyFrequency);
+    const targetWorkouts = Math.ceil(weeksRemaining * goalData.weeklyFrequency);
     
     return { daysLeft, targetWorkouts };
   };
@@ -650,8 +669,8 @@ const GoalsView = ({ setCurrentView, onGoalCreated }) => {
             <ChevronLeft className="w-6 h-6 text-white" />
           </button>
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Goals</h1>
-            <p className="text-green-200">Track your journey to greatness</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Goals & Events</h1>
+            <p className="text-green-200">Train toward your competitions</p>
           </div>
           <div className="flex space-x-2">
             <button
@@ -726,6 +745,11 @@ const GoalsView = ({ setCurrentView, onGoalCreated }) => {
                               year: 'numeric' 
                             })}
                           </div>
+                          {goal.events.goal && (
+                            <div className="text-base font-semibold bg-white bg-opacity-20 rounded-lg px-3 py-2 mt-3">
+                              🎯 {goal.events.goal}
+                            </div>
+                          )}
                         </div>
                         <div className="text-right text-sm opacity-90">
                           <span className="text-2xl font-bold block">{goal.days_remaining}</span>
@@ -787,82 +811,132 @@ const GoalsView = ({ setCurrentView, onGoalCreated }) => {
             {isCreating && (
               <div className="bg-white rounded-3xl p-6 shadow-2xl">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-800">Add New Goal</h3>
+                  <h3 className="text-xl font-bold text-gray-800">Add New Goal & Event</h3>
                   <button
-                    onClick={() => setIsCreating(false)}
+                    onClick={() => {
+                      setIsCreating(false);
+                      setShowSimilarEvents(false);
+                      setSelectedEventId(null);
+                    }}
                     className="text-gray-500 hover:text-gray-700 p-2"
                   >
                     ×
                   </button>
                 </div>
                 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Event Name</label>
-                    <input
-                      type="text"
-                      value={formData.eventName}
-                      onChange={(e) => handleFormChange('eventName', e.target.value)}
-                      placeholder="e.g., State Championships"
-                      className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Event Date</label>
-                    <input
-                      type="date"
-                      value={formData.eventDate}
-                      onChange={(e) => handleFormChange('eventDate', e.target.value)}
-                      className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Personal Goal</label>
-                    <input
-                      type="text"
-                      value={formData.personalGoal}
-                      onChange={(e) => handleFormChange('personalGoal', e.target.value)}
-                      placeholder="e.g., Set PB in freestyle"
-                      className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Weekly Workouts</label>
-                      <select
-                        value={formData.weeklyFrequency}
-                        onChange={(e) => handleFormChange('weeklyFrequency', parseInt(e.target.value))}
-                        className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
-                      >
-                        <option value={3}>3 per week</option>
-                        <option value={4}>4 per week</option>
-                        <option value={5}>5 per week</option>
-                        <option value={6}>6 per week</option>
-                      </select>
+                <div className="space-y-6">
+                  {/* EVENT SECTION */}
+                  <div className="bg-blue-50 rounded-xl p-4">
+                    <h4 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                      📅 Competition/Event
+                    </h4>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Event Name</label>
+                        <input
+                          type="text"
+                          value={eventData.name}
+                          onChange={(e) => handleEventChange('name', e.target.value)}
+                          placeholder="e.g., State Championships"
+                          className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Event Date</label>
+                          <input
+                            type="date"
+                            value={eventData.eventDate}
+                            onChange={(e) => handleEventChange('eventDate', e.target.value)}
+                            className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Location (optional)</label>
+                          <input
+                            type="text"
+                            value={eventData.location}
+                            onChange={(e) => handleEventChange('location', e.target.value)}
+                            placeholder="e.g., Aquatic Center"
+                            className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="isDiscoverable"
+                          checked={eventData.isDiscoverable}
+                          onChange={(e) => handleEventChange('isDiscoverable', e.target.checked)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor="isDiscoverable" className="text-sm text-gray-700">
+                          Make this event discoverable by others
+                        </label>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Sport</label>
-                      <select
-                        value={formData.sport}
-                        onChange={(e) => handleFormChange('sport', e.target.value)}
-                        className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
-                      >
-                        <option value="Swimming">Swimming</option>
-                        <option value="Running">Running</option>
-                        <option value="Cycling">Cycling</option>
-                        <option value="Other">Other</option>
-                      </select>
+                  </div>
+                  
+                  {/* Similar Events Found */}
+                  {/* Note: Similar events detection disabled - using existing schema */}
+                  
+                  {/* GOAL SECTION */}
+                  <div className="bg-green-50 rounded-xl p-4">
+                    <h4 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                      🎯 Your Personal Goal
+                    </h4>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">What do you want to achieve at this event?</label>
+                        <input
+                          type="text"
+                          value={goalData.goalDescription}
+                          onChange={(e) => handleGoalChange('goalDescription', e.target.value)}
+                          placeholder="e.g., Swim PB in 100 freestyle, Break 3:00 marathon"
+                          className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Weekly Workouts</label>
+                          <select
+                            value={goalData.weeklyFrequency}
+                            onChange={(e) => handleGoalChange('weeklyFrequency', parseInt(e.target.value))}
+                            className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
+                          >
+                            <option value={3}>3 per week</option>
+                            <option value={4}>4 per week</option>
+                            <option value={5}>5 per week</option>
+                            <option value={6}>6 per week</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Sport</label>
+                          <select
+                            value={goalData.sport}
+                            onChange={(e) => handleGoalChange('sport', e.target.value)}
+                            className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
+                          >
+                            <option value="Swimming">Swimming</option>
+                            <option value="Running">Running</option>
+                            <option value="Cycling">Cycling</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
                   <button
                     onClick={handleCreateGoal}
-                    disabled={!formData.eventName || !formData.eventDate || isSubmitting}
+                    disabled={!eventData.name || !eventData.eventDate || !goalData.goalDescription || isSubmitting}
                     className={`w-full py-4 rounded-xl font-semibold transition-all duration-200 ${
-                      !formData.eventName || !formData.eventDate || isSubmitting
+                      !eventData.name || !eventData.eventDate || !goalData.goalDescription || isSubmitting
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg'
                     }`}
@@ -873,12 +947,12 @@ const GoalsView = ({ setCurrentView, onGoalCreated }) => {
                         <span>Creating Goal...</span>
                       </div>
                     ) : (
-                      'Create Goal'
+                      'Create Event & Goal'
                     )}
                   </button>
                   
                   {/* Preview Card */}
-                  {formData.eventName && formData.eventDate && (
+                  {eventData.name && eventData.eventDate && goalData.goalDescription && (
                     <div 
                       className="mt-6 p-4 rounded-xl text-white"
                       style={{
@@ -888,14 +962,17 @@ const GoalsView = ({ setCurrentView, onGoalCreated }) => {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h3 className="text-base font-bold mb-1">
-                            {formData.personalGoal ? `${formData.eventName} - ${formData.personalGoal}` : formData.eventName}
+                            {eventData.name}
                           </h3>
-                          <div className="text-sm opacity-90">
-                            {new Date(formData.eventDate).toLocaleDateString('en-US', { 
+                          <div className="text-sm opacity-90 mb-1">
+                            {new Date(eventData.eventDate).toLocaleDateString('en-US', { 
                               month: 'long', 
                               day: 'numeric', 
                               year: 'numeric' 
                             })}
+                          </div>
+                          <div className="text-sm opacity-75 italic">
+                            Goal: {goalData.goalDescription}
                           </div>
                         </div>
                         <div className="text-right text-sm opacity-90">
@@ -1589,7 +1666,7 @@ setShowDatePicker(true);
 }
 if (currentView === 'goals') {
 return (
-<GoalsView 
+<GoalsAndEventsView 
 setCurrentView={setCurrentView}
 onGoalCreated={() => {
 // Reload workouts when a new goal is created to ensure consistency
