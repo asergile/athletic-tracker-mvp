@@ -169,7 +169,47 @@ export const dbHelpers = {
     return { data: updateData, error: updateError }
   },
 
-  // Get workout stats - NOW FILTERS BY USER
+  // Update workout
+  updateWorkout: async (workoutId, workoutData) => {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('User not authenticated') }
+    }
+
+    const { data, error } = await supabase
+      .from('workouts')
+      .update({
+        workout_type: workoutData.type,
+        duration: workoutData.duration,
+        rating: workoutData.rating,
+        date: workoutData.date,
+        distance: workoutData.distance,
+        distance_unit: workoutData.distance_unit
+      })
+      .eq('id', workoutId)
+      .eq('user_id', user.id) // Ensure user can only update their own workouts
+      .select()
+    
+    return { data, error }
+  },
+
+  // Delete workout
+  deleteWorkout: async (workoutId) => {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('User not authenticated') }
+    }
+
+    const { data, error } = await supabase
+      .from('workouts')
+      .delete()
+      .eq('id', workoutId)
+      .eq('user_id', user.id) // Ensure user can only delete their own workouts
+    
+    return { data, error }
+  },
   getWorkoutStats: async () => {
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -220,7 +260,44 @@ export const dbHelpers = {
     return { data, error }
   },
 
-  // Get user's events (created by them)
+  // Update event
+  updateEvent: async (eventId, eventData) => {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('User not authenticated') }
+    }
+
+    const { data, error } = await supabase
+      .from('events')
+      .update({
+        name: eventData.name,
+        event_date: eventData.eventDate,
+        goal: eventData.goal || null
+      })
+      .eq('id', eventId)
+      .eq('created_by', user.id) // Ensure user can only update their own events
+      .select()
+    
+    return { data, error }
+  },
+
+  // Delete event
+  deleteEvent: async (eventId) => {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('User not authenticated') }
+    }
+
+    const { data, error } = await supabase
+      .from('events')
+      .delete()
+      .eq('id', eventId)
+      .eq('created_by', user.id) // Ensure user can only delete their own events
+    
+    return { data, error }
+  },
   getUserEvents: async () => {
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser()
