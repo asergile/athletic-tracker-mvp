@@ -10,11 +10,49 @@
 
 ## 🚨 **CRITICAL - READ FIRST:**
 
+**CRITICAL PATH RESTRICTION:**
+ONLY read files from: `/Users/alain/Projects/athletic-tracker-mvp/`
+NEVER read files from other project directories.
+All file references are relative to the athletic-tracker-mvp directory.
+
 **DO NOT BUILD ANYTHING NEW. DO NOT CREATE ANY FILES. DO NOT OVERWRITE EXISTING CODE.**
 
 **The project is 100% COMPLETE and ready for user configuration testing only.**
 
 **Current Status:** All code exists at `/Users/alain/Projects/athletic-tracker-mvp/` - Phase 1 implementation is FINISHED.
+
+## 🧠 **WORK-TYPE CONTEXT LOADING:**
+
+**INSTRUCTIONS:** Load documents based on user's work description:
+
+**User says:** "Continue coding - [work description]"
+**Your response:** Analyze work type and load appropriate context:
+
+### Context Loading Rules:
+- **UI/Component work** (buttons, forms, styling, user experience)
+  - Load: `project-status.md` + `mvp-requirements.md` + latest handoff
+  - Skip: session-log.md, implementation plans
+
+- **Database/Backend work** (schema, APIs, data storage)
+  - Load: `project-status.md` + `supabase-implementation-plan.md` + latest handoff
+  - Skip: session-log.md, UI requirements
+
+- **Bug fixes** (specific error fixing, troubleshooting)
+  - Load: `project-status.md` + latest handoff only
+  - Skip: All other docs unless bug relates to major architectural decision
+
+- **New features** (adding functionality, architectural changes)
+  - Load: `project-status.md` + `mvp-requirements.md` + `session-log.md` + latest handoff
+  - This is the full context load
+
+- **Planning/Strategy** (rare - user will specify)
+  - Load: Everything
+
+### Implementation:
+1. User specifies work type in opening message
+2. You load only the relevant subset
+3. If unclear, ask: "Should I load [MINIMAL|STANDARD|FULL] context for this work?"
+4. Only request additional docs if you encounter missing context during work
 
 ## 🎯 **CONTEXT:** 
 [Brief description of what phase/state the project is in - e.g., "We just completed Phase 1 of the Athletic Tracker MVP - implementing complete Supabase authentication and cloud database integration. **NO VOICE PROCESSING** - we pivoted away from that approach completely."]
@@ -72,6 +110,13 @@
 5. **[Next Priority 5]** - [Description]
 
 **[Current phase context - e.g., "NO NEW CODE DEVELOPMENT NEEDED - ONLY USER CONFIGURATION AND TESTING"]**
+
+## 🎯 **NEXT SESSION WORK TYPE:**
+**Likely work:** [UI/COMPONENT | DATABASE/BACKEND | BUG_FIX | NEW_FEATURE | PLANNING]
+**Context needed:** [MINIMAL | STANDARD | FULL]
+**Specific focus:** [brief description of expected next work]
+
+**Suggested opening:** "Continue coding - [specific task description]"
 
 ## 📊 **KEY METRICS & SUCCESS CRITERIA:**
 [Current success measures:]
@@ -157,7 +202,10 @@ Before ending this session, ensure:
 
 **Start your next session by saying:** "Continue with Athletic Tracker MVP - I understand the project is COMPLETE and ready for [current phase] only. I will NOT build anything new or overwrite existing code."
 
-**FIRST ACTION:** Read `project-docs/technical-specifications.md` for versions and coding standards, then read project-status.md to understand current implementation state before doing anything else.
+**FIRST ACTION:** 
+1. Analyze user's work description to determine context needed
+2. Load appropriate document subset based on work type
+3. Only read additional docs if context gaps emerge during work
 
 ---
 

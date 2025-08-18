@@ -221,10 +221,10 @@ const HistoryView = ({ setCurrentView, weeklyStats, workouts, ratingLabels, form
 
             return (
               <div key={workout.id} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 relative">
-                {/* Edit Icon */}
+                {/* Edit Icon - Standardized design */}
                 <button
                   onClick={() => handleEditWorkout(workout)}
-                  className="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
+                  className="absolute top-4 right-4 w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 border border-gray-200 z-10"
                 >
                   <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -1029,17 +1029,17 @@ const GoalsAndEventsView = ({ setCurrentView, onGoalCreated }) => {
                         overflow: 'hidden'
                       }}
                     >
-                      {/* Edit Icon */}
+                      {/* Edit Icon - Standardized to top-right positioning */}
                       <button
                         onClick={() => handleEditGoal(goal)}
-                        className="absolute top-3 right-3 w-9 h-9 bg-white bg-opacity-25 hover:bg-opacity-40 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm border border-white border-opacity-20"
+                        className="absolute top-4 right-4 w-9 h-9 bg-white bg-opacity-25 hover:bg-opacity-40 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm border border-white border-opacity-20 z-10"
                       >
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
                       <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1 pr-12"> {/* Add padding to avoid edit button */}
+                        <div className="flex-1 pr-16"> {/* Add right padding for edit button */}
                           <h3 className="text-lg font-bold mb-1">{goal.events.name}</h3>
                           <div className="text-sm opacity-90">
                             {new Date(goal.events.event_date).toLocaleDateString('en-US', { 
@@ -1054,8 +1054,8 @@ const GoalsAndEventsView = ({ setCurrentView, onGoalCreated }) => {
                             </div>
                           )}
                         </div>
-                        <div className="text-right text-sm opacity-90 flex flex-col items-end">
-                          <div className="mb-2"> {/* Add margin to separate from edit button */}
+                        <div className="text-right text-sm opacity-90 flex flex-col items-end pr-12"> {/* Add padding for edit button */}
+                          <div>
                             <span className="text-2xl font-bold block">{goal.days_remaining}</span>
                             <span className="text-xs">days left</span>
                           </div>
@@ -1418,6 +1418,8 @@ const ProfileView = ({
   setShowAddNewActivity,
   newActivityName,
   setNewActivityName,
+  editingActivityName,
+  setEditingActivityName,
   handleDeleteCustomActivity,
   handleAddNewActivityFromProfile,
   workoutTypes
@@ -1521,14 +1523,32 @@ const ProfileView = ({
                 <div className="space-y-2">
                   <p className="text-gray-700 font-medium mb-3">Your custom activities:</p>
                   {customActivities.map((activity, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-700">{activity}</span>
-                      <button
-                        onClick={() => handleDeleteCustomActivity(activity)}
-                        className="text-red-500 hover:text-red-700 text-sm font-medium"
-                      >
-                        Delete
-                      </button>
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg relative">
+                      <span className="text-gray-700 flex-1 pr-20">{activity}</span>
+                      <div className="absolute top-3 right-3 flex space-x-2">
+                        {/* Edit Icon - Top-right positioning */}
+                        <button
+                          onClick={() => {
+                            setEditingActivityName(activity);
+                            setNewActivityName(activity);
+                            setShowAddNewActivity(true);
+                          }}
+                          className="w-8 h-8 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-all duration-200 border border-blue-200"
+                        >
+                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        {/* Delete Icon - Top-right positioning */}
+                        <button
+                          onClick={() => handleDeleteCustomActivity(activity)}
+                          className="w-8 h-8 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center transition-all duration-200 border border-red-200"
+                        >
+                          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1562,6 +1582,7 @@ const ProfileView = ({
                       onClick={() => {
                         setShowAddNewActivity(false);
                         setNewActivityName('');
+                        setEditingActivityName(null);
                       }}
                       className="flex-1 py-2 px-4 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors"
                     >
@@ -1571,7 +1592,7 @@ const ProfileView = ({
                       onClick={handleAddNewActivityFromProfile}
                       className="flex-1 py-2 px-4 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:shadow-lg transition-all"
                     >
-                      Add Activity
+                      {editingActivityName ? 'Update Activity' : 'Add Activity'}
                     </button>
                   </div>
                 </div>
@@ -1678,6 +1699,7 @@ const [showAddWorkoutType, setShowAddWorkoutType] = useState(false);
   // Custom activity management state for profile page
   const [showAddNewActivity, setShowAddNewActivity] = useState(false);
   const [newActivityName, setNewActivityName] = useState('');
+  const [editingActivityName, setEditingActivityName] = useState(null); // Track which activity is being edited
 // User Settings State
 const [userSettings, setUserSettings] = useState({
 distance_unit_cardio: 'miles',
@@ -1829,42 +1851,70 @@ try {
     }
   }, [workoutTypes]);
 
-  // Add new activity from profile page
+  // Add new activity from profile page (supports both add and edit)
   const handleAddNewActivityFromProfile = useCallback(async () => {
     if (!newActivityName.trim()) {
       return;
     }
 
     const newType = newActivityName.trim();
+    const originalActivity = editingActivityName; // Use the tracked editing state
     
-    // Check if already exists
-    if (workoutTypes.includes(newType)) {
+    // Check if already exists and we're not editing
+    if (workoutTypes.includes(newType) && newType !== originalActivity) {
       setError('Activity already exists');
       return;
     }
 
     try {
-      // Save to database table
-      const response = await dbHelpers.addCustomWorkoutType(newType);
-      if (response.error) {
-        console.error('Error adding new activity:', response.error);
-        setError('Failed to add activity');
-        return;
+      // If editing an existing activity, delete the old one first
+      if (originalActivity && originalActivity !== newType) {
+        const deleteResponse = await dbHelpers.deleteCustomWorkoutType(originalActivity);
+        if (deleteResponse.error) {
+          console.error('Error deleting old activity:', deleteResponse.error);
+          setError('Failed to update activity');
+          return;
+        }
+      }
+      
+      // Save the new/updated activity
+      if (!originalActivity || originalActivity !== newType) {
+        const response = await dbHelpers.addCustomWorkoutType(newType);
+        if (response.error) {
+          console.error('Error adding/updating activity:', response.error);
+          setError('Failed to save activity');
+          return;
+        }
       }
       
       // Update local state
-      const updatedTypes = [...workoutTypes, newType];
+      let updatedTypes;
+      if (originalActivity && originalActivity !== newType) {
+        // Replace old activity with new one
+        updatedTypes = workoutTypes.map(type => 
+          type === originalActivity ? newType : type
+        );
+      } else if (!workoutTypes.includes(newType)) {
+        // Add new activity
+        updatedTypes = [...workoutTypes, newType];
+      } else {
+        // No change needed
+        updatedTypes = workoutTypes;
+      }
+      
       setWorkoutTypes(updatedTypes);
       
       // Reset form
       setNewActivityName('');
       setShowAddNewActivity(false);
+      setEditingActivityName(null);
+      setError('');
       
     } catch (error) {
-      console.error('Error adding new activity:', error);
-      setError('Failed to add activity');
+      console.error('Error adding/updating activity:', error);
+      setError('Failed to save activity');
     }
-  }, [newActivityName, workoutTypes]);
+  }, [newActivityName, workoutTypes, editingActivityName]);
 // Weekly goal change handler
 const handleWeeklyGoalChange = useCallback(async (hours, minutes) => {
 const totalMinutes = hours * 60 + minutes;
@@ -2075,6 +2125,8 @@ return (
      setShowAddNewActivity={setShowAddNewActivity}
      newActivityName={newActivityName}
      setNewActivityName={setNewActivityName}
+     editingActivityName={editingActivityName}
+     setEditingActivityName={setEditingActivityName}
      handleDeleteCustomActivity={handleDeleteCustomActivity}
      handleAddNewActivityFromProfile={handleAddNewActivityFromProfile}
      workoutTypes={workoutTypes}
