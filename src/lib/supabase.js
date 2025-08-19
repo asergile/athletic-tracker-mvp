@@ -93,7 +93,9 @@ export const dbHelpers = {
         workout_type: workoutData.type,
         duration: workoutData.duration,
         rating: workoutData.rating,
-        date: workoutDate
+        date: workoutDate,
+        distance: workoutData.distance,
+        distance_unit: workoutData.distance_unit
       }])
       .select()
     

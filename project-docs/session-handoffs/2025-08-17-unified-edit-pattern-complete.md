@@ -26,10 +26,10 @@ All file references are relative to the athletic-tracker-mvp directory.
 ### Context Loading Rules:
 - **UI/Component work** (buttons, forms, styling, user experience)
   - Load: `project-status.md` + `mvp-requirements.md` + latest handoff
-  - Skip: session-log.md, implementation plans
+  - Skip: session-log.md, implementation plans, technical-specifications.md
 
 - **Database/Backend work** (schema, APIs, data storage)
-  - Load: `project-status.md` + `supabase-implementation-plan.md` + latest handoff
+  - Load: `project-status.md` + `supabase-implementation-plan.md` + `technical-specifications.md` + latest handoff
   - Skip: session-log.md, UI requirements
 
 - **Bug fixes** (specific error fixing, troubleshooting)
@@ -37,7 +37,7 @@ All file references are relative to the athletic-tracker-mvp directory.
   - Skip: All other docs unless bug relates to major architectural decision
 
 - **New features** (adding functionality, architectural changes)
-  - Load: `project-status.md` + `mvp-requirements.md` + `session-log.md` + latest handoff
+  - Load: `project-status.md` + `mvp-requirements.md` + `technical-specifications.md` + `session-log.md` + latest handoff
   - This is the full context load
 
 - **Planning/Strategy** (rare - user will specify)

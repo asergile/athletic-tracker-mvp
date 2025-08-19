@@ -46,6 +46,15 @@ const HistoryView = ({ setCurrentView, weeklyStats, workouts, ratingLabels, form
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
+  // Distance unit options based on workout type for edit modal
+  const getEditDistanceUnitOptions = () => {
+    const workoutType = editingWorkout.type?.toLowerCase() || '';
+    if (workoutType.includes('swim')) {
+      return distanceUnits.swimming;
+    }
+    return distanceUnits.cardio;
+  };
+  
   const handleEditWorkout = (workout) => {
     setEditingWorkout({
       ...workout,
@@ -307,7 +316,22 @@ const HistoryView = ({ setCurrentView, weeklyStats, workouts, ratingLabels, form
                 <input
                   type="text"
                   value={editingWorkout.type}
-                  onChange={(e) => setEditingWorkout(prev => ({ ...prev, type: e.target.value }))}
+                  onChange={(e) => {
+                    const newType = e.target.value;
+                    setEditingWorkout(prev => {
+                      // Auto-update distance unit when activity type changes
+                      const workoutType = newType.toLowerCase();
+                      let defaultUnit = prev.distanceUnit;
+                      
+                      if (workoutType.includes('swim')) {
+                        defaultUnit = 'meters';
+                      } else {
+                        defaultUnit = 'miles';
+                      }
+                      
+                      return { ...prev, type: newType, distanceUnit: defaultUnit };
+                    });
+                  }}
                   className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -340,10 +364,11 @@ const HistoryView = ({ setCurrentView, weeklyStats, workouts, ratingLabels, form
                     onChange={(e) => setEditingWorkout(prev => ({ ...prev, distanceUnit: e.target.value }))}
                     className="w-24 p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
                   >
-                    <option value="miles">mi</option>
-                    <option value="kilometers">km</option>
-                    <option value="meters">m</option>
-                    <option value="yards">yd</option>
+                    {getEditDistanceUnitOptions().map(unit => (
+                      <option key={unit} value={unit}>
+                        {unit === 'miles' ? 'mi' : unit === 'kilometers' ? 'km' : unit === 'meters' ? 'm' : 'yd'}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -998,6 +1023,211 @@ const GoalsAndEventsView = ({ setCurrentView, onGoalCreated }) => {
           </div>
         )}
         
+        {/* Create New Goal Button - Moved to top */}
+        {!isCreating && (
+          <div className="mb-6">
+            <button
+              onClick={() => setIsCreating(true)}
+              className="w-full flex items-center justify-center space-x-2 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Add Event Goal</span>
+            </button>
+          </div>
+        )}
+        
+        {/* Goal Creation Form - Moved to top */}
+        {isCreating && (
+          <div className="bg-white rounded-3xl p-6 shadow-2xl mb-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Add New Goal & Event</h3>
+              <button
+                onClick={() => {
+                  setIsCreating(false);
+                  setShowSimilarEvents(false);
+                  setSelectedEventId(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 p-2"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* EVENT SECTION */}
+              <div className="bg-blue-50 rounded-xl p-4">
+                <h4 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                  📅 Competition/Event
+                </h4>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Event Name</label>
+                    <input
+                      type="text"
+                      value={eventData.name}
+                      onChange={(e) => handleEventChange('name', e.target.value)}
+                      placeholder="e.g., State Championships"
+                      className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Event Date</label>
+                      <input
+                        type="date"
+                        value={eventData.eventDate}
+                        onChange={(e) => handleEventChange('eventDate', e.target.value)}
+                        className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Location (optional)</label>
+                      <input
+                        type="text"
+                        value={eventData.location}
+                        onChange={(e) => handleEventChange('location', e.target.value)}
+                        placeholder="e.g., Aquatic Center"
+                        className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="isDiscoverable"
+                      checked={eventData.isDiscoverable}
+                      onChange={(e) => handleEventChange('isDiscoverable', e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="isDiscoverable" className="text-sm text-gray-700">
+                      Make this event discoverable by others
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Similar Events Found */}
+              {/* Note: Similar events detection disabled - using existing schema */}
+              
+              {/* GOAL SECTION */}
+              <div className="bg-green-50 rounded-xl p-4">
+                <h4 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                  🎯 Your Personal Goal
+                </h4>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">What do you want to achieve at this event?</label>
+                    <input
+                      type="text"
+                      value={goalData.goalDescription}
+                      onChange={(e) => handleGoalChange('goalDescription', e.target.value)}
+                      placeholder="e.g., Swim PB in 100 freestyle, Break 3:00 marathon"
+                      className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Weekly Workouts</label>
+                      <select
+                        value={goalData.weeklyFrequency}
+                        onChange={(e) => handleGoalChange('weeklyFrequency', parseInt(e.target.value))}
+                        className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
+                      >
+                        <option value={3}>3 per week</option>
+                        <option value={4}>4 per week</option>
+                        <option value={5}>5 per week</option>
+                        <option value={6}>6 per week</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Sport</label>
+                      <select
+                        value={goalData.sport}
+                        onChange={(e) => handleGoalChange('sport', e.target.value)}
+                        className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
+                      >
+                        <option value="Swimming">Swimming</option>
+                        <option value="Running">Running</option>
+                        <option value="Cycling">Cycling</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                onClick={handleCreateGoal}
+                disabled={!eventData.name || !eventData.eventDate || !goalData.goalDescription || isSubmitting}
+                className={`w-full py-4 rounded-xl font-semibold transition-all duration-200 ${
+                  !eventData.name || !eventData.eventDate || !goalData.goalDescription || isSubmitting
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg'
+                }`}
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Creating Goal...</span>
+                  </div>
+                ) : (
+                  'Create Event & Goal'
+                )}
+              </button>
+              
+              {/* Preview Card */}
+              {eventData.name && eventData.eventDate && goalData.goalDescription && (
+                <div 
+                  className="mt-6 p-4 rounded-xl text-white"
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                  }}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="text-base font-bold mb-1">
+                        {eventData.name}
+                      </h3>
+                      <div className="text-sm opacity-90 mb-1">
+                        {new Date(eventData.eventDate).toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        })}
+                      </div>
+                      <div className="text-sm opacity-75 italic">
+                        Goal: {goalData.goalDescription}
+                      </div>
+                    </div>
+                    <div className="text-right text-sm opacity-90">
+                      <span className="text-xl font-bold block">{daysLeft}</span>
+                      days left
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm font-bold mb-2">0 workouts • 0 hours banked</div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white bg-opacity-10 rounded-lg p-2">
+                      <h4 className="text-xs opacity-90 mb-1 uppercase tracking-wide">Sessions</h4>
+                      <div className="text-sm font-bold">0 of {targetWorkouts}</div>
+                    </div>
+                    <div className="bg-white bg-opacity-10 rounded-lg p-2">
+                      <h4 className="text-xs opacity-90 mb-1 uppercase tracking-wide">Hours</h4>
+                      <div className="text-sm font-bold">0 of {Math.round(targetWorkouts * 1.3)}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
         {/* Loading State */}
         {isLoading ? (
           <div className="text-center py-12">
@@ -1095,212 +1325,6 @@ const GoalsAndEventsView = ({ setCurrentView, onGoalCreated }) => {
                     </div>
                   );
                 })}
-              </div>
-            )}
-            
-            {/* Create New Goal Button */}
-            {!isCreating && (
-              <div className="bg-white rounded-3xl p-6 shadow-2xl mb-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Create New Goal</h3>
-                <button
-                  onClick={() => setIsCreating(true)}
-                  className="w-full flex items-center justify-center space-x-2 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
-                >
-                  <Plus className="w-5 h-5" />
-                  <span>Add Event Goal</span>
-                </button>
-              </div>
-            )}
-            
-            {/* Goal Creation Form */}
-            {isCreating && (
-              <div className="bg-white rounded-3xl p-6 shadow-2xl">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-800">Add New Goal & Event</h3>
-                  <button
-                    onClick={() => {
-                      setIsCreating(false);
-                      setShowSimilarEvents(false);
-                      setSelectedEventId(null);
-                    }}
-                    className="text-gray-500 hover:text-gray-700 p-2"
-                  >
-                    ×
-                  </button>
-                </div>
-                
-                <div className="space-y-6">
-                  {/* EVENT SECTION */}
-                  <div className="bg-blue-50 rounded-xl p-4">
-                    <h4 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                      📅 Competition/Event
-                    </h4>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Event Name</label>
-                        <input
-                          type="text"
-                          value={eventData.name}
-                          onChange={(e) => handleEventChange('name', e.target.value)}
-                          placeholder="e.g., State Championships"
-                          className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Event Date</label>
-                          <input
-                            type="date"
-                            value={eventData.eventDate}
-                            onChange={(e) => handleEventChange('eventDate', e.target.value)}
-                            className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Location (optional)</label>
-                          <input
-                            type="text"
-                            value={eventData.location}
-                            onChange={(e) => handleEventChange('location', e.target.value)}
-                            placeholder="e.g., Aquatic Center"
-                            className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id="isDiscoverable"
-                          checked={eventData.isDiscoverable}
-                          onChange={(e) => handleEventChange('isDiscoverable', e.target.checked)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <label htmlFor="isDiscoverable" className="text-sm text-gray-700">
-                          Make this event discoverable by others
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Similar Events Found */}
-                  {/* Note: Similar events detection disabled - using existing schema */}
-                  
-                  {/* GOAL SECTION */}
-                  <div className="bg-green-50 rounded-xl p-4">
-                    <h4 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                      🎯 Your Personal Goal
-                    </h4>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">What do you want to achieve at this event?</label>
-                        <input
-                          type="text"
-                          value={goalData.goalDescription}
-                          onChange={(e) => handleGoalChange('goalDescription', e.target.value)}
-                          placeholder="e.g., Swim PB in 100 freestyle, Break 3:00 marathon"
-                          className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Weekly Workouts</label>
-                          <select
-                            value={goalData.weeklyFrequency}
-                            onChange={(e) => handleGoalChange('weeklyFrequency', parseInt(e.target.value))}
-                            className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
-                          >
-                            <option value={3}>3 per week</option>
-                            <option value={4}>4 per week</option>
-                            <option value={5}>5 per week</option>
-                            <option value={6}>6 per week</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Sport</label>
-                          <select
-                            value={goalData.sport}
-                            onChange={(e) => handleGoalChange('sport', e.target.value)}
-                            className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
-                          >
-                            <option value="Swimming">Swimming</option>
-                            <option value="Running">Running</option>
-                            <option value="Cycling">Cycling</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <button
-                    onClick={handleCreateGoal}
-                    disabled={!eventData.name || !eventData.eventDate || !goalData.goalDescription || isSubmitting}
-                    className={`w-full py-4 rounded-xl font-semibold transition-all duration-200 ${
-                      !eventData.name || !eventData.eventDate || !goalData.goalDescription || isSubmitting
-                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg'
-                    }`}
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        <span>Creating Goal...</span>
-                      </div>
-                    ) : (
-                      'Create Event & Goal'
-                    )}
-                  </button>
-                  
-                  {/* Preview Card */}
-                  {eventData.name && eventData.eventDate && goalData.goalDescription && (
-                    <div 
-                      className="mt-6 p-4 rounded-xl text-white"
-                      style={{
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                      }}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="text-base font-bold mb-1">
-                            {eventData.name}
-                          </h3>
-                          <div className="text-sm opacity-90 mb-1">
-                            {new Date(eventData.eventDate).toLocaleDateString('en-US', { 
-                              month: 'long', 
-                              day: 'numeric', 
-                              year: 'numeric' 
-                            })}
-                          </div>
-                          <div className="text-sm opacity-75 italic">
-                            Goal: {goalData.goalDescription}
-                          </div>
-                        </div>
-                        <div className="text-right text-sm opacity-90">
-                          <span className="text-xl font-bold block">{daysLeft}</span>
-                          days left
-                        </div>
-                      </div>
-                      
-                      <div className="text-sm font-bold mb-2">0 workouts • 0 hours banked</div>
-                      
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-white bg-opacity-10 rounded-lg p-2">
-                          <h4 className="text-xs opacity-90 mb-1 uppercase tracking-wide">Sessions</h4>
-                          <div className="text-sm font-bold">0 of {targetWorkouts}</div>
-                        </div>
-                        <div className="bg-white bg-opacity-10 rounded-lg p-2">
-                          <h4 className="text-xs opacity-90 mb-1 uppercase tracking-wide">Hours</h4>
-                          <div className="text-sm font-bold">0 of {Math.round(targetWorkouts * 1.3)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             )}
             
@@ -1418,8 +1442,6 @@ const ProfileView = ({
   setShowAddNewActivity,
   newActivityName,
   setNewActivityName,
-  editingActivityName,
-  setEditingActivityName,
   handleDeleteCustomActivity,
   handleAddNewActivityFromProfile,
   workoutTypes
@@ -1428,6 +1450,33 @@ const ProfileView = ({
   const customActivities = workoutTypes.filter(type => 
     !defaultWorkoutTypes.includes(type)
   );
+  
+  // Local state for editing activities
+  const [editingActivityName, setEditingActivityName] = useState(null);
+  
+  // Local edit handler for custom activities
+  const handleLocalEditActivity = useCallback(async () => {
+    if (!newActivityName.trim()) {
+      return;
+    }
+
+    const newType = newActivityName.trim();
+    const originalActivity = editingActivityName;
+    
+    // Check if already exists and we're not editing
+    if (workoutTypes.includes(newType) && newType !== originalActivity) {
+      // Could set local error state here if needed
+      return;
+    }
+
+    // Call the parent handler
+    await handleAddNewActivityFromProfile(newType, originalActivity);
+    
+    // Reset local form state
+    setNewActivityName('');
+    setShowAddNewActivity(false);
+    setEditingActivityName(null);
+  }, [newActivityName, workoutTypes, editingActivityName, handleAddNewActivityFromProfile, setNewActivityName, setShowAddNewActivity]);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
       {/* Header */}
@@ -1572,7 +1621,7 @@ const ProfileView = ({
                     className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
-                        handleAddNewActivityFromProfile();
+                        handleLocalEditActivity();
                       }
                     }}
                     autoFocus
@@ -1589,7 +1638,7 @@ const ProfileView = ({
                       Cancel
                     </button>
                     <button
-                      onClick={handleAddNewActivityFromProfile}
+                      onClick={handleLocalEditActivity}
                       className="flex-1 py-2 px-4 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:shadow-lg transition-all"
                     >
                       {editingActivityName ? 'Update Activity' : 'Add Activity'}
@@ -1852,23 +1901,22 @@ try {
   }, [workoutTypes]);
 
   // Add new activity from profile page (supports both add and edit)
-  const handleAddNewActivityFromProfile = useCallback(async () => {
-    if (!newActivityName.trim()) {
+  const handleAddNewActivityFromProfile = useCallback(async (newType, originalActivity) => {
+    if (!newType || !newType.trim()) {
       return;
     }
 
-    const newType = newActivityName.trim();
-    const originalActivity = editingActivityName; // Use the tracked editing state
+    const trimmedType = newType.trim();
     
     // Check if already exists and we're not editing
-    if (workoutTypes.includes(newType) && newType !== originalActivity) {
+    if (workoutTypes.includes(trimmedType) && trimmedType !== originalActivity) {
       setError('Activity already exists');
       return;
     }
 
     try {
       // If editing an existing activity, delete the old one first
-      if (originalActivity && originalActivity !== newType) {
+      if (originalActivity && originalActivity !== trimmedType) {
         const deleteResponse = await dbHelpers.deleteCustomWorkoutType(originalActivity);
         if (deleteResponse.error) {
           console.error('Error deleting old activity:', deleteResponse.error);
@@ -1878,8 +1926,8 @@ try {
       }
       
       // Save the new/updated activity
-      if (!originalActivity || originalActivity !== newType) {
-        const response = await dbHelpers.addCustomWorkoutType(newType);
+      if (!originalActivity || originalActivity !== trimmedType) {
+        const response = await dbHelpers.addCustomWorkoutType(trimmedType);
         if (response.error) {
           console.error('Error adding/updating activity:', response.error);
           setError('Failed to save activity');
@@ -1889,32 +1937,27 @@ try {
       
       // Update local state
       let updatedTypes;
-      if (originalActivity && originalActivity !== newType) {
+      if (originalActivity && originalActivity !== trimmedType) {
         // Replace old activity with new one
         updatedTypes = workoutTypes.map(type => 
-          type === originalActivity ? newType : type
+          type === originalActivity ? trimmedType : type
         );
-      } else if (!workoutTypes.includes(newType)) {
+      } else if (!workoutTypes.includes(trimmedType)) {
         // Add new activity
-        updatedTypes = [...workoutTypes, newType];
+        updatedTypes = [...workoutTypes, trimmedType];
       } else {
         // No change needed
         updatedTypes = workoutTypes;
       }
       
       setWorkoutTypes(updatedTypes);
-      
-      // Reset form
-      setNewActivityName('');
-      setShowAddNewActivity(false);
-      setEditingActivityName(null);
-      setError('');
+      setError(''); // Clear any existing errors
       
     } catch (error) {
       console.error('Error adding/updating activity:', error);
       setError('Failed to save activity');
     }
-  }, [newActivityName, workoutTypes, editingActivityName]);
+  }, [workoutTypes]);
 // Weekly goal change handler
 const handleWeeklyGoalChange = useCallback(async (hours, minutes) => {
 const totalMinutes = hours * 60 + minutes;
@@ -1953,6 +1996,9 @@ return;
 setIsSubmitting(true);
 setError('');
 
+// DEBUG: Log the current workout state
+console.log('🐛 DEBUG - currentWorkout before submit:', currentWorkout);
+
 try {
 const workoutData = {
 type: currentWorkout.type,
@@ -1962,6 +2008,9 @@ date: currentWorkout.date,
 distance: currentWorkout.distance ? parseFloat(currentWorkout.distance) : null,
 distance_unit: currentWorkout.distance ? (currentWorkout.distanceUnit || distanceUnit) : null
 };
+
+// DEBUG: Log the data being sent to database
+console.log('🐛 DEBUG - workoutData being sent to DB:', workoutData);
 
   await dbHelpers.createWorkout(workoutData);
   
@@ -1974,13 +2023,13 @@ distance_unit: currentWorkout.distance ? (currentWorkout.distanceUnit || distanc
   // Show success and reset form
   setShowSuccess(true);
   setCurrentWorkout({
-  type: '',
-  duration: '',
-  rating: null,
-  date: new Date().toISOString().split('T')[0],
-  distance: '',
-  distanceUnit: ''
-  });
+type: '',
+duration: '',
+rating: null,
+date: new Date().toISOString().split('T')[0],
+distance: '',
+distanceUnit: ''
+});
   setShowDatePicker(false);
   
   // Hide success after 2 seconds and navigate to history
@@ -2125,8 +2174,6 @@ return (
      setShowAddNewActivity={setShowAddNewActivity}
      newActivityName={newActivityName}
      setNewActivityName={setNewActivityName}
-     editingActivityName={editingActivityName}
-     setEditingActivityName={setEditingActivityName}
      handleDeleteCustomActivity={handleDeleteCustomActivity}
      handleAddNewActivityFromProfile={handleAddNewActivityFromProfile}
      workoutTypes={workoutTypes}

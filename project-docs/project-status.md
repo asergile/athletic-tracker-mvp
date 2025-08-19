@@ -1,11 +1,19 @@
 # Athletic Tracker MVP - Project Status
 
-**Last Updated:** August 17, 2025  
-**Status:** ✅ UNIFIED EDIT PATTERN COMPLETE - GOALS & EVENTS FULLY OPERATIONAL  
+**Last Updated:** August 18, 2025  
+**Status:** ✅ COMPONENT ARCHITECTURE IMPROVED - 🚨 DISTANCE SAVING BUG UNRESOLVED  
 **Location:** `/Users/alain/Projects/athletic-tracker-mvp`  
 **Production URL:** https://athletic-tracker-kuh17lzh-alain-sergiles-projects.vercel.app
 
 ## 🎯 Current State
+
+### 🚨 **DISTANCE SAVING BUG INVESTIGATION (August 18, 2025 Session):**
+- **🔍 Investigation Completed:** Analyzed distance saving logic and component architecture
+- **🔧 Component Issues Fixed:** Resolved prop passing problems between ProfileView and parent components
+- **❌ Bug Still Present:** Distance values continue to show null in database despite investigation
+- **🧪 Logic Appears Correct:** Distance input handling and validation logic seems properly implemented
+- **📊 Need Further Debug:** Requires deeper investigation into actual database saving process
+- **🕰️ Status:** UNRESOLVED - Distance tracking not functional
 
 ### ✅ **UNIFIED EDIT PATTERN COMPLETE (August 17, 2025 Session):**
 - **🚨 Critical Desktop Bug Fixed:** Goal card edit buttons no longer overlap with "days left" text
