@@ -751,8 +751,7 @@ const GoalsAndEventsView = ({ setCurrentView, onGoalCreated }) => {
   
   const [goalData, setGoalData] = useState({
     goalDescription: '',
-    weeklyFrequency: 4,
-    sport: 'Swimming'
+    weeklyFrequency: 4
   });
   
   const [showSimilarEvents, setShowSimilarEvents] = useState(false);
@@ -930,8 +929,7 @@ const GoalsAndEventsView = ({ setCurrentView, onGoalCreated }) => {
       
       setGoalData({
         goalDescription: '',
-        weeklyFrequency: 4,
-        sport: 'Swimming'
+        weeklyFrequency: 4
       });
       
       // Set default date again
@@ -1130,33 +1128,22 @@ const GoalsAndEventsView = ({ setCurrentView, onGoalCreated }) => {
                     />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Weekly Workouts</label>
-                      <select
-                        value={goalData.weeklyFrequency}
-                        onChange={(e) => handleGoalChange('weeklyFrequency', parseInt(e.target.value))}
-                        className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
-                      >
-                        <option value={3}>3 per week</option>
-                        <option value={4}>4 per week</option>
-                        <option value={5}>5 per week</option>
-                        <option value={6}>6 per week</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Sport</label>
-                      <select
-                        value={goalData.sport}
-                        onChange={(e) => handleGoalChange('sport', e.target.value)}
-                        className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
-                      >
-                        <option value="Swimming">Swimming</option>
-                        <option value="Running">Running</option>
-                        <option value="Cycling">Cycling</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Weekly Workouts Target</label>
+                    <select
+                      value={goalData.weeklyFrequency}
+                      onChange={(e) => handleGoalChange('weeklyFrequency', parseInt(e.target.value))}
+                      className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
+                    >
+                      {Array.from({length: 21}, (_, i) => i + 1).map(num => (
+                        <option key={num} value={num}>
+                          {num} {num === 1 ? 'workout' : 'workouts'} per week
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Choose your target training frequency (1-21 sessions per week)
+                    </p>
                   </div>
                 </div>
               </div>
