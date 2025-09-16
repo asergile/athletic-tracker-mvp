@@ -219,3 +219,4 @@ For questions or issues:
 ---
 
 **Built for athletes who want to track training without the data entry friction.**
+
