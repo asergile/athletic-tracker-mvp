@@ -4,23 +4,11 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
-import { getUserWorkouts } from '../../../lib/workouts'
+import { getUserWorkouts, Workout } from '../../../lib/workouts'
 import VoiceRecorder from '../../../components/VoiceRecorder'
 import { ArrowLeft, Calendar, Clock, Target, Edit2 } from 'lucide-react'
 
-interface Workout {
-  id: string
-  user_id: string
-  workout_type: string
-  duration: number
-  rating: 1 | 2 | 3
-  date: string
-  distance?: number
-  distance_unit?: string
-  voice_transcription?: string
-  workout_analysis?: any
-  created_at: string
-}
+
 
 const ratingLabels = {
   1: { label: 'Rough', emoji: '😤', color: 'from-red-500 to-red-600' },

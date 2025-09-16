@@ -5,7 +5,7 @@ export interface Workout {
   user_id: string
   workout_type: string
   duration: number
-  rating: number
+  rating: 1 | 2 | 3
   date: string
   distance?: number
   distance_unit?: string
