@@ -63,7 +63,7 @@ RULES:
       ]
     });
 
-    const analysisText = completion.content[0]?.text || '';
+    const analysisText = completion.content[0]?.type === 'text' ? completion.content[0].text : '';
     
     // Store the markdown analysis directly
     const structuredWorkout = {
