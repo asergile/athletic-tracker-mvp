@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, Calendar, TrendingUp, Clock, Zap, Target, ChevronLeft, Activity, User, Flag, LogOut, Trash2, Edit } from 'lucide-react';
+import { Plus, Calendar, TrendingUp, Clock, Zap, Target, ChevronLeft, Activity, User, Flag, LogOut, Trash2, Edit, BarChart3, Mic } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext'
-import { dbHelpers } from '../lib/supabase'
+import { dbHelpers, supabase } from '../lib/supabase'
 import FeedbackButton from './FeedbackButton'
+import WeeklyWorkoutView from './WeeklyWorkoutView'
+import VoiceRecorder from './VoiceRecorder'
 
 // HELPER FUNCTIONS
 const formatTime = (minutes) => {
@@ -137,52 +139,63 @@ const HistoryView = ({ setCurrentView, weeklyStats, workouts, ratingLabels, form
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => setCurrentView('log')}
-            className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+            className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+            title="Back to Log Workout"
           >
-            <ChevronLeft className="w-6 h-6 text-white" />
+            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </button>
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Your Journey</h1>
-            <p className="text-purple-200">Every workout counts</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Your Journey</h1>
+            <p className="text-purple-200 text-sm sm:text-base">Every workout counts</p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex space-x-1 sm:space-x-2">
             <button
               onClick={() => setShowLogAnother && setShowLogAnother()}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Add Workout"
             >
-              <Plus className="w-6 h-6 text-white" />
+              <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
+            <button
+              onClick={() => setCurrentView('weekly')}
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Weekly View"
+            >
+              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
             <button
               onClick={() => setCurrentView('goals')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Goals"
             >
-              <Flag className="w-6 h-6 text-white" />
+              <Flag className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
             <button
               onClick={() => setCurrentView('profile')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Profile"
             >
-              <User className="w-6 h-6 text-white" />
+              <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 text-center">
-            <Clock className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">{formatTime(weeklyStats.totalTime)}</p>
-            <p className="text-purple-200 text-sm">Total Time</p>
+        {/* Stats Cards - Mobile Responsive */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center">
+            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400 mx-auto mb-1 sm:mb-2" />
+            <p className="text-lg sm:text-2xl font-bold text-white">{formatTime(weeklyStats.totalTime)}</p>
+            <p className="text-purple-200 text-xs sm:text-sm">Total Time</p>
           </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 text-center">
-            <Activity className="w-6 h-6 text-green-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">{weeklyStats.count} workouts</p>
-            <p className="text-purple-200 text-sm">This Week</p>
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center">
+            <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-green-400 mx-auto mb-1 sm:mb-2" />
+            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.count} workouts</p>
+            <p className="text-purple-200 text-xs sm:text-sm">This Week</p>
           </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 text-center">
-            <Target className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">{weeklyStats.avgRating.toFixed(1)}</p>
-            <p className="text-purple-200 text-sm">Avg Feel</p>
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center">
+            <Target className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400 mx-auto mb-1 sm:mb-2" />
+            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.avgRating.toFixed(1)}</p>
+            <p className="text-purple-200 text-xs sm:text-sm">Avg Feel</p>
           </div>
         </div>
       </div>
@@ -230,21 +243,21 @@ const HistoryView = ({ setCurrentView, weeklyStats, workouts, ratingLabels, form
 
             return (
               <div key={workout.id} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 relative">
-                {/* Edit Icon - Standardized design */}
+                {/* Edit Icon - Mobile Responsive */}
                 <button
                   onClick={() => handleEditWorkout(workout)}
-                  className="absolute top-4 right-4 w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 border border-gray-200 z-10"
+                  className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 sm:w-9 sm:h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 border border-gray-200 z-10 touch-manipulation"
                 >
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </button>
                 
                 <div className="flex items-center justify-between">
-                  <div className="flex-1 pr-12"> {/* Add right padding to avoid edit button */}
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-800">{workout.workout_type}</h3>
-                      <span className="text-sm font-medium text-gray-500">{dateLabel}</span>
+                  <div className="flex-1 pr-10 sm:pr-12"> {/* Mobile responsive padding for edit button */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-2">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-800">{workout.workout_type}</h3>
+                      <span className="text-xs sm:text-sm font-medium text-gray-500">{dateLabel}</span>
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-1 text-gray-600">
@@ -473,6 +486,12 @@ const LogWorkoutView = ({
               className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
             >
               <Flag className="w-6 h-6 text-white" />
+            </button>
+            <button
+              onClick={() => setCurrentView('weekly')}
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+            >
+              <BarChart3 className="w-6 h-6 text-white" />
             </button>
             <button
               onClick={() => setCurrentView('history')}
@@ -976,37 +995,48 @@ const GoalsAndEventsView = ({ setCurrentView, onGoalCreated }) => {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
-      {/* Header */}
+      {/* Header - Mobile Responsive */}
       <div className="px-6 pt-12 pb-8">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => setCurrentView('log')}
-            className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+            className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+            title="Back to Log Workout"
           >
-            <ChevronLeft className="w-6 h-6 text-white" />
+            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </button>
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Goals & Events</h1>
-            <p className="text-green-200">Train toward your competitions</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Goals & Events</h1>
+            <p className="text-green-200 text-sm sm:text-base">Train toward your competitions</p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex space-x-1 sm:space-x-2">
             <button
               onClick={() => setCurrentView('log')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Add Workout"
             >
-              <Plus className="w-6 h-6 text-white" />
+              <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
+            <button
+              onClick={() => setCurrentView('weekly')}
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Weekly View"
+            >
+              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
             <button
               onClick={() => setCurrentView('history')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="History"
             >
-              <Calendar className="w-6 h-6 text-white" />
+              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
             <button
               onClick={() => setCurrentView('profile')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Profile"
             >
-              <User className="w-6 h-6 text-white" />
+              <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
           </div>
         </div>
@@ -1466,37 +1496,48 @@ const ProfileView = ({
   }, [newActivityName, workoutTypes, editingActivityName, handleAddNewActivityFromProfile, setNewActivityName, setShowAddNewActivity]);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
-      {/* Header */}
+      {/* Header - Mobile Responsive */}
       <div className="px-6 pt-12 pb-8">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => setCurrentView('log')}
-            className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+            className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+            title="Back to Log Workout"
           >
-            <ChevronLeft className="w-6 h-6 text-white" />
+            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </button>
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Profile</h1>
-            <p className="text-green-200">Account & Settings</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Profile</h1>
+            <p className="text-green-200 text-sm sm:text-base">Account & Settings</p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex space-x-1 sm:space-x-2">
             <button
               onClick={() => setCurrentView('log')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Add Workout"
             >
-              <Plus className="w-6 h-6 text-white" />
+              <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
+            <button
+              onClick={() => setCurrentView('weekly')}
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Weekly View"
+            >
+              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
             <button
               onClick={() => setCurrentView('goals')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Goals"
             >
-              <Flag className="w-6 h-6 text-white" />
+              <Flag className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
             <button
               onClick={() => setCurrentView('history')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="History"
             >
-              <Calendar className="w-6 h-6 text-white" />
+              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
           </div>
         </div>
@@ -1714,7 +1755,23 @@ const ProfileView = ({
 const AthleticTracker = () => {
 const { user, signOut } = useAuth();
 // State Management
-const [currentView, setCurrentView] = useState('log');
+const [currentView, setCurrentView] = useState(() => {
+  // Check for URL parameters to set initial view (for navigation from WeeklyWorkoutView)
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewParam = urlParams.get('view');
+    if (['log', 'history', 'goals', 'profile', 'weekly'].includes(viewParam)) {
+      return viewParam;
+    }
+  }
+  return 'log';
+});
+
+// Voice integration state for success modal
+const [showVoiceExpanded, setShowVoiceExpanded] = useState(false);
+const [isVoiceUploading, setIsVoiceUploading] = useState(false);
+const [voiceError, setVoiceError] = useState('');
+const [lastLoggedWorkoutId, setLastLoggedWorkoutId] = useState(null);
 const [currentWorkout, setCurrentWorkout] = useState({
 type: '',
 duration: '',
@@ -1781,6 +1838,17 @@ console.error('Error loading user data:', error);
 setError('Failed to load your data. Please refresh the page.');
 }
 };
+
+// Clean up URL parameters when view changes (for better UX)
+useEffect(() => {
+  if (typeof window !== 'undefined') {
+    const url = new URL(window.location);
+    if (url.searchParams.has('view')) {
+      url.searchParams.delete('view');
+      window.history.replaceState({}, '', url);
+    }
+  }
+}, [currentView]);
 // Input handlers with proper regex validation (FIXED)
 const handleDurationChange = useCallback((e) => {
 const value = e.target.value;
@@ -1999,7 +2067,13 @@ distance_unit: currentWorkout.distance ? (currentWorkout.distanceUnit || distanc
 // DEBUG: Log the data being sent to database
 console.log('🐛 DEBUG - workoutData being sent to DB:', workoutData);
 
-  await dbHelpers.createWorkout(workoutData);
+  const workoutResponse = await dbHelpers.createWorkout(workoutData);
+  
+  // Capture workout ID for voice recording - fix array access
+  if (workoutResponse.data && workoutResponse.data.length > 0) {
+    setLastLoggedWorkoutId(workoutResponse.data[0].id);
+    console.log('🎤 Captured workout ID for voice note:', workoutResponse.data[0].id);
+  }
   
   // Reload workouts
   const updatedWorkoutsResponse = await dbHelpers.getUserWorkouts();
@@ -2009,6 +2083,7 @@ console.log('🐛 DEBUG - workoutData being sent to DB:', workoutData);
   
   // Show success and reset form
   setShowSuccess(true);
+  setShowVoiceExpanded(false); // Reset voice modal state
   setCurrentWorkout({
 type: '',
 duration: '',
@@ -2019,11 +2094,7 @@ distanceUnit: ''
 });
   setShowDatePicker(false);
   
-  // Hide success after 2 seconds and navigate to history
-  setTimeout(() => {
-        setShowSuccess(false);
-        setCurrentView('history');
-      }, 2000);
+  // NOTE: Removed auto-redirect - users now choose between voice note or skip to history
   
 } catch (error) {
   console.error('Error submitting workout:', error);
@@ -2032,18 +2103,145 @@ distanceUnit: ''
   setIsSubmitting(false);
 }
 }, [currentWorkout, distanceUnit]);
+// Voice note handlers
+const handleAddVoiceNote = useCallback(() => {
+  setShowVoiceExpanded(true);
+  setVoiceError(''); // Clear any previous errors
+}, []);
+
+const handleVoiceUpload = useCallback(async (audioBlob) => {
+  if (!lastLoggedWorkoutId || !user) {
+    setVoiceError('No workout found for voice note');
+    return;
+  }
+
+  setIsVoiceUploading(true);
+  setVoiceError('');
+
+  try {
+    // Get auth token - copying from voice-test approach  
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error('No valid session found');
+    }
+
+    // Create form data - copying from voice-test approach
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'workout-voice-note.webm');
+    formData.append('workoutId', lastLoggedWorkoutId);
+
+    // Upload and transcribe - copying from voice-test approach
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Upload failed');
+    }
+
+    // Success - redirect to voice analysis page
+    window.location.href = `/voice-analysis/${lastLoggedWorkoutId}`;
+
+  } catch (err) {
+    setVoiceError(err instanceof Error ? err.message : 'Upload failed');
+  } finally {
+    setIsVoiceUploading(false);
+  }
+}, [lastLoggedWorkoutId, user]);
+
+const handleSkipToHistory = useCallback(() => {
+  setShowSuccess(false);
+  setShowVoiceExpanded(false);
+  setCurrentView('history');
+}, []);
+
+const handleCollapseVoiceModal = useCallback(() => {
+  setShowVoiceExpanded(false);
+  setVoiceError(''); // Clear errors when collapsing
+}, []);
+
 // Success message handler
 const handleShowSuccessMessage = useCallback(() => {
 return (
 <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-<div className="bg-white rounded-3xl p-8 m-6 text-center max-w-sm animate-bounce">
-<div className="text-6xl mb-4">🎉</div>
-<h3 className="text-2xl font-bold text-gray-800 mb-2">Workout Logged!</h3>
-<p className="text-gray-600 mb-6">Great job keeping up the momentum!</p>
-</div>
+  <div className={`bg-white rounded-3xl p-6 m-6 text-center transition-all duration-300 ${
+    showVoiceExpanded ? 'max-w-md w-full' : 'max-w-sm'
+  }`}>
+    {!showVoiceExpanded ? (
+      // Original success modal
+      <>
+        <div className="text-6xl mb-4">🎉</div>
+        <h3 className="text-2xl font-bold text-gray-800 mb-2">Workout Logged!</h3>
+        <p className="text-gray-600 mb-6">Great job keeping the momentum going!</p>
+        
+        {/* Action Buttons */}
+        <div className="flex space-x-3">
+          <button
+            onClick={handleAddVoiceNote}
+            className="flex-1 flex items-center justify-center space-x-2 py-3 px-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+          >
+            <Mic className="w-5 h-5" />
+            <span>Add Voice Note</span>
+          </button>
+          <button
+            onClick={handleSkipToHistory}
+            className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200"
+          >
+            Skip to History
+          </button>
+        </div>
+      </>
+    ) : (
+      // Expanded voice recording modal
+      <>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-gray-800">Add Voice Note</h3>
+          <button
+            onClick={handleCollapseVoiceModal}
+            className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-all"
+          >
+            ×
+          </button>
+        </div>
+        
+        {/* Voice Recorder Component */}
+        <div className="mb-6">
+          {voiceError && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {voiceError}
+            </div>
+          )}
+          
+          {isVoiceUploading && (
+            <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
+              Uploading and analyzing your voice note...
+            </div>
+          )}
+          
+          <VoiceRecorder
+            onRecordingComplete={handleVoiceUpload}
+            disabled={isVoiceUploading}
+          />
+        </div>
+        
+        <button
+          onClick={handleSkipToHistory}
+          className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+        >
+          Continue to History
+        </button>
+      </>
+    )}
+  </div>
 </div>
 );
-}, []);
+}, [showVoiceExpanded, handleAddVoiceNote, handleSkipToHistory, handleCollapseVoiceModal, handleVoiceUpload, voiceError, isVoiceUploading]);
 // Log another workout handler
 const handleLogAnother = useCallback(() => {
 setCurrentView('log');
@@ -2117,6 +2315,11 @@ for (let i = 0; i < 52; i++) { // Check up to 52 weeks
 return streak;
 }, [workouts]);
 // Render appropriate view
+if (currentView === 'weekly') {
+  return (
+    <WeeklyWorkoutView />
+  );
+}
 if (currentView === 'history') {
 return (
 <HistoryView

@@ -1,3 +1,6 @@
+// Import voice workout types
+import { VoiceWorkoutAnalysis } from './voice-workout';
+
 // Core workout data types
 export interface Workout {
   id: string
@@ -10,6 +13,7 @@ export interface Workout {
   notes?: string
   voice_transcript?: string
   processed_data?: ProcessedWorkoutData
+  workout_analysis?: VoiceWorkoutAnalysis
   created_at: string
   updated_at: string
 }
