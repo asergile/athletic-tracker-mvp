@@ -342,20 +342,20 @@ const WeeklyWorkoutView = () => {
 
         {/* Stats Cards - Consistent with History View */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center">
-            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400 mx-auto mb-1 sm:mb-2" />
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
+            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400 mb-1 sm:mb-2" />
             <p className="text-lg sm:text-2xl font-bold text-white">{formatTime(weeklyStats.totalTime)}</p>
-            <p className="text-purple-200 text-xs sm:text-sm">Total Time</p>
+            <p className="text-purple-200 text-xs sm:text-sm truncate">Total Time</p>
           </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center">
-            <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-green-400 mx-auto mb-1 sm:mb-2" />
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
+            <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-green-400 mb-1 sm:mb-2" />
             <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.count} workouts</p>
-            <p className="text-purple-200 text-xs sm:text-sm">This Week</p>
+            <p className="text-purple-200 text-xs sm:text-sm truncate">This Week</p>
           </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center">
-            <Target className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400 mx-auto mb-1 sm:mb-2" />
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
+            <Target className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400 mb-1 sm:mb-2" />
             <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.avgRating.toFixed(1)}</p>
-            <p className="text-purple-200 text-xs sm:text-sm">Avg Feel</p>
+            <p className="text-purple-200 text-xs sm:text-sm truncate">Avg Feel</p>
           </div>
         </div>
 

@@ -182,20 +182,20 @@ const HistoryView = ({ setCurrentView, weeklyStats, workouts, ratingLabels, form
 
         {/* Stats Cards - Mobile Responsive */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center">
-            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400 mx-auto mb-1 sm:mb-2" />
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
+            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400 mb-1 sm:mb-2" />
             <p className="text-lg sm:text-2xl font-bold text-white">{formatTime(weeklyStats.totalTime)}</p>
-            <p className="text-purple-200 text-xs sm:text-sm">Total Time</p>
+            <p className="text-purple-200 text-xs sm:text-sm truncate">Total Time</p>
           </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center">
-            <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-green-400 mx-auto mb-1 sm:mb-2" />
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
+            <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-green-400 mb-1 sm:mb-2" />
             <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.count} workouts</p>
-            <p className="text-purple-200 text-xs sm:text-sm">This Week</p>
+            <p className="text-purple-200 text-xs sm:text-sm truncate">This Week</p>
           </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center">
-            <Target className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400 mx-auto mb-1 sm:mb-2" />
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
+            <Target className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400 mb-1 sm:mb-2" />
             <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.avgRating.toFixed(1)}</p>
-            <p className="text-purple-200 text-xs sm:text-sm">Avg Feel</p>
+            <p className="text-purple-200 text-xs sm:text-sm truncate">Avg Feel</p>
           </div>
         </div>
       </div>
@@ -510,20 +510,17 @@ const LogWorkoutView = ({
 
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center space-x-2 mb-1">
-              <Target className="w-4 h-4 text-yellow-400" />
-              <span className="text-blue-200 text-sm">Weekly Goal</span>
-            </div>
-            <p className="text-2xl font-bold text-white">{weeklyGoalProgress.current}</p>
-            <div className="w-full bg-gray-300 rounded-full h-3 mt-2 relative overflow-hidden">
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
+            <Target className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400 mb-1 sm:mb-2" />
+            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyGoalProgress.current}</p>
+            <div className="w-full bg-gray-300 rounded-full h-1.5 sm:h-2 mt-1 mb-1 relative overflow-hidden">
               <div 
-                className="bg-green-500 h-3 rounded-full transition-all duration-500 absolute" 
+                className="bg-green-500 h-1.5 sm:h-2 rounded-full transition-all duration-500 absolute" 
                 style={{width: `${Math.min(weeklyGoalProgress.percentage, 100)}%`}}
               ></div>
               {weeklyGoalProgress.percentage > 100 && (
                 <div 
-                  className="bg-gradient-to-r from-yellow-400 to-amber-600 h-3 rounded-full transition-all duration-500 absolute"
+                  className="bg-gradient-to-r from-yellow-400 to-amber-600 h-1.5 sm:h-2 rounded-full transition-all duration-500 absolute"
                   style={{
                     left: '100%',
                     width: `${Math.min(weeklyGoalProgress.percentage - 100, 100)}%`,
@@ -531,35 +528,20 @@ const LogWorkoutView = ({
                   }}
                 ></div>
               )}
-              <div 
-                className="absolute bg-gray-500 rounded-full"
-                style={{
-                  left: '100%',
-                  top: '-4px',
-                  width: '2px',
-                  height: '20px',
-                  transform: 'translateX(-50%)'
-                }}
-              ></div>
             </div>
-            <p className="text-blue-200 text-xs mt-1">
-              {weeklyGoalProgress.percentage}% of {weeklyGoalProgress.goal}
-              {weeklyGoalProgress.percentage >= 100 && " 🎯"}
+            <p className="text-purple-200 text-xs text-center truncate">
+              {weeklyGoalProgress.percentage}% Weekly Goal {weeklyGoalProgress.percentage >= 100 && "🎯"}
             </p>
           </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center space-x-2 mb-1">
-              <Zap className="w-4 h-4 text-purple-400" />
-              <span className="text-blue-200 text-sm">This Week</span>
-            </div>
-            <p className="text-2xl font-bold text-white">{weeklyStats.count} workouts</p>
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
+            <Zap className="w-4 h-4 sm:w-6 sm:h-6 text-purple-400 mb-1 sm:mb-2" />
+            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.count} workouts</p>
+            <p className="text-purple-200 text-xs sm:text-sm truncate">This Week</p>
           </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center space-x-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-green-400" />
-              <span className="text-blue-200 text-sm">Weekly Streak</span>
-            </div>
-            <p className="text-2xl font-bold text-white">{weeklyStreak} weeks</p>
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
+            <TrendingUp className="w-4 h-4 sm:w-6 sm:h-6 text-green-400 mb-1 sm:mb-2" />
+            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStreak} weeks</p>
+            <p className="text-purple-200 text-xs sm:text-sm truncate">Weekly Streak</p>
           </div>
         </div>
       </div>
