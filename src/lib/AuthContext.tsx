@@ -12,6 +12,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<{ data: any; error: any }>
   signOut: () => Promise<{ error: any }>
   resetPassword: (email: string) => Promise<{ data: any; error: any }>
+  updatePassword: (newPassword: string) => Promise<{ data: any; error: any }>
 }
 
 // Create context with proper typing
@@ -77,6 +78,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return { data, error }
   }
 
+  const updatePassword = async (newPassword: string) => {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword
+    })
+    return { data, error }
+  }
+
   const value: AuthContextType = {
     user,
     loading,
@@ -84,6 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     signOut,
     resetPassword,
+    updatePassword,
   }
 
   return (

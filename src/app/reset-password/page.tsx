@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Activity, CheckCircle, AlertCircle } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/lib/AuthContext'
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState('')
@@ -15,20 +15,23 @@ function ResetPasswordForm() {
   
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { updatePassword, user } = useAuth()
 
   useEffect(() => {
     // Check if we have a valid password reset session
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session && searchParams.get('type') === 'recovery') {
+    const checkSession = () => {
+      if (user && searchParams.get('type') === 'recovery') {
         setValidSession(true)
-      } else {
+      } else if (user && !searchParams.get('type')) {
+        // User is logged in but not from a reset link - redirect to main app
+        router.push('/')
+      } else if (!user) {
         setError('Invalid or expired reset link. Please request a new password reset.')
       }
     }
 
     checkSession()
-  }, [searchParams])
+  }, [user, searchParams, router])
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,12 +55,10 @@ function ResetPasswordForm() {
     setError('')
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      })
+      const result = await updatePassword(password)
 
-      if (error) {
-        setError(error.message)
+      if (result.error) {
+        setError(result.error.message)
       } else {
         setSuccess(true)
         // Redirect to main app after 3 seconds
