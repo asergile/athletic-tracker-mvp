@@ -53,29 +53,39 @@ const WeeklyWorkoutView = () => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [isScrolling, setIsScrolling] = useState(false);
 
-  // Navigation handlers - Updated for better UX flow
+  // Navigation handlers - Using router.push with event dispatch
   const goToMainApp = () => {
     router.push('/');
+    // Dispatch custom event to notify main app
+    setTimeout(() => window.dispatchEvent(new Event('urlchange')), 100);
   };
 
   const goToHistory = () => {
     // Navigate to history view in main app
     router.push('/?view=history');
+    // Dispatch custom event to notify main app
+    setTimeout(() => window.dispatchEvent(new Event('urlchange')), 100);
   };
 
   const goToGoals = () => {
     // Navigate to goals view in main app  
     router.push('/?view=goals');
+    // Dispatch custom event to notify main app
+    setTimeout(() => window.dispatchEvent(new Event('urlchange')), 100);
   };
 
   const goToProfile = () => {
     // Navigate to profile view in main app
     router.push('/?view=profile');
+    // Dispatch custom event to notify main app
+    setTimeout(() => window.dispatchEvent(new Event('urlchange')), 100);
   };
 
   const goToAddWorkout = () => {
     // Navigate to log workout view in main app
     router.push('/?view=log');
+    // Dispatch custom event to notify main app
+    setTimeout(() => window.dispatchEvent(new Event('urlchange')), 100);
   };
 
   // Load workouts data
@@ -361,13 +371,6 @@ const WeeklyWorkoutView = () => {
 
         {/* Week Navigation Banner */}
         <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 mb-6">
-          <div className="text-center">
-            <h2 className="text-lg font-bold text-white">{getWeekRangeText()}</h2>
-          </div>
-        </div>
-
-        {/* Week Calendar - Mobile Responsive Unified Grid */}
-        <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 sm:p-6">
           <div className="flex items-center justify-between">
             {/* Left Arrow */}
             <button
@@ -378,43 +381,9 @@ const WeeklyWorkoutView = () => {
               <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </button>
             
-            {/* Day Grid - Mobile Responsive */}
-            <div className="grid grid-cols-7 gap-1 sm:gap-2 flex-1 mx-2 sm:mx-4">
-              {weekDays.map((day) => {
-                const hasWorkouts = workoutsByDay[day.date]?.length > 0;
-                const isSelected = selectedDay === day.date;
-                const isToday = day.fullDate.toDateString() === new Date().toDateString();
-                
-                return (
-                  <div key={day.date} className="flex flex-col items-center">
-                    {/* Day letter at top */}
-                    <span className="text-purple-200 text-xs sm:text-sm font-medium mb-1 sm:mb-2">
-                      {day.dayName.charAt(0)}
-                    </span>
-                    {/* Day indicator below */}
-                    <button
-                      onClick={() => handleDaySelect(day)}
-                      className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center transition-all duration-200 touch-manipulation ${
-                        isSelected 
-                          ? 'ring-2 ring-white ring-opacity-60' 
-                          : ''
-                      } ${
-                        isToday 
-                          ? 'ring-2 ring-yellow-400 ring-opacity-60' 
-                          : ''
-                      }`}
-                    >
-                      {hasWorkouts ? (
-                        <div className="text-xl sm:text-2xl">💪</div>
-                      ) : (
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-                          <span className="text-white text-xs sm:text-sm font-medium">{day.dayNumber}</span>
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
+            {/* Date Range */}
+            <div className="text-center">
+              <h2 className="text-lg font-bold text-white">{getWeekRangeText()}</h2>
             </div>
             
             {/* Right Arrow */}
@@ -432,6 +401,47 @@ const WeeklyWorkoutView = () => {
                 canGoToNextWeek() ? 'text-white' : 'text-white text-opacity-30'
               }`} />
             </button>
+          </div>
+        </div>
+
+        {/* Week Calendar - Mobile Responsive Unified Grid */}
+        <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 sm:p-6">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2">
+            {weekDays.map((day) => {
+              const hasWorkouts = workoutsByDay[day.date]?.length > 0;
+              const isSelected = selectedDay === day.date;
+              const isToday = day.fullDate.toDateString() === new Date().toDateString();
+              
+              return (
+                <div key={day.date} className="flex flex-col items-center">
+                  {/* Day letter at top */}
+                  <span className="text-purple-200 text-xs sm:text-sm font-medium mb-1 sm:mb-2">
+                    {day.dayName.charAt(0)}
+                  </span>
+                  {/* Day indicator below */}
+                  <button
+                    onClick={() => handleDaySelect(day)}
+                    className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center transition-all duration-200 touch-manipulation ${
+                      isSelected 
+                        ? 'ring-2 ring-white ring-opacity-60' 
+                        : ''
+                    } ${
+                      isToday 
+                        ? 'ring-2 ring-yellow-400 ring-opacity-60' 
+                        : ''
+                    }`}
+                  >
+                    {hasWorkouts ? (
+                      <div className="text-xl sm:text-2xl">💪</div>
+                    ) : (
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                        <span className="text-white text-xs sm:text-sm font-medium">{day.dayNumber}</span>
+                      </div>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

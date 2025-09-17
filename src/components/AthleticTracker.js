@@ -1831,6 +1831,30 @@ useEffect(() => {
     }
   }
 }, [currentView]);
+
+// Listen for URL parameter changes (for navigation from WeeklyWorkoutView)
+useEffect(() => {
+  const handleUrlChange = () => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const viewParam = urlParams.get('view');
+      if (['log', 'history', 'goals', 'profile', 'weekly'].includes(viewParam)) {
+        setCurrentView(viewParam);
+      }
+    }
+  };
+
+  // Listen for both popstate and custom navigation events
+  window.addEventListener('popstate', handleUrlChange);
+  
+  // Custom event for when we navigate programmatically
+  window.addEventListener('urlchange', handleUrlChange);
+  
+  return () => {
+    window.removeEventListener('popstate', handleUrlChange);
+    window.removeEventListener('urlchange', handleUrlChange);
+  };
+}, []);
 // Input handlers with proper regex validation (FIXED)
 const handleDurationChange = useCallback((e) => {
 const value = e.target.value;
