@@ -1,28 +1,37 @@
 # Deployment Guide
 
-**Last Updated:** July 10, 2025  
-**Status:** Ready for Production Deployment  
-**Target:** Alpha Testing Environment
+**Last Updated:** September 17, 2025  
+**Status:** Production Deployment with Custom Domains  
+**Target:** Live Production Environment with pbgb.ai/.io
 
-## 🚀 Quick Deployment (Recommended)
+## 🚀 Current Production Setup
 
-### Option 1: Vercel (Fastest)
+### Production Environment (ESTABLISHED)
+**Primary URL:** https://pbgb.ai  
+**Redirect URL:** https://pbgb.io → https://pbgb.ai  
+**Production Vercel:** https://pbgb-production.vercel.app  
+**Staging URL:** https://athletic-tracker-mvp.vercel.app  
+
+### Development Workflow
 ```bash
-# Navigate to project
+# 1. Develop locally
 cd /Users/alain/Projects/athletic-tracker-mvp
+npm start  # Test at localhost:3000
 
-# Install dependencies
-npm install
+# 2. Push to staging
+git checkout staging
+git push origin staging  # Auto-deploys to staging URL
 
-# Test locally first (optional)
-npm start
-# Opens at http://localhost:3000
+# 3. Test staging environment
+# Visit: https://athletic-tracker-mvp.vercel.app
 
-# Deploy to production
-npx vercel --prod
+# 4. Deploy to production
+git checkout main
+git merge staging
+git push origin main  # Auto-deploys to pbgb.ai
 ```
 
-**Result:** Live app URL in ~2 minutes
+**Result:** Staged deployment with production safety
 
 ### Option 2: Netlify
 ```bash

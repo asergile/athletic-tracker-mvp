@@ -2,17 +2,54 @@
 
 **Complete git workflow for multi-session development and production deployment**
 
+## 🎆 **PRODUCTION DEPLOYMENT WORKFLOW (NEW - SEPTEMBER 17, 2025)**
+
+### **Staging → Production Pipeline:**
+```bash
+# 1. Develop on staging branch
+git checkout staging
+# Make changes, test locally
+
+# 2. Push to staging for testing
+git add .
+git commit -m "feat: Add new feature"
+git push origin staging
+# This deploys to: https://athletic-tracker-mvp.vercel.app
+
+# 3. Test staging environment thoroughly
+# Visit staging URL and validate changes
+
+# 4. Deploy to production
+git checkout main
+git merge staging
+git push origin main
+# This deploys to: https://pbgb.ai and https://pbgb.io
+```
+
+### **Branch Strategy:**
+- **staging branch** → Staging environment (athletic-tracker-mvp.vercel.app)
+- **main branch** → Production environment (pbgb.ai, pbgb.io)
+
+### **CRITICAL RULE:** Never push directly to main branch
+**Always test changes on staging first!**
+
+---
+
 ## 🔥 **MULTI-SESSION DEVELOPMENT WORKFLOW (CRITICAL)**
 
 ### **BEFORE starting ANY new session:**
 ```bash
 # 1. Always pull latest changes first
-git pull origin main
+git pull origin staging  # Pull staging branch for development
+git pull origin main     # Pull main branch for reference
 
 # 2. Check what branch you're on
 git branch
 
-# 3. Check if you have uncommitted changes
+# 3. Ensure you're on staging for development
+git checkout staging
+
+# 4. Check if you have uncommitted changes
 git status
 ```
 
@@ -22,10 +59,13 @@ git status
 git add .
 
 # 2. Commit with descriptive message
-git commit -m "08/13/25 - Fixed custom activities to use database table"
+git commit -m "09/17/25 - Add voice analysis access to history page"
 
-# 3. Push immediately
-git push origin main
+# 3. Push to staging branch
+git push origin staging
+
+# 4. Test staging deployment if needed
+# Visit: https://athletic-tracker-mvp.vercel.app
 ```
 
 ### **IF you forget to push and start a new session:**
@@ -53,12 +93,19 @@ git push origin main
 
 ### **BRUTAL PREVENTION RULE:**
 
-**NEVER end a development session without these 4 commands:**
+**NEVER end a development session without these commands:**
 ```bash
 git add .
 git commit -m "Session complete - [brief description]"
-git push origin main
+git push origin staging  # Push to staging branch
 git status  # Should show "nothing to commit, working tree clean"
+```
+
+**For production deployment after staging validation:**
+```bash
+git checkout main
+git merge staging
+git push origin main  # Deploy to production (pbgb.ai)
 ```
 
 **Set a phone alarm or reminder** - seriously. The 30 seconds it takes to commit/push saves hours of merge hell later.
