@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { Activity } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext'
 
 const AuthScreen = () => {
@@ -114,14 +113,18 @@ const AuthScreen = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e3a8a, #84cc16)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div style={{ width: '100%', maxWidth: '400px' }}>
         
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <Activity style={{ width: '60px', height: '60px', color: 'white', margin: '0 auto 20px' }} />
-          <h1 style={{ color: 'white', fontSize: '28px', fontWeight: 'bold', marginBottom: '10px' }}>💪 Athletic Tracker</h1>
-          <p style={{ color: '#bfdbfe', fontSize: '16px' }}>30-second workout logging</p>
+        <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+          <img 
+            src="/images/Logo PB white.png" 
+            alt="Goal Buddy Logo" 
+            style={{ width: '100px', height: '100px', margin: '0 auto 0px', display: 'block' }} 
+          />
+          <h1 style={{ color: 'white', fontSize: '26px', fontWeight: '700', marginBottom: '15px' }}>Goal Buddy</h1>
+          <p style={{ color: '#f0f9ff', fontSize: '16px' }}>Track progress. Smash goals.</p>
         </div>
 
         {/* Form */}
@@ -181,7 +184,7 @@ const AuthScreen = () => {
                 fontSize: '16px',
                 outline: 'none'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+              onFocus={(e) => e.target.style.borderColor = '#84cc16'}
               onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
           </div>
@@ -202,7 +205,7 @@ const AuthScreen = () => {
                 fontSize: '16px',
                 outline: 'none'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+              onFocus={(e) => e.target.style.borderColor = '#84cc16'}
               onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
           </div>
@@ -220,7 +223,7 @@ const AuthScreen = () => {
             disabled={isLoading || !email || !password}
             style={{
               width: '100%',
-              background: 'linear-gradient(to right, #3b82f6, #8b5cf6)',
+              background: 'linear-gradient(to right, #1e3a8a, #84cc16)',
               color: 'white',
               padding: '14px',
               borderRadius: '8px',
@@ -263,7 +266,7 @@ const AuthScreen = () => {
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#3b82f6',
+                color: '#1e3a8a',
                 fontSize: '14px',
                 cursor: 'pointer',
                 textDecoration: 'underline'
@@ -274,8 +277,8 @@ const AuthScreen = () => {
           </div>
 
           {/* Instructions */}
-          <div style={{ marginTop: '20px', padding: '12px', background: '#f0f9ff', borderRadius: '8px' }}>
-            <p style={{ fontSize: '14px', color: '#0369a1', margin: 0 }}>
+          <div style={{ marginTop: '20px', padding: '12px', background: '#ecfdf5', borderRadius: '8px', border: '1px solid #84cc16' }}>
+            <p style={{ fontSize: '14px', color: '#166534', margin: 0 }}>
               <strong>Easiest:</strong> Use "Continue with Google" above.<br/>
               <strong>Or:</strong> Create account with email/password.
             </p>
@@ -331,7 +334,7 @@ const AuthScreen = () => {
                   fontSize: '16px',
                   outline: 'none'
                 }}
-                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onFocus={(e) => e.target.style.borderColor = '#84cc16'}
                 onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
               />
             </div>
@@ -375,7 +378,7 @@ const AuthScreen = () => {
                 disabled={resetLoading || !resetEmail}
                 style={{
                   flex: 1,
-                  background: 'linear-gradient(to right, #3b82f6, #8b5cf6)',
+                  background: 'linear-gradient(to right, #1e3a8a, #84cc16)',
                   color: 'white',
                   padding: '12px',
                   borderRadius: '8px',
