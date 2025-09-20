@@ -438,6 +438,9 @@ const HistoryView = ({ setCurrentView, weeklyStats, workouts, ratingLabels, form
           </div>
         </div>
       )}
+      
+      {/* Feedback Button */}
+      <FeedbackButton />
     </div>
   );
 };
@@ -1422,6 +1425,9 @@ const GoalsAndEventsView = ({ setCurrentView, onGoalCreated }) => {
           </div>
         </div>
       )}
+      
+      {/* Feedback Button */}
+      <FeedbackButton />
     </div>
   );
 };
@@ -1730,6 +1736,9 @@ const ProfileView = ({
       </div>
     </div>
   </div>
+  
+  {/* Feedback Button */}
+  <FeedbackButton />
 </div>
 );
 };

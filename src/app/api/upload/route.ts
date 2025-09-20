@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import Anthropic from '@anthropic-ai/sdk'
+import { PromptManager } from '@/lib/prompt-manager'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -88,44 +89,19 @@ async function processWorkoutTranscript(transcript: string): Promise<{
   structuredWorkout: any;
   summary: string;
 }> {
-  const WORKOUT_ANALYSIS_PROMPT = `You are a swimming workout processor. Convert the raw voice transcript into a clean, structured workout summary that the athlete will see and save. Output ONLY the formatted workout summary - no processing notes, confidence levels, or meta-commentary.
+  // Load prompt dynamically from the prompt management system
+  let basePrompt: string;
+  try {
+    basePrompt = await PromptManager.loadPrompt('workout-processing');
+  } catch (error) {
+    console.error('Failed to load workout processing prompt:', error);
+    throw new Error('Prompt loading failed');
+  }
+
+  const WORKOUT_ANALYSIS_PROMPT = `${basePrompt}
 
 TRANSCRIPT:
-${transcript}
-
-REQUIRED OUTPUT FORMAT:
-# [Athlete Name]'s Workout - [Date]
-## WORKOUT STRUCTURE
-### WARM-UP ([X] yards/meters total)
-- [Clean, specific sets with distances]
-### PRE-SET ([X] yards/meters total) 
-[Only include if mentioned]
-### MAIN SET ([X] yards/meters total)
-- [Clean, specific sets with distances]
-### COOL DOWN ([X] yards/meters total)
-[Only include if mentioned]
-## PERFORMANCE HIGHLIGHTS
-- **[Stroke] [Distance]:** [Time] [context if mentioned]
-- **[Notable achievement]:** [Description]
-## WORKOUT METRICS
-- **Total Distance:** [X] yards/meters
-- **Course:** [Long course/Short course/Pool size if mentioned]
-- **Equipment Used:** [List if mentioned: fins, paddles, snorkel, etc.]
-- **Session Rating:** [X]/3 [with brief reason if given]
-- **Primary Focus:** [Training type: aerobic, sprint, technique, etc.]
-## TRAINING NOTES
-[2-3 bullet points of athlete's key observations, feelings, or improvements mentioned]
-
-RULES:
-- Use athlete's exact times when mentioned
-- Convert rambling descriptions into clean set structures
-- Include equipment context when mentioned
-- Calculate total distance accurately
-- Keep athlete's own assessment/rating
-- Only include sections that apply
-- No processing confidence notes
-- No suggestions or coaching advice
-- Use athlete's preferred stroke terminology`;
+${transcript}`;
 
   try {
     const completion = await anthropic.messages.create({

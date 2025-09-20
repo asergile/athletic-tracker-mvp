@@ -6,6 +6,7 @@ import { useAuth } from '../lib/AuthContext';
 import { dbHelpers } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import { startOfWeek, addDays, format } from 'date-fns';
+import FeedbackButton from './FeedbackButton';
 
 // Helper function to format time
 const formatTime = (minutes) => {
@@ -515,6 +516,9 @@ const WeeklyWorkoutView = () => {
           </div>
         )}
       </div>
+      
+      {/* Feedback Button */}
+      <FeedbackButton />
     </div>
   );
 };
