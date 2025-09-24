@@ -1,8 +1,10 @@
 # Technical Specifications & Coding Standards
 
 **Project:** Athletic Tracker MVP  
-**Last Updated:** July 17, 2025  
+**Last Updated:** September 22, 2025  
 **Purpose:** Single source of truth for all technical decisions and standards
+
+⚠️ **CRITICAL SECURITY UPDATE:** All database implementations MUST follow security patterns in `supabase-security-implementation.md`
 
 ## 👨‍💻 **DEVELOPMENT PERSONA: Seasoned Software Architect**
 
@@ -361,10 +363,95 @@ Ready for production deployment."
 - **Supabase Docs:** https://supabase.com/docs
 
 ### **Internal Documentation**
+- **Security Implementation:** `supabase-security-implementation.md` (CRITICAL - READ FIRST)
 - **Best Practices:** `claude-collaboration-best-practices.md`
 - **Project Status:** `project-status.md`
 - **Implementation Plan:** `supabase-implementation-plan.md`
 - **Session Handoffs:** `session-handoffs/` directory
+
+## 🔒 **Database Security Requirements (CRITICAL)**
+
+### **Mandatory Security Patterns**
+**EVERY database interaction MUST follow these patterns. No exceptions.**
+
+```typescript
+// ✅ SECURE - Always check authentication first
+export async function secureDBOperation() {
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (!user || error) {
+    throw new Error('Authentication required')
+  }
+  
+  // All queries automatically filtered by RLS policies
+  const { data } = await supabase
+    .from('workouts')
+    .select()
+    .eq('user_id', user.id) // Redundant but explicit
+  
+  return data
+}
+
+// ❌ INSECURE - Never do direct queries without auth check
+const badQuery = await supabase.from('workouts').select()
+```
+
+### **Required Database Tables**
+
+```sql
+-- profiles table (REQUIRED for user queries)
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  email TEXT NOT NULL,
+  display_name TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS on ALL tables (MANDATORY)
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workouts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE athlete_goals ENABLE ROW LEVEL SECURITY;
+
+-- Create policies (REQUIRED)
+CREATE POLICY "Users manage own data" ON workouts
+  FOR ALL USING (auth.uid() = user_id);
+```
+
+### **Security Checklist for All DB Work**
+- [ ] **RLS enabled** on table
+- [ ] **Policies created** for user access
+- [ ] **Auth check** in application code
+- [ ] **Input validation** on all user data
+- [ ] **No raw SQL** - use Supabase client only
+- [ ] **Error handling** doesn't leak sensitive info
+
+### **Database Query Patterns**
+
+```typescript
+// Get workouts with user info (CORRECT pattern)
+const workoutsWithUser = await supabase
+  .from('workouts')
+  .select(`
+    id,
+    workout_type,
+    duration,
+    rating,
+    date,
+    profiles!inner(display_name, email)
+  `)
+  .eq('user_id', user.id)
+
+// This replaces your original question about joining user data
+// The profiles table gives you the user info you need
+```
+
+### **Critical Security Notes**
+- **Row Level Security (RLS)** prevents users from accessing each other's data
+- **profiles table** replaces direct auth.users queries (which are restricted)
+- **NEVER expose** service role key to client-side code
+- **ALWAYS validate** user input before database operations
+- **TEST security** by trying to access other users' data (should fail)
+
+**🚨 PRODUCTION BLOCKER:** Cannot deploy without implementing all security measures in `supabase-security-implementation.md`
 
 ## 🚀 **Upgrade Path**
 

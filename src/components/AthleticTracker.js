@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Plus, Calendar, TrendingUp, Clock, Zap, Target, ChevronLeft, Activity, User, Flag, LogOut, Trash2, Edit, BarChart3, Mic } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext'
-import { dbHelpers, supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
+import { dbHelpers } from '../lib/security/enhanced-db-helpers'
 import FeedbackButton from './FeedbackButton'
 import WeeklyWorkoutView from './WeeklyWorkoutView'
 import VoiceRecorder from './VoiceRecorder'

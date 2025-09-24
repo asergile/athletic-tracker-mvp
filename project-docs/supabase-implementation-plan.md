@@ -1,8 +1,13 @@
 # Supabase Implementation Plan
 
-**Status:** Ready for Implementation (Approved July 10, 2025)  
+**Status:** Security Review Required (Updated September 22, 2025)  
 **Priority:** Critical for Alpha Testing Success  
 **Goal:** Replace localStorage with cloud database + auth system
+
+⚠️ **SECURITY UPDATE:** Before implementing this plan, MUST review and implement:
+- **Required Reading:** `supabase-security-implementation.md`
+- **Security Requirements:** Row Level Security, profiles table, secure query patterns
+- **All database changes:** Must follow security-first approach documented in security guide
 
 ## 🎯 **Approved Implementation Scope**
 
