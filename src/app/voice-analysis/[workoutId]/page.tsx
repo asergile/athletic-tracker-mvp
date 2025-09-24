@@ -4,15 +4,16 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
+import { dbHelpers } from '../../../lib/security/enhanced-db-helpers'
 import { getUserWorkouts, Workout } from '../../../lib/workouts'
 import VoiceRecorder from '../../../components/VoiceRecorder'
-import { ArrowLeft, Calendar, Clock, Target, Edit2 } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, Target, Edit2, Plus, BarChart3, Flag, User, ChevronLeft, ChevronRight } from 'lucide-react'
 
 
 
 const ratingLabels = {
-  1: { label: 'Rough', emoji: '😤', color: 'from-red-500 to-red-600' },
-  2: { label: 'Decent', emoji: '😊', color: 'from-yellow-500 to-orange-500' },
+  1: { label: 'Struggled', emoji: '😤', color: 'from-red-500 to-red-600' },
+  2: { label: 'Solid', emoji: '😊', color: 'from-yellow-500 to-orange-500' },
   3: { label: 'Great', emoji: '🔥', color: 'from-green-500 to-emerald-600' }
 }
 
@@ -36,6 +37,8 @@ export default function VoiceAnalysisPage() {
 
   // State management - copying from voice-test
   const [workout, setWorkout] = useState<Workout | null>(null)
+  const [voiceWorkouts, setVoiceWorkouts] = useState<Workout[]>([])
+  const [currentWorkoutIndex, setCurrentWorkoutIndex] = useState<number>(-1)
   const [transcriptionResult, setTranscriptionResult] = useState<string>('')
   const [workoutAnalysis, setWorkoutAnalysis] = useState<any>(null)
   const [analysisSummary, setAnalysisSummary] = useState<string>('')
@@ -49,20 +52,35 @@ export default function VoiceAnalysisPage() {
   // Load workout data on mount
   useEffect(() => {
     if (user && workoutId) {
-      loadWorkout()
+      loadWorkoutAndVoiceWorkouts()
     }
   }, [user, workoutId])
 
-  const loadWorkout = async () => {
+  const loadWorkoutAndVoiceWorkouts = async () => {
     if (!user || !workoutId) return
 
     try {
-      // Get specific workout by ID using getUserWorkouts function like voice-test page
+      // Get all user workouts
       const userWorkouts = await getUserWorkouts(user.id, 100)
-      const foundWorkout = userWorkouts?.find(w => w.id === workoutId)
       
+      // Filter to only workouts with voice data
+      const workoutsWithVoice = userWorkouts?.filter(w => 
+        w.voice_transcription || w.workout_analysis
+      ) || []
+      
+      // Sort by date (newest first for navigation)
+      workoutsWithVoice.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      
+      setVoiceWorkouts(workoutsWithVoice)
+      
+      // Find current workout and set index
+      const foundWorkout = userWorkouts?.find(w => w.id === workoutId)
       if (foundWorkout) {
         setWorkout(foundWorkout)
+        
+        // Find index in voice workouts array
+        const voiceIndex = workoutsWithVoice.findIndex(w => w.id === workoutId)
+        setCurrentWorkoutIndex(voiceIndex)
         
         // Load existing voice data if available
         if (foundWorkout.voice_transcription) {
@@ -77,6 +95,52 @@ export default function VoiceAnalysisPage() {
     } catch (err) {
       console.error('Error loading workout:', err)
       setError('Failed to load workout')
+    }
+  }
+
+  // Navigation functions
+  const goToPrevious = () => {
+    if (currentWorkoutIndex < voiceWorkouts.length - 1) {
+      const previousWorkout = voiceWorkouts[currentWorkoutIndex + 1]
+      router.push(`/voice-analysis/${previousWorkout.id}`)
+    }
+  }
+
+  const goToNext = () => {
+    if (currentWorkoutIndex > 0) {
+      const nextWorkout = voiceWorkouts[currentWorkoutIndex - 1]
+      router.push(`/voice-analysis/${nextWorkout.id}`)
+    }
+  }
+
+  // Check if navigation arrows should be shown
+  const canGoToPrevious = currentWorkoutIndex < voiceWorkouts.length - 1
+  const canGoToNext = currentWorkoutIndex > 0
+
+  // Mobile swipe gesture support
+  const [touchStartX, setTouchStartX] = useState<number>(0)
+  const [touchEndX, setTouchEndX] = useState<number>(0)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return
+    
+    const distance = touchStartX - touchEndX
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+
+    if (isLeftSwipe && canGoToNext) {
+      goToNext()
+    }
+    if (isRightSwipe && canGoToPrevious) {
+      goToPrevious()
     }
   }
 
@@ -123,7 +187,7 @@ export default function VoiceAnalysisPage() {
       setAnalysisSummary(result.analysisSummary)
       
       // Refresh workout to show updated transcription
-      await loadWorkout()
+      await loadWorkoutAndVoiceWorkouts()
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed')
@@ -186,7 +250,7 @@ export default function VoiceAnalysisPage() {
       setEditedTranscription('')
       
       // Refresh workout
-      await loadWorkout()
+      await loadWorkoutAndVoiceWorkouts()
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Re-analysis failed')
@@ -253,7 +317,7 @@ export default function VoiceAnalysisPage() {
       setEditedAnalysis('')
       
       // Refresh workout
-      await loadWorkout()
+      await loadWorkoutAndVoiceWorkouts()
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis update failed')
@@ -286,21 +350,81 @@ export default function VoiceAnalysisPage() {
   const ratingConfig = workout ? ratingLabels[workout.rating] : null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Header */}
+    <div 
+      className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Header with Full Navigation */}
       <div className="px-6 pt-12 pb-8">
         <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => router.push('/')}
-            className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
-          >
-            <ArrowLeft className="w-6 h-6 text-white" />
-          </button>
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Voice Analysis</h1>
-            <p className="text-purple-200">Detailed workout breakdown</p>
+          {/* Left side - Back + Previous */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => router.push('/')}
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Back to Dashboard"
+            >
+              <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
+            {canGoToPrevious && (
+              <button
+                onClick={goToPrevious}
+                className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+                title="Previous voice analysis"
+              >
+                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </button>
+            )}
           </div>
-          <div className="w-12" /> {/* Spacer for center alignment */}
+
+          {/* Center - Title */}
+          <div className="text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Voice Analysis</h1>
+            <p className="text-purple-200 text-sm sm:text-base">Detailed workout breakdown</p>
+          </div>
+
+          {/* Right side - Navigation + Next */}
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <button
+              onClick={() => router.push('/')}
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Add Workout"
+            >
+              <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
+            <button
+              onClick={() => router.push('/')}
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Weekly View"
+            >
+              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
+            <button
+              onClick={() => router.push('/')}
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Goals"
+            >
+              <Flag className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
+            <button
+              onClick={() => router.push('/')}
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Profile"
+            >
+              <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
+            {canGoToNext && (
+              <button
+                onClick={goToNext}
+                className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+                title="Next voice analysis"
+              >
+                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Workout Details Card */}

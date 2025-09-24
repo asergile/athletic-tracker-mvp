@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, Calendar, TrendingUp, Clock, Zap, Target, ChevronLeft, Activity, User, Flag, LogOut, Trash2, Edit, BarChart3, Mic } from 'lucide-react';
+import { Plus, Calendar, TrendingUp, Clock, Zap, Target, ChevronLeft, Activity, User, Flag, LogOut, Trash2, Edit, BarChart3, Mic, FileText } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { dbHelpers } from '../lib/security/enhanced-db-helpers'
@@ -38,8 +39,8 @@ const distanceUnits = {
 };
 
 const ratingLabels = {
-  1: { label: 'Rough', emoji: '😤', color: 'from-red-500 to-red-600' },
-  2: { label: 'Decent', emoji: '😊', color: 'from-yellow-500 to-orange-500' },
+  1: { label: 'Struggled', emoji: '😤', color: 'from-red-500 to-red-600' },
+  2: { label: 'Solid', emoji: '😊', color: 'from-yellow-500 to-orange-500' },
   3: { label: 'Great', emoji: '🔥', color: 'from-green-500 to-emerald-600' }
 };
 
@@ -48,6 +49,14 @@ const HistoryView = ({ setCurrentView, weeklyStats, workouts, ratingLabels, form
   const [editingWorkout, setEditingWorkout] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  
+  // Add router for navigation to voice analysis
+  const router = useRouter();
+  
+  // Voice analysis navigation handler
+  const handleVoiceAnalysis = (workoutId) => {
+    router.push(`/voice-analysis/${workoutId}`);
+  };
   
   // Distance unit options based on workout type for edit modal
   const getEditDistanceUnitOptions = () => {
@@ -241,24 +250,51 @@ const HistoryView = ({ setCurrentView, weeklyStats, workouts, ratingLabels, form
               const monthDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
               dateLabel = `${dayOfWeek}, ${monthDay}`;
             }
+            
+            // Check if workout has voice analysis data
+            const hasVoiceData = workout.voice_transcription || workout.workout_analysis;
 
             return (
               <div key={workout.id} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 relative">
-                {/* Edit Icon - Mobile Responsive */}
-                <button
-                  onClick={() => handleEditWorkout(workout)}
-                  className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 sm:w-9 sm:h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 border border-gray-200 z-10 touch-manipulation"
-                >
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
+                {/* Action Buttons - Mobile Responsive */}
+                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex space-x-2 z-10">
+                  {/* Voice Analysis Button */}
+                  <button
+                    onClick={() => handleVoiceAnalysis(workout.id)}
+                    className="w-8 h-8 sm:w-9 sm:h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 border border-gray-200 touch-manipulation"
+                    title={hasVoiceData ? "View voice analysis" : "Add voice note"}
+                  >
+                    {hasVoiceData ? (
+                      <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
+                    ) : (
+                      <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
+                    )}
+                  </button>
+                  
+                  {/* Edit Button */}
+                  <button
+                    onClick={() => handleEditWorkout(workout)}
+                    className="w-8 h-8 sm:w-9 sm:h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 border border-gray-200 touch-manipulation"
+                    title="Edit workout"
+                  >
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                </div>
                 
                 <div className="flex items-center justify-between">
-                  <div className="flex-1 pr-10 sm:pr-12"> {/* Mobile responsive padding for edit button */}
+                  <div className="flex-1 pr-20 sm:pr-24"> {/* Updated padding for two buttons */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-2">
                       <h3 className="text-lg sm:text-xl font-bold text-gray-800">{workout.workout_type}</h3>
                       <span className="text-xs sm:text-sm font-medium text-gray-500">{dateLabel}</span>
+                      {/* Voice indicator badge */}
+                      {hasVoiceData && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <Mic className="w-3 h-3 mr-1" />
+                          Voice Note
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-1 text-gray-600">
