@@ -95,12 +95,12 @@ export default function HistoryPage() {
   }, [workouts])
   
   // Voice analysis navigation
-  const handleVoiceAnalysis = (workoutId) => {
+  const handleVoiceAnalysis = (workoutId: string) => {
     router.push(`/voice-analysis/${workoutId}`)
   }
 
   // Edit workout functionality
-  const handleEditWorkout = (workout) => {
+  const handleEditWorkout = (workout: any) => {
     setEditingWorkout({
       ...workout,
       type: workout.workout_type,
