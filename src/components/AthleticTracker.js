@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, Calendar, TrendingUp, Clock, Zap, Target, ChevronLeft, Activity, User, Flag, LogOut, Trash2, Edit, BarChart3, Mic, FileText } from 'lucide-react';
+import Link from 'next/link';
+import { Plus, Calendar, TrendingUp, Clock, Zap, Target, Activity, User, Flag, LogOut, BarChart3, Mic } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { dbHelpers } from '../lib/security/enhanced-db-helpers'
 import FeedbackButton from './FeedbackButton'
-import WeeklyWorkoutView from './WeeklyWorkoutView'
 import VoiceRecorder from './VoiceRecorder'
+import StandardNavigation from './StandardNavigation'
 
 // HELPER FUNCTIONS
 const formatTime = (minutes) => {
@@ -44,443 +45,7 @@ const ratingLabels = {
   3: { label: 'Great', emoji: '🔥', color: 'from-green-500 to-emerald-600' }
 };
 
-// HISTORY VIEW COMPONENT
-const HistoryView = ({ setCurrentView, weeklyStats, workouts, ratingLabels, formatTime, setShowLogAnother, onWorkoutUpdated, onWorkoutDeleted }) => {
-  const [editingWorkout, setEditingWorkout] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  
-  // Add router for navigation to voice analysis
-  const router = useRouter();
-  
-  // Voice analysis navigation handler
-  const handleVoiceAnalysis = (workoutId) => {
-    router.push(`/voice-analysis/${workoutId}`);
-  };
-  
-  // Distance unit options based on workout type for edit modal
-  const getEditDistanceUnitOptions = () => {
-    const workoutType = editingWorkout.type?.toLowerCase() || '';
-    if (workoutType.includes('swim')) {
-      return distanceUnits.swimming;
-    }
-    return distanceUnits.cardio;
-  };
-  
-  const handleEditWorkout = (workout) => {
-    setEditingWorkout({
-      ...workout,
-      // Convert workout_type to type for form compatibility
-      type: workout.workout_type,
-      // Ensure distance is string for form
-      distance: workout.distance ? workout.distance.toString() : '',
-      distanceUnit: workout.distance_unit || 'miles'
-    });
-    setError('');
-  };
-  
-  const handleSaveWorkout = async () => {
-    if (!editingWorkout.type || !editingWorkout.duration || !editingWorkout.rating) {
-      setError('Please fill in all required fields');
-      return;
-    }
-    
-    setIsSubmitting(true);
-    setError('');
-    
-    try {
-      const workoutData = {
-        type: editingWorkout.type,
-        duration: parseInt(editingWorkout.duration),
-        rating: editingWorkout.rating,
-        date: editingWorkout.date,
-        distance: editingWorkout.distance ? parseFloat(editingWorkout.distance) : null,
-        distance_unit: editingWorkout.distance ? editingWorkout.distanceUnit : null
-      };
-      
-      const { error } = await dbHelpers.updateWorkout(editingWorkout.id, workoutData);
-      
-      if (error) {
-        throw error;
-      }
-      
-      setEditingWorkout(null);
-      if (onWorkoutUpdated) {
-        onWorkoutUpdated();
-      }
-    } catch (err) {
-      console.error('Error updating workout:', err);
-      setError('Failed to update workout. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
-  const handleDeleteWorkout = async () => {
-    if (!confirm('Are you sure you want to delete this workout? This cannot be undone.')) {
-      return;
-    }
-    
-    setIsSubmitting(true);
-    setError('');
-    
-    try {
-      const { error } = await dbHelpers.deleteWorkout(editingWorkout.id);
-      
-      if (error) {
-        throw error;
-      }
-      
-      setEditingWorkout(null);
-      if (onWorkoutDeleted) {
-        onWorkoutDeleted();
-      }
-    } catch (err) {
-      console.error('Error deleting workout:', err);
-      setError('Failed to delete workout. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Header */}
-      <div className="px-6 pt-12 pb-8">
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => setCurrentView('log')}
-            className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-            title="Back to Log Workout"
-          >
-            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </button>
-          <div className="text-center">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Your Journey</h1>
-            <p className="text-purple-200 text-sm sm:text-base">Every workout counts</p>
-          </div>
-          <div className="flex space-x-1 sm:space-x-2">
-            <button
-              onClick={() => setShowLogAnother && setShowLogAnother()}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Add Workout"
-            >
-              <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('weekly')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Weekly View"
-            >
-              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('goals')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Goals"
-            >
-              <Flag className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('profile')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Profile"
-            >
-              <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-          </div>
-        </div>
-
-        {/* Stats Cards - Mobile Responsive */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
-            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400 mb-1 sm:mb-2" />
-            <p className="text-lg sm:text-2xl font-bold text-white">{formatTime(weeklyStats.totalTime)}</p>
-            <p className="text-purple-200 text-xs sm:text-sm truncate">Total Time</p>
-          </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
-            <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-green-400 mb-1 sm:mb-2" />
-            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.count} workouts</p>
-            <p className="text-purple-200 text-xs sm:text-sm truncate">This Week</p>
-          </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
-            <Target className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400 mb-1 sm:mb-2" />
-            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.avgRating.toFixed(1)}</p>
-            <p className="text-purple-200 text-xs sm:text-sm truncate">Avg Feel</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Add Workout Button */}
-      <div className="px-6 mb-6">
-        <button
-          onClick={() => setShowLogAnother && setShowLogAnother()}
-          className="w-full flex items-center justify-center space-x-2 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Add Workout</span>
-        </button>
-      </div>
-      
-      {/* Workout List */}
-      <div className="px-6 pb-8">
-        <div className="space-y-4">
-          {workouts.map((workout, index) => {
-            const ratingConfig = ratingLabels[workout.rating];
-            
-            // Fix: Create date object that interprets the date string as local, not UTC
-            const dateParts = workout.date.split('-');
-            const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]); // year, month-1, day
-            
-            const today = new Date();
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            
-            // Enhanced date comparison and formatting with day of week
-            const isToday = date.toDateString() === today.toDateString();
-            const isYesterday = date.toDateString() === yesterday.toDateString();
-            
-            let dateLabel;
-            if (isToday) {
-              dateLabel = 'Today';
-            } else if (isYesterday) {
-              dateLabel = 'Yesterday';
-            } else {
-              // Format with day of week for older dates
-              const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
-              const monthDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-              dateLabel = `${dayOfWeek}, ${monthDay}`;
-            }
-            
-            // Check if workout has voice analysis data
-            const hasVoiceData = workout.voice_transcription || workout.workout_analysis;
-
-            return (
-              <div key={workout.id} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 relative">
-                {/* Action Buttons - Mobile Responsive */}
-                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex space-x-2 z-10">
-                  {/* Voice Analysis Button */}
-                  <button
-                    onClick={() => handleVoiceAnalysis(workout.id)}
-                    className="w-8 h-8 sm:w-9 sm:h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 border border-gray-200 touch-manipulation"
-                    title={hasVoiceData ? "View voice analysis" : "Add voice note"}
-                  >
-                    {hasVoiceData ? (
-                      <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
-                    ) : (
-                      <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
-                    )}
-                  </button>
-                  
-                  {/* Edit Button */}
-                  <button
-                    onClick={() => handleEditWorkout(workout)}
-                    className="w-8 h-8 sm:w-9 sm:h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 border border-gray-200 touch-manipulation"
-                    title="Edit workout"
-                  >
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 pr-20 sm:pr-24"> {/* Updated padding for two buttons */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-2">
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-800">{workout.workout_type}</h3>
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">{dateLabel}</span>
-                      {/* Voice indicator badge */}
-                      {hasVoiceData && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          <Mic className="w-3 h-3 mr-1" />
-                          Voice Note
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-1 text-gray-600">
-                        <Clock className="w-4 h-4" />
-                        <span>{formatTime(workout.duration)}</span>
-                      </div>
-                      {workout.distance && (
-                        <div className="flex items-center space-x-1 text-gray-600">
-                          <span>📏</span>
-                          <span>{workout.distance} {workout.distance_unit}</span>
-                        </div>
-                      )}
-                      <div className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-gradient-to-r ${ratingConfig.color} text-white text-sm font-medium`}>
-                        <span>{ratingConfig.emoji}</span>
-                        <span>{ratingConfig.label}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${ratingConfig.color} flex items-center justify-center text-2xl`}>
-                      {ratingConfig.emoji}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {workouts.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">💪</div>
-            <h3 className="text-xl font-bold text-white mb-2">Start Your Journey</h3>
-            <p className="text-purple-200 mb-6">Log your first workout to see your progress here</p>
-            <button
-              onClick={() => setCurrentView('log')}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
-            >
-              Log First Workout
-            </button>
-          </div>
-        )}
-      </div>
-      
-      {/* Edit Workout Modal */}
-      {editingWorkout && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white rounded-3xl p-6 m-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-800">Edit Workout</h3>
-              <button
-                onClick={() => setEditingWorkout(null)}
-                className="text-gray-500 hover:text-gray-700 p-2"
-              >
-                ×
-              </button>
-            </div>
-            
-            {error && (
-              <div className="bg-red-500 bg-opacity-10 border border-red-500 border-opacity-30 rounded-xl p-4 mb-4">
-                <p className="text-red-600">{error}</p>
-              </div>
-            )}
-            
-            <div className="space-y-4">
-              {/* Workout Type */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Activity</label>
-                <input
-                  type="text"
-                  value={editingWorkout.type}
-                  onChange={(e) => {
-                    const newType = e.target.value;
-                    setEditingWorkout(prev => {
-                      // Auto-update distance unit when activity type changes
-                      const workoutType = newType.toLowerCase();
-                      let defaultUnit = prev.distanceUnit;
-                      
-                      if (workoutType.includes('swim')) {
-                        defaultUnit = 'meters';
-                      } else {
-                        defaultUnit = 'miles';
-                      }
-                      
-                      return { ...prev, type: newType, distanceUnit: defaultUnit };
-                    });
-                  }}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-              
-              {/* Duration */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Duration (minutes)</label>
-                <input
-                  type="number"
-                  value={editingWorkout.duration}
-                  onChange={(e) => setEditingWorkout(prev => ({ ...prev, duration: e.target.value }))}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-              
-              {/* Distance */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Distance (optional)</label>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={editingWorkout.distance}
-                    onChange={(e) => setEditingWorkout(prev => ({ ...prev, distance: e.target.value }))}
-                    placeholder="5.2"
-                    className="flex-1 p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-                  />
-                  <select
-                    value={editingWorkout.distanceUnit}
-                    onChange={(e) => setEditingWorkout(prev => ({ ...prev, distanceUnit: e.target.value }))}
-                    className="w-24 p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
-                  >
-                    {getEditDistanceUnitOptions().map(unit => (
-                      <option key={unit} value={unit}>
-                        {unit === 'miles' ? 'mi' : unit === 'kilometers' ? 'km' : unit === 'meters' ? 'm' : 'yd'}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              
-              {/* Date */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Date</label>
-                <input
-                  type="date"
-                  value={editingWorkout.date}
-                  onChange={(e) => setEditingWorkout(prev => ({ ...prev, date: e.target.value }))}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-              
-              {/* Rating */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">How did it go?</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(ratingLabels).map(([rating, config]) => (
-                    <button
-                      key={rating}
-                      onClick={() => setEditingWorkout(prev => ({ ...prev, rating: parseInt(rating) }))}
-                      className={`p-3 rounded-lg transition-all duration-200 ${editingWorkout.rating === parseInt(rating)
-                        ? `bg-gradient-to-r ${config.color} text-white shadow-lg`
-                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      <div className="text-lg mb-1">{config.emoji}</div>
-                      <div className="text-xs font-medium">{config.label}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={handleDeleteWorkout}
-                disabled={isSubmitting}
-                className="flex-1 py-3 px-4 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
-              >
-                {isSubmitting ? 'Deleting...' : 'Delete'}
-              </button>
-              <button
-                onClick={handleSaveWorkout}
-                disabled={isSubmitting || !editingWorkout.type || !editingWorkout.duration || !editingWorkout.rating}
-                className="flex-1 py-3 px-4 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:shadow-lg transition-all disabled:opacity-50"
-              >
-                {isSubmitting ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Feedback Button */}
-      <FeedbackButton />
-    </div>
-  );
-};
+// HISTORY VIEW COMPONENT REMOVED - Now handled by /app/history/page.tsx
 
 // LOG WORKOUT VIEW COMPONENT
 const LogWorkoutView = ({
@@ -520,32 +85,20 @@ const LogWorkoutView = ({
             <h1 className="text-3xl font-bold text-white mb-2">Log Workout</h1>
             <p className="text-blue-200">Keep the momentum going</p>
           </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentView('goals')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
-            >
-              <Flag className="w-6 h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('weekly')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
-            >
-              <BarChart3 className="w-6 h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('history')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
-            >
-              <Calendar className="w-6 h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('profile')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200"
-            >
-              <User className="w-6 h-6 text-white" />
-            </button>
-          </div>
+          <StandardNavigation 
+            currentPage="dashboard" 
+            onNavigate={(view) => {
+              if (view === 'goals' || view === 'profile') {
+                setCurrentView(view)
+              } else if (view === 'log') {
+                setCurrentView('log')
+              } else if (view === 'weekly') {
+                window.location.href = '/weekly-view'
+              } else if (view === 'history') {
+                window.location.href = '/history'
+              }
+            }} 
+          />
         </div>
 
         {/* Stats Cards */}
@@ -1020,47 +573,24 @@ const GoalsAndEventsView = ({ setCurrentView, onGoalCreated }) => {
       {/* Header - Mobile Responsive */}
       <div className="px-6 pt-12 pb-8">
         <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => setCurrentView('log')}
-            className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-            title="Back to Log Workout"
-          >
-            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </button>
-          <div className="text-center">
+          <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Goals & Events</h1>
             <p className="text-green-200 text-sm sm:text-base">Train toward your competitions</p>
           </div>
-          <div className="flex space-x-1 sm:space-x-2">
-            <button
-              onClick={() => setCurrentView('log')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Add Workout"
-            >
-              <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('weekly')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Weekly View"
-            >
-              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('history')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="History"
-            >
-              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('profile')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Profile"
-            >
-              <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-          </div>
+          <StandardNavigation 
+            currentPage="goals" 
+          onNavigate={(view) => {
+            if (view === 'goals' || view === 'profile') {
+              setCurrentView(view)
+              } else if (view === 'log') {
+              setCurrentView('log')
+              } else if (view === 'weekly') {
+                window.location.href = '/weekly-view'
+            } else if (view === 'history') {
+              window.location.href = '/history'
+            }
+            }} 
+          />
         </div>
       </div>
       
@@ -1524,47 +1054,24 @@ const ProfileView = ({
       {/* Header - Mobile Responsive */}
       <div className="px-6 pt-12 pb-8">
         <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => setCurrentView('log')}
-            className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-            title="Back to Log Workout"
-          >
-            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </button>
-          <div className="text-center">
+          <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Profile</h1>
             <p className="text-green-200 text-sm sm:text-base">Account & Settings</p>
           </div>
-          <div className="flex space-x-1 sm:space-x-2">
-            <button
-              onClick={() => setCurrentView('log')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Add Workout"
-            >
-              <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('weekly')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Weekly View"
-            >
-              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('goals')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Goals"
-            >
-              <Flag className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => setCurrentView('history')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="History"
-            >
-              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-          </div>
+          <StandardNavigation 
+            currentPage="profile" 
+            onNavigate={(view) => {
+              if (view === 'goals' || view === 'profile') {
+                setCurrentView(view)
+              } else if (view === 'log') {
+                setCurrentView('log')
+              } else if (view === 'weekly') {
+                window.location.href = '/weekly-view'
+              } else if (view === 'history') {
+                window.location.href = '/history'
+              }
+            }} 
+          />
         </div>
       </div>
 
@@ -1788,7 +1295,7 @@ const [currentView, setCurrentView] = useState(() => {
   if (typeof window !== 'undefined') {
     const urlParams = new URLSearchParams(window.location.search);
     const viewParam = urlParams.get('view');
-    if (['log', 'history', 'goals', 'profile', 'weekly'].includes(viewParam)) {
+    if (['log', 'history', 'goals', 'profile'].includes(viewParam)) {
       return viewParam;
     }
   }
@@ -1814,7 +1321,14 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 const [showSuccess, setShowSuccess] = useState(false);
 const [error, setError] = useState('');
 const [showLogAnother, setShowLogAnother] = useState(false);
-const [showDatePicker, setShowDatePicker] = useState(false);
+const [showDatePicker, setShowDatePicker] = useState(() => {
+  // Check for URL parameter to show date picker (for backdating from history)
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('showDatePicker') === 'true';
+  }
+  return false;
+});
 const [showAddWorkoutType, setShowAddWorkoutType] = useState(false);
   
   // Custom activity management state for profile page
@@ -1878,13 +1392,22 @@ useEffect(() => {
   }
 }, [currentView]);
 
+// Listen for URL parameter changes to update showDatePicker state
+useEffect(() => {
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const shouldShowDatePicker = urlParams.get('showDatePicker') === 'true';
+    setShowDatePicker(shouldShowDatePicker);
+  }
+}, []);
+
 // Listen for URL parameter changes (for navigation from WeeklyWorkoutView)
 useEffect(() => {
   const handleUrlChange = () => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const viewParam = urlParams.get('view');
-      if (['log', 'history', 'goals', 'profile', 'weekly'].includes(viewParam)) {
+      if (['log', 'history', 'goals', 'profile'].includes(viewParam)) {
         setCurrentView(viewParam);
       }
     }
@@ -2210,7 +1733,7 @@ const handleVoiceUpload = useCallback(async (audioBlob) => {
 const handleSkipToHistory = useCallback(() => {
   setShowSuccess(false);
   setShowVoiceExpanded(false);
-  setCurrentView('history');
+  window.location.href = '/history';
 }, []);
 
 const handleCollapseVoiceModal = useCallback(() => {
@@ -2367,29 +1890,6 @@ for (let i = 0; i < 52; i++) { // Check up to 52 weeks
 return streak;
 }, [workouts]);
 // Render appropriate view
-if (currentView === 'weekly') {
-  return (
-    <WeeklyWorkoutView />
-  );
-}
-if (currentView === 'history') {
-return (
-<HistoryView
-setCurrentView={setCurrentView}
-weeklyStats={weeklyStats}
-workouts={workouts}
-ratingLabels={ratingLabels}
-formatTime={formatTime}
-setShowLogAnother={() => {
-setCurrentView('log');
-setShowLogAnother(true);
-setShowDatePicker(true);
-}}
-onWorkoutUpdated={loadUserData}
-onWorkoutDeleted={loadUserData}
-/>
-);
-}
 if (currentView === 'goals') {
 return (
 <GoalsAndEventsView 

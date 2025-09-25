@@ -7,6 +7,7 @@ import { dbHelpers } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import { startOfWeek, addDays, format } from 'date-fns';
 import FeedbackButton from './FeedbackButton';
+import StandardNavigation from './StandardNavigation';
 
 // Helper function to format time
 const formatTime = (minutes) => {
@@ -54,39 +55,9 @@ const WeeklyWorkoutView = () => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [isScrolling, setIsScrolling] = useState(false);
 
-  // Navigation handlers - Using router.push with event dispatch
-  const goToMainApp = () => {
-    router.push('/');
-    // Dispatch custom event to notify main app
-    setTimeout(() => window.dispatchEvent(new Event('urlchange')), 100);
-  };
-
-  const goToHistory = () => {
-    // Navigate to history view in main app
-    router.push('/?view=history');
-    // Dispatch custom event to notify main app
-    setTimeout(() => window.dispatchEvent(new Event('urlchange')), 100);
-  };
-
-  const goToGoals = () => {
-    // Navigate to goals view in main app  
-    router.push('/?view=goals');
-    // Dispatch custom event to notify main app
-    setTimeout(() => window.dispatchEvent(new Event('urlchange')), 100);
-  };
-
-  const goToProfile = () => {
-    // Navigate to profile view in main app
-    router.push('/?view=profile');
-    // Dispatch custom event to notify main app
-    setTimeout(() => window.dispatchEvent(new Event('urlchange')), 100);
-  };
-
+  // Navigation handlers - Clean route-based navigation with date picker for backdating
   const goToAddWorkout = () => {
-    // Navigate to log workout view in main app
-    router.push('/?view=log');
-    // Dispatch custom event to notify main app
-    setTimeout(() => window.dispatchEvent(new Event('urlchange')), 100);
+    router.push('/?showDatePicker=true');
   };
 
   // Load workouts data
@@ -305,50 +276,14 @@ const WeeklyWorkoutView = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Header with Navigation */}
+      {/* Header with Standardized 5-Icon Navigation */}
       <div className="px-6 pt-12 pb-8">
         <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={goToMainApp}
-            className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-            title="Back to Main App"
-          >
-            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </button>
-          <div className="text-center">
+          <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Weekly View</h1>
             <p className="text-purple-200 text-sm sm:text-base">Your workout journey</p>
           </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={goToAddWorkout}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Add Workout"
-            >
-              <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={goToHistory}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="History"
-            >
-              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={goToGoals}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Goals"
-            >
-              <Flag className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={goToProfile}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Profile"
-            >
-              <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-          </div>
+          <StandardNavigation currentPage="weekly" />
         </div>
 
         {/* Stats Cards - Consistent with History View */}

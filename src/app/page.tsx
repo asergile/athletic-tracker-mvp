@@ -1,11 +1,11 @@
 'use client'
 
 import { useAuth } from '@/lib/AuthContext'
-import AthleticTracker from '@/components/AthleticTracker'
 import AuthScreen from '@/components/AuthScreen'
 import LoadingScreen from '@/components/LoadingScreen'
+import AthleticTracker from '@/components/AthleticTracker'
 
-export default function HomePage() {
+export default function DashboardPage() {
   const { user, loading } = useAuth()
 
   if (loading) {
@@ -16,5 +16,7 @@ export default function HomePage() {
     return <AuthScreen />
   }
 
-  return <AthleticTracker />
+  return (
+    <AthleticTracker />
+  )
 }

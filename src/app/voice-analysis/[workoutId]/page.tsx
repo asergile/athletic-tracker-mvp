@@ -7,7 +7,8 @@ import { supabase } from '../../../lib/supabase'
 import { dbHelpers } from '../../../lib/security/enhanced-db-helpers'
 import { getUserWorkouts, Workout } from '../../../lib/workouts'
 import VoiceRecorder from '../../../components/VoiceRecorder'
-import { ArrowLeft, Calendar, Clock, Target, Edit2, Plus, BarChart3, Flag, User, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, Clock, Target, Edit2, Plus, BarChart3, Flag, User, ChevronLeft, ChevronRight } from 'lucide-react'
+import StandardNavigation from '../../../components/StandardNavigation'
 
 
 
@@ -358,74 +359,42 @@ export default function VoiceAnalysisPage() {
     >
       {/* Header with Full Navigation */}
       <div className="px-6 pt-12 pb-8">
+        {/* Top row - Title and StandardNavigation */}
         <div className="flex items-center justify-between mb-6">
-          {/* Left side - Back + Previous */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => router.push('/')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Back to Dashboard"
-            >
-              <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            {canGoToPrevious && (
-              <button
-                onClick={goToPrevious}
-                className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-                title="Previous voice analysis"
-              >
-                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </button>
-            )}
-          </div>
-
-          {/* Center - Title */}
-          <div className="text-center">
+          <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Voice Analysis</h1>
             <p className="text-purple-200 text-sm sm:text-base">Detailed workout breakdown</p>
           </div>
-
-          {/* Right side - Navigation + Next */}
-          <div className="flex items-center space-x-1 sm:space-x-2">
-            <button
-              onClick={() => router.push('/')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Add Workout"
-            >
-              <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => router.push('/')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Weekly View"
-            >
-              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => router.push('/')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Goals"
-            >
-              <Flag className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => router.push('/')}
-              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-              title="Profile"
-            >
-              <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            {canGoToNext && (
+          <StandardNavigation currentPage="" />
+        </div>
+        
+        {/* Centered voice navigation arrows */}
+        {(canGoToPrevious || canGoToNext) && (
+          <div className="flex items-center justify-center space-x-4 mb-6">
+            {canGoToPrevious ? (
+              <button
+                onClick={goToPrevious}
+                className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+                title="Previous voice analysis"
+              >
+                <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+              </button>
+            ) : (
+              <div className="w-12 h-12 sm:w-16 sm:h-16"></div>
+            )}
+            {canGoToNext ? (
               <button
                 onClick={goToNext}
-                className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-2 sm:p-3 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+                className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
                 title="Next voice analysis"
               >
-                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               </button>
+            ) : (
+              <div className="w-12 h-12 sm:w-16 sm:h-16"></div>
             )}
           </div>
-        </div>
+        )}
 
         {/* Workout Details Card */}
         {workout && (
