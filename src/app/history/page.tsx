@@ -42,10 +42,10 @@ export default function HistoryPage() {
   const router = useRouter()
   
   // State
-  const [workouts, setWorkouts] = useState([])
+  const [workouts, setWorkouts] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [editingWorkout, setEditingWorkout] = useState(null)
+  const [editingWorkout, setEditingWorkout] = useState<any>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   
   // Load data
