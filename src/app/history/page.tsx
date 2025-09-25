@@ -12,7 +12,7 @@ import FeedbackButton from '@/components/FeedbackButton'
 import StandardNavigation from '@/components/StandardNavigation'
 
 // Shared utilities (copied from AthleticTracker)
-const formatTime = (minutes) => {
+const formatTime = (minutes: number) => {
   if (minutes < 60) {
     return `${minutes}m`
   }
@@ -24,7 +24,7 @@ const formatTime = (minutes) => {
   return `${hours}h ${remainingMinutes}m`
 }
 
-const getWeekStart = (date) => {
+const getWeekStart = (date: Date) => {
   const d = new Date(date)
   const day = d.getDay()
   const diff = d.getDate() - day + (day === 0 ? -6 : 1)
