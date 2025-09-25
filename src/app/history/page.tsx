@@ -167,7 +167,7 @@ export default function HistoryPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Workout History</h1>
             <p className="text-purple-200 text-sm sm:text-base">Track your progress</p>
           </div>
-          <StandardNavigation currentPage="history" />
+          <StandardNavigation {...({currentPage: "history"})} />
         </div>
 
         {/* Stats Cards */}
