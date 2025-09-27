@@ -1,19 +1,19 @@
 import React, { useState } from 'react'
 import { useAuth } from '../lib/AuthContext'
 
-const AuthScreen = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [showResetModal, setShowResetModal] = useState(false)
-  const [resetEmail, setResetEmail] = useState('')
-  const [resetSuccess, setResetSuccess] = useState('')
-  const [resetLoading, setResetLoading] = useState(false)
+const AuthScreen: React.FC = () => {
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+  const [showResetModal, setShowResetModal] = useState<boolean>(false)
+  const [resetEmail, setResetEmail] = useState<string>('')
+  const [resetSuccess, setResetSuccess] = useState<string>('')
+  const [resetLoading, setResetLoading] = useState<boolean>(false)
 
   const { signUp, signIn, signInWithGoogle, resetPassword } = useAuth()
 
-  const handleCreateAccount = async () => {
+  const handleCreateAccount = async (): Promise<void> => {
     if (!email || !password) {
       setError('Please enter both email and password')
       return
@@ -36,7 +36,7 @@ const AuthScreen = () => {
     }
   }
 
-  const handleResetPassword = async () => {
+  const handleResetPassword = async (): Promise<void> => {
     if (!resetEmail) {
       setError('Please enter your email address')
       return
@@ -61,21 +61,21 @@ const AuthScreen = () => {
     }
   }
 
-  const openResetModal = () => {
+  const openResetModal = (): void => {
     setShowResetModal(true)
     setResetEmail(email) // Pre-fill with current email if available
     setError('')
     setResetSuccess('')
   }
 
-  const closeResetModal = () => {
+  const closeResetModal = (): void => {
     setShowResetModal(false)
     setResetEmail('')
     setError('')
     setResetSuccess('')
   }
 
-  const handleSignIn = async () => {
+  const handleSignIn = async (): Promise<void> => {
     if (!email || !password) {
       setError('Please enter both email and password')
       return
@@ -96,7 +96,7 @@ const AuthScreen = () => {
     }
   }
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = async (): Promise<void> => {
     setIsLoading(true)
     setError('')
 
@@ -110,6 +110,14 @@ const AuthScreen = () => {
       setError('Failed to sign in with Google')
       setIsLoading(false)
     }
+  }
+
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>): void => {
+    e.target.style.borderColor = '#84cc16'
+  }
+
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>): void => {
+    e.target.style.borderColor = '#e5e7eb'
   }
 
   return (
@@ -184,8 +192,8 @@ const AuthScreen = () => {
                 fontSize: '16px',
                 outline: 'none'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#84cc16'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
             />
           </div>
 
@@ -205,8 +213,8 @@ const AuthScreen = () => {
                 fontSize: '16px',
                 outline: 'none'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#84cc16'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
             />
           </div>
 
@@ -334,8 +342,8 @@ const AuthScreen = () => {
                   fontSize: '16px',
                   outline: 'none'
                 }}
-                onFocus={(e) => e.target.style.borderColor = '#84cc16'}
-                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
               />
             </div>
 

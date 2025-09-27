@@ -18,14 +18,14 @@ export function WorkoutReview({ parseResult, onSave, onDiscard }: WorkoutReviewP
     const data = parseResult.workout_data
     return {
       duration_minutes: parseResult.recording_duration ? Math.max(Math.round(parseResult.recording_duration / 60), 30) : 60,
-      distance_yards: data?.sets?.reduce((sum, set) => sum + (set.distance || 0), 0) || 0,
+      distance_yards: data?.sets?.reduce((sum: number, set: any) => sum + (set.distance || 0), 0) || 0,
       workout_type: 'pool' as 'pool' | 'dryland' | 'weights',
       rating: 2 as 1 | 2 | 3,
       notes: ''
     }
   })
 
-  const [sets, setSets] = useState(parseResult.workout_data?.sets || [])
+  const [sets, setSets] = useState<WorkoutSet[]>(parseResult.workout_data?.sets || [])
 
   const handleSave = () => {
     const finalWorkout = {
@@ -202,7 +202,7 @@ export function WorkoutReview({ parseResult, onSave, onDiscard }: WorkoutReviewP
                 key={set.id || index}
                 set={set}
                 editMode={editMode}
-                onUpdate={(updatedSet) => {
+                onUpdate={(updatedSet: WorkoutSet) => {
                   setSets(prev => prev.map((s, i) => i === index ? updatedSet : s))
                 }}
                 onDelete={() => {
@@ -326,7 +326,7 @@ function SetCard({ set, editMode, onUpdate, onDelete }: SetCardProps) {
   }
 
   // View mode
-  const typeColors = {
+  const typeColors: Record<string, string> = {
     warmup: 'bg-blue-100 text-blue-800',
     main: 'bg-green-100 text-green-800',
     cooldown: 'bg-gray-100 text-gray-800',
@@ -338,8 +338,8 @@ function SetCard({ set, editMode, onUpdate, onDelete }: SetCardProps) {
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeColors[set.type]}`}>
-              {set.type.charAt(0).toUpperCase() + set.type.slice(1)}
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeColors[set.type || 'main']}`}>
+              {(set.type || 'main').charAt(0).toUpperCase() + (set.type || 'main').slice(1)}
             </span>
             <span className="text-sm font-medium">{set.distance} yards</span>
             {set.stroke && (

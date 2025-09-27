@@ -9,8 +9,38 @@ import { startOfWeek, addDays, format } from 'date-fns';
 import FeedbackButton from './FeedbackButton';
 import StandardNavigation from './StandardNavigation';
 
+// TypeScript Interfaces
+interface Workout {
+  id: string;
+  date: string;
+  duration: number;
+  rating: number;
+  workout_type: string;
+  distance?: number;
+  distance_unit?: string;
+}
+
+interface WeekDay {
+  date: string;
+  dayName: string;
+  dayNumber: number;
+  fullDate: Date;
+}
+
+interface WeeklyStats {
+  count: number;
+  totalTime: number;
+  avgRating: number;
+}
+
+interface RatingConfig {
+  label: string;
+  emoji: string;
+  color: string;
+}
+
 // Helper function to format time
-const formatTime = (minutes) => {
+const formatTime = (minutes: number): string => {
   if (minutes < 60) {
     return `${minutes}m`;
   }
@@ -23,12 +53,12 @@ const formatTime = (minutes) => {
 };
 
 // Helper function to get start of week (Sunday) - using date-fns for reliability
-const getWeekStart = (date) => {
+const getWeekStart = (date: Date): Date => {
   return startOfWeek(date, { weekStartsOn: 0 }); // 0 = Sunday
 };
 
 // Helper function to get week days array (Sunday first) - using date-fns
-const getWeekDays = (weekStart) => {
+const getWeekDays = (weekStart: Date): WeekDay[] => {
   return Array.from({ length: 7 }, (_, i) => {
     const date = addDays(weekStart, i);
     return {
@@ -40,29 +70,30 @@ const getWeekDays = (weekStart) => {
   });
 };
 
-const ratingLabels = {
+// Typed rating labels constant
+const ratingLabels: Record<number, RatingConfig> = {
   1: { label: 'Rough', emoji: '😤', color: 'from-red-500 to-red-600' },
   2: { label: 'Decent', emoji: '😊', color: 'from-yellow-500 to-orange-500' },
   3: { label: 'Great', emoji: '🔥', color: 'from-green-500 to-emerald-600' }
 };
 
-const WeeklyWorkoutView = () => {
+const WeeklyWorkoutView: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
-  const [currentWeekStart, setCurrentWeekStart] = useState(() => getWeekStart(new Date()));
-  const [workouts, setWorkouts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [isScrolling, setIsScrolling] = useState(false);
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => getWeekStart(new Date()));
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [isScrolling, setIsScrolling] = useState<boolean>(false);
 
   // Navigation handlers - Clean route-based navigation with date picker for backdating
-  const goToAddWorkout = () => {
+  const goToAddWorkout = (): void => {
     router.push('/?showDatePicker=true');
   };
 
   // Load workouts data
   useEffect(() => {
-    const loadWorkouts = async () => {
+    const loadWorkouts = async (): Promise<void> => {
       if (!user) return;
       
       setLoading(true);
@@ -84,23 +115,23 @@ const WeeklyWorkoutView = () => {
   }, [user]);
 
   // Get current week days
-  const weekDays = useMemo(() => getWeekDays(currentWeekStart), [currentWeekStart]);
+  const weekDays = useMemo<WeekDay[]>(() => getWeekDays(currentWeekStart), [currentWeekStart]);
 
   // Get workouts for current week
-  const weekWorkouts = useMemo(() => {
+  const weekWorkouts = useMemo<Workout[]>(() => {
     const weekEnd = new Date(currentWeekStart);
     weekEnd.setDate(currentWeekStart.getDate() + 6);
     
-    return workouts.filter(workout => {
+    return workouts.filter((workout: Workout) => {
       const workoutDate = new Date(workout.date + 'T00:00:00');
       return workoutDate >= currentWeekStart && workoutDate <= weekEnd;
     });
   }, [workouts, currentWeekStart]);
 
   // Group workouts by day
-  const workoutsByDay = useMemo(() => {
-    const grouped = {};
-    weekWorkouts.forEach(workout => {
+  const workoutsByDay = useMemo<Record<string, Workout[]>>(() => {
+    const grouped: Record<string, Workout[]> = {};
+    weekWorkouts.forEach((workout: Workout) => {
       if (!grouped[workout.date]) {
         grouped[workout.date] = [];
       }
@@ -110,10 +141,10 @@ const WeeklyWorkoutView = () => {
   }, [weekWorkouts]);
 
   // Calculate weekly stats (consistent with History View)
-  const weeklyStats = useMemo(() => {
-    const totalTime = weekWorkouts.reduce((sum, workout) => sum + workout.duration, 0);
+  const weeklyStats = useMemo<WeeklyStats>(() => {
+    const totalTime = weekWorkouts.reduce((sum: number, workout: Workout) => sum + workout.duration, 0);
     const avgRating = weekWorkouts.length > 0 
-      ? weekWorkouts.reduce((sum, workout) => sum + workout.rating, 0) / weekWorkouts.length 
+      ? weekWorkouts.reduce((sum: number, workout: Workout) => sum + workout.rating, 0) / weekWorkouts.length 
       : 0;
 
     return {
@@ -124,7 +155,7 @@ const WeeklyWorkoutView = () => {
   }, [weekWorkouts]);
 
   // Navigate to previous week
-  const goToPreviousWeek = () => {
+  const goToPreviousWeek = (): void => {
     const previousWeek = new Date(currentWeekStart);
     previousWeek.setDate(currentWeekStart.getDate() - 7);
     setCurrentWeekStart(previousWeek);
@@ -145,7 +176,7 @@ const WeeklyWorkoutView = () => {
   };
 
   // Navigate to next week (but not future past today)
-  const goToNextWeek = () => {
+  const goToNextWeek = (): void => {
     const nextWeek = new Date(currentWeekStart);
     nextWeek.setDate(currentWeekStart.getDate() + 7);
     const today = new Date();
@@ -171,7 +202,7 @@ const WeeklyWorkoutView = () => {
   };
 
   // Check if we can go to next week
-  const canGoToNextWeek = () => {
+  const canGoToNextWeek = (): boolean => {
     const nextWeek = new Date(currentWeekStart);
     nextWeek.setDate(currentWeekStart.getDate() + 7);
     const today = new Date();
@@ -179,7 +210,7 @@ const WeeklyWorkoutView = () => {
   };
 
   // Handle day selection
-  const handleDaySelect = (day) => {
+  const handleDaySelect = (day: WeekDay): void => {
     setSelectedDay(day.date);
     setIsScrolling(true);
     // Scroll to workout cards for that day
@@ -195,14 +226,14 @@ const WeeklyWorkoutView = () => {
   useEffect(() => {
     if (isScrolling) return; // Don't update during programmatic scrolling
     
-    const handleScroll = () => {
+    const handleScroll = (): void => {
       const workoutSections = document.querySelectorAll('[id^="day-"]');
       const viewportMiddle = window.innerHeight / 2;
       
-      let closestSection = null;
+      let closestSection: Element | null = null;
       let closestDistance = Infinity;
       
-      workoutSections.forEach(section => {
+      workoutSections.forEach((section: Element) => {
         const rect = section.getBoundingClientRect();
         const sectionMiddle = rect.top + rect.height / 2;
         const distance = Math.abs(sectionMiddle - viewportMiddle);
@@ -214,7 +245,7 @@ const WeeklyWorkoutView = () => {
       });
       
       if (closestSection) {
-        const dateStr = closestSection.id.replace('day-', '');
+        const dateStr = (closestSection as HTMLElement).id.replace('day-', '');
         const workoutDate = new Date(dateStr + 'T00:00:00');
         const weekStartForDate = getWeekStart(workoutDate);
         
@@ -236,13 +267,11 @@ const WeeklyWorkoutView = () => {
   }, [currentWeekStart, isScrolling]);
 
   // Throttle function to limit scroll event frequency
-  const throttle = (func, limit) => {
-    let inThrottle;
-    return function() {
-      const args = arguments;
-      const context = this;
+  const throttle = <T extends (...args: any[]) => void>(func: T, limit: number): (...args: Parameters<T>) => void => {
+    let inThrottle: boolean;
+    return (...args: Parameters<T>) => {
       if (!inThrottle) {
-        func.apply(context, args);
+        func(...args);
         inThrottle = true;
         setTimeout(() => inThrottle = false, limit);
       }
@@ -250,7 +279,7 @@ const WeeklyWorkoutView = () => {
   };
 
   // Format week range for display
-  const getWeekRangeText = () => {
+  const getWeekRangeText = (): string => {
     const weekEnd = new Date(currentWeekStart);
     weekEnd.setDate(currentWeekStart.getDate() + 6);
     
@@ -343,7 +372,7 @@ const WeeklyWorkoutView = () => {
         {/* Week Calendar - Mobile Responsive Unified Grid */}
         <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 sm:p-6">
           <div className="grid grid-cols-7 gap-1 sm:gap-2">
-            {weekDays.map((day) => {
+            {weekDays.map((day: WeekDay) => {
               const hasWorkouts = workoutsByDay[day.date]?.length > 0;
               const isSelected = selectedDay === day.date;
               const isToday = day.fullDate.toDateString() === new Date().toDateString();
@@ -384,8 +413,8 @@ const WeeklyWorkoutView = () => {
 
       {/* Workout Cards */}
       <div className="px-6 pb-8">
-        {weekDays.map((day) => {
-          const dayWorkouts = workoutsByDay[day.date] || [];
+        {weekDays.map((day: WeekDay) => {
+          const dayWorkouts: Workout[] = workoutsByDay[day.date] || [];
           
           if (dayWorkouts.length === 0) {
             return null; // Don't show empty days
@@ -402,8 +431,8 @@ const WeeklyWorkoutView = () => {
 
               {/* Workout Cards for this day */}
               <div className="space-y-4">
-                {dayWorkouts.map((workout) => {
-                  const ratingConfig = ratingLabels[workout.rating];
+                {dayWorkouts.map((workout: Workout) => {
+                  const ratingConfig: RatingConfig = ratingLabels[workout.rating];
                   
                   return (
                     <div key={workout.id} className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-200">

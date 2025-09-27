@@ -2,19 +2,34 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Flag, BarChart3, Calendar, User } from 'lucide-react'
 
+interface StandardNavigationProps {
+  currentPage?: string
+  onNavigate?: ((page: string) => void) | null
+}
+
+interface NavItem {
+  id: string
+  icon: React.ComponentType<{ className?: string }>
+  title: string
+  action: () => void
+}
+
 /**
  * Standardized 5-Icon Navigation Component
  * 
  * Fixed order: Plus → Flag → BarChart3 → Calendar → User
  * Shows all 5 icons with current page highlighted (lighter opacity)
  * 
- * @param {string} currentPage - 'dashboard', 'goals', 'weekly', 'history', 'profile'
- * @param {function} onNavigate - Optional callback for custom navigation (used by AthleticTracker state-based views)
+ * @param currentPage - 'dashboard', 'goals', 'weekly', 'history', 'profile'
+ * @param onNavigate - Optional callback for custom navigation (used by AthleticTracker state-based views)
  */
-const StandardNavigation = ({ currentPage = '', onNavigate = null }) => {
+const StandardNavigation: React.FC<StandardNavigationProps> = ({ 
+  currentPage = '', 
+  onNavigate = null 
+}) => {
   const router = useRouter()
   
-  const navItems = [
+  const navItems: NavItem[] = [
     {
       id: 'dashboard',
       icon: Plus,

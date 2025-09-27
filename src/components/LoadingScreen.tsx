@@ -1,7 +1,11 @@
 import React from 'react'
 import { Activity } from 'lucide-react'
 
-const LoadingScreen = ({ message = 'Loading...' }) => {
+interface LoadingScreenProps {
+  message?: string
+}
+
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = 'Loading...' }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
       <div className="text-center">
@@ -13,7 +17,7 @@ const LoadingScreen = ({ message = 'Loading...' }) => {
         </div>
         
         {/* Loading Text */}
-        <h2 className="text-2xl font-bold text-white mb-4">💪 Athletic Tracker</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">💪 Goal Buddy</h2>
         <p className="text-blue-200 mb-8">{message}</p>
         
         {/* Loading Animation */}

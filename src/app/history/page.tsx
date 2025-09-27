@@ -11,8 +11,49 @@ import { dbHelpers } from '@/lib/security/enhanced-db-helpers'
 import FeedbackButton from '@/components/FeedbackButton'
 import StandardNavigation from '@/components/StandardNavigation'
 
+// TypeScript Interfaces
+interface Workout {
+  id: string;
+  workout_type: string;
+  duration: number;
+  rating: number;
+  date: string;
+  distance?: number;
+  distance_unit?: string;
+  created_at: string;
+  voice_transcription?: string;
+  workout_analysis?: string;
+}
+
+interface RatingConfig {
+  label: string;
+  emoji: string;
+  color: string;
+}
+
+interface WeeklyStats {
+  count: number;
+  totalTime: number;
+  avgRating: number;
+}
+
+interface EditingWorkout {
+  id: string;
+  workout_type: string;
+  duration: string | number; // Allow string for form inputs
+  rating: number;
+  date: string;
+  distance?: number | string; // Allow string for form inputs
+  distance_unit?: string;
+  created_at: string;
+  voice_transcription?: string;
+  workout_analysis?: string;
+  type: string;
+  distanceUnit?: string;
+}
+
 // Shared utilities (copied from AthleticTracker)
-const formatTime = (minutes: number) => {
+const formatTime = (minutes: number): string => {
   if (minutes < 60) {
     return `${minutes}m`
   }
@@ -24,29 +65,29 @@ const formatTime = (minutes: number) => {
   return `${hours}h ${remainingMinutes}m`
 }
 
-const getWeekStart = (date: Date) => {
+const getWeekStart = (date: Date): Date => {
   const d = new Date(date)
   const day = d.getDay()
   const diff = d.getDate() - day + (day === 0 ? -6 : 1)
   return new Date(d.setDate(diff))
 }
 
-const ratingLabels = {
+const ratingLabels: Record<number, RatingConfig> = {
   1: { label: 'Struggled', emoji: '😤', color: 'from-red-500 to-red-600' },
   2: { label: 'Solid', emoji: '😊', color: 'from-yellow-500 to-orange-500' },
   3: { label: 'Great', emoji: '🔥', color: 'from-green-500 to-emerald-600' }
 }
 
-export default function HistoryPage() {
+export default function HistoryPage(): React.ReactElement {
   const { user, loading } = useAuth()
   const router = useRouter()
   
   // State
-  const [workouts, setWorkouts] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [editingWorkout, setEditingWorkout] = useState<any>(null)
-  const [isUpdating, setIsUpdating] = useState(false)
+  const [workouts, setWorkouts] = useState<Workout[]>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string>('')
+  const [editingWorkout, setEditingWorkout] = useState<EditingWorkout | null>(null)
+  const [isUpdating, setIsUpdating] = useState<boolean>(false)
   
   // Load data
   useEffect(() => {
@@ -55,7 +96,7 @@ export default function HistoryPage() {
     }
   }, [user])
   
-  const loadWorkouts = async () => {
+  const loadWorkouts = async (): Promise<void> => {
     setIsLoading(true)
     try {
       const response = await dbHelpers.getUserWorkouts()
@@ -71,20 +112,20 @@ export default function HistoryPage() {
   }
   
   // Calculate weekly stats
-  const weeklyStats = React.useMemo(() => {
+  const weeklyStats = React.useMemo<WeeklyStats>(() => {
     const now = new Date()
     const weekStart = getWeekStart(now)
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
     
-    const thisWeekWorkouts = workouts.filter(workout => {
+    const thisWeekWorkouts = workouts.filter((workout: Workout) => {
       const workoutDate = new Date(workout.date + 'T00:00:00')
       return workoutDate >= weekStart && workoutDate <= weekEnd
     })
 
-    const totalTime = thisWeekWorkouts.reduce((sum, workout) => sum + workout.duration, 0)
+    const totalTime = thisWeekWorkouts.reduce((sum: number, workout: Workout) => sum + workout.duration, 0)
     const avgRating = thisWeekWorkouts.length > 0 
-      ? thisWeekWorkouts.reduce((sum, workout) => sum + workout.rating, 0) / thisWeekWorkouts.length 
+      ? thisWeekWorkouts.reduce((sum: number, workout: Workout) => sum + workout.rating, 0) / thisWeekWorkouts.length 
       : 0
 
     return {
@@ -95,12 +136,12 @@ export default function HistoryPage() {
   }, [workouts])
   
   // Voice analysis navigation
-  const handleVoiceAnalysis = (workoutId: string) => {
+  const handleVoiceAnalysis = (workoutId: string): void => {
     router.push(`/voice-analysis/${workoutId}`)
   }
 
   // Edit workout functionality
-  const handleEditWorkout = (workout: any) => {
+  const handleEditWorkout = (workout: Workout): void => {
     setEditingWorkout({
       ...workout,
       type: workout.workout_type,
@@ -109,8 +150,8 @@ export default function HistoryPage() {
     setError('')
   }
 
-  const handleUpdateWorkout = async () => {
-    if (!editingWorkout.type || !editingWorkout.duration || !editingWorkout.rating) {
+  const handleUpdateWorkout = async (): Promise<void> => {
+    if (!editingWorkout?.type || !editingWorkout?.duration || !editingWorkout?.rating) {
       setError('Please fill in all required fields')
       return
     }
@@ -121,11 +162,11 @@ export default function HistoryPage() {
     try {
       const updateData = {
         workout_type: editingWorkout.type,
-        duration: parseInt(editingWorkout.duration),
+        duration: parseInt(editingWorkout.duration.toString()),
         rating: editingWorkout.rating,
         date: editingWorkout.date,
-        distance: editingWorkout.distance ? parseFloat(editingWorkout.distance) : null,
-        distance_unit: editingWorkout.distance ? editingWorkout.distanceUnit : null
+        distance: editingWorkout.distance ? parseFloat(editingWorkout.distance.toString()) : undefined,
+        distance_unit: editingWorkout.distance ? editingWorkout.distanceUnit : undefined
       }
 
       const response = await dbHelpers.updateWorkout(editingWorkout.id, updateData)
@@ -145,7 +186,7 @@ export default function HistoryPage() {
     }
   }
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = (): void => {
     setEditingWorkout(null)
     setError('')
   }
@@ -214,11 +255,11 @@ export default function HistoryPage() {
         
         {/* Workout List */}
         <div className="space-y-4">
-          {workouts.map((workout) => {
-            const ratingConfig = ratingLabels[workout.rating]
+          {workouts.map((workout: Workout) => {
+            const ratingConfig: RatingConfig = ratingLabels[workout.rating]
             
             const dateParts = workout.date.split('-')
-            const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2])
+            const date = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]))
             
             const today = new Date()
             const yesterday = new Date()
@@ -349,7 +390,7 @@ export default function HistoryPage() {
                 <input
                   type="text"
                   value={editingWorkout.type}
-                  onChange={(e) => setEditingWorkout(prev => ({ ...prev, type: e.target.value }))}
+                  onChange={(e) => setEditingWorkout(prev => prev ? ({ ...prev, type: e.target.value }) : null)}
                   className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
                   placeholder="e.g., Running, Swimming"
                   disabled={isUpdating}
@@ -362,7 +403,7 @@ export default function HistoryPage() {
                 <input
                   type="number"
                   value={editingWorkout.duration}
-                  onChange={(e) => setEditingWorkout(prev => ({ ...prev, duration: e.target.value }))}
+                  onChange={(e) => setEditingWorkout(prev => prev ? ({ ...prev, duration: e.target.value }) : null)}
                   className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
                   placeholder="45"
                   min="1"
@@ -378,14 +419,14 @@ export default function HistoryPage() {
                     type="number"
                     step="0.1"
                     value={editingWorkout.distance || ''}
-                    onChange={(e) => setEditingWorkout(prev => ({ ...prev, distance: e.target.value }))}
+                    onChange={(e) => setEditingWorkout(prev => prev ? ({ ...prev, distance: e.target.value }) : null)}
                     className="flex-1 p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
                     placeholder="5.2"
                     disabled={isUpdating}
                   />
                   <select
                     value={editingWorkout.distanceUnit || 'miles'}
-                    onChange={(e) => setEditingWorkout(prev => ({ ...prev, distanceUnit: e.target.value }))}
+                    onChange={(e) => setEditingWorkout(prev => prev ? ({ ...prev, distanceUnit: e.target.value }) : null)}
                     className="w-28 p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
                     disabled={isUpdating}
                   >
@@ -403,7 +444,7 @@ export default function HistoryPage() {
                 <input
                   type="date"
                   value={editingWorkout.date}
-                  onChange={(e) => setEditingWorkout(prev => ({ ...prev, date: e.target.value }))}
+                  onChange={(e) => setEditingWorkout(prev => prev ? ({ ...prev, date: e.target.value }) : null)}
                   className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
                   disabled={isUpdating}
                 />
@@ -416,7 +457,7 @@ export default function HistoryPage() {
                   {Object.entries(ratingLabels).map(([rating, config]) => (
                     <button
                       key={rating}
-                      onClick={() => setEditingWorkout(prev => ({ ...prev, rating: parseInt(rating) }))}
+                      onClick={() => setEditingWorkout(prev => prev ? ({ ...prev, rating: parseInt(rating) }) : null)}
                       disabled={isUpdating}
                       className={`p-4 rounded-xl transition-all duration-200 disabled:opacity-50 ${
                         editingWorkout.rating === parseInt(rating)

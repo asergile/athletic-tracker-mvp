@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
-import { dbHelpers } from '../lib/supabase';
+import { dbHelpers } from '../lib/security/enhanced-db-helpers';
 
-const FeedbackButton = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [error, setError] = useState('');
+const FeedbackButton: React.FC = () => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (!message.trim()) return;
 
@@ -54,7 +54,8 @@ const FeedbackButton = () => {
 
     } catch (err) {
       console.error('Feedback catch error:', err);
-      setError(`Failed to send feedback: ${err.message || 'Unknown error'}`);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Failed to send feedback: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }

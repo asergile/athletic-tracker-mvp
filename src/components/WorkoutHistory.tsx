@@ -69,7 +69,7 @@ function WorkoutCard({ workout, onClick }: WorkoutCardProps) {
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-1">
               <span className="text-gray-600">Duration:</span>
-              <span className="font-medium">{formatDuration(workout.duration_minutes)}</span>
+              <span className="font-medium">{formatDuration(workout.duration_minutes || workout.duration || 0)}</span>
             </div>
             
             {workout.distance_yards && workout.distance_yards > 0 && (
@@ -120,7 +120,7 @@ function ProcessedDataPreview({ data }: { data: ProcessedWorkoutData | undefined
       {/* Set count */}
       {sets.length > 0 && (
         <div className="text-xs text-gray-600">
-          {sets.length} sets • {sets.filter(s => s.type === 'main').length} main sets
+          {sets.filter((s: any) => s.type === 'main').length} main sets
         </div>
       )}
 
