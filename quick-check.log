@@ -1,0 +1,12 @@
+src/components/WorkoutReview.tsx(189,27): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(200,24): error TS7006: Parameter 'set' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(200,29): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(206,27): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(206,45): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(206,48): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(209,27): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(209,48): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(209,51): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(341,87): error TS2538: Type 'undefined' cannot be used as an index type.
+src/components/WorkoutReview.tsx(342,16): error TS18048: 'set.type' is possibly 'undefined'.
+src/components/WorkoutReview.tsx(342,51): error TS18048: 'set.type' is possibly 'undefined'.

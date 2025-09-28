@@ -6,9 +6,9 @@ import LoadingScreen from '@/components/LoadingScreen'
 import AthleticTracker from '@/components/AthleticTracker'
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth()
+  const { user, loading, isHydrated } = useAuth()
 
-  if (loading) {
+  if (loading || !isHydrated) {
     return <LoadingScreen />
   }
 

@@ -40,7 +40,7 @@ const StandardNavigation: React.FC<StandardNavigationProps> = ({
       id: 'goals', 
       icon: Flag,
       title: 'Goals',
-      action: () => onNavigate ? onNavigate('goals') : router.push('/?view=goals')
+      action: () => onNavigate ? onNavigate('goals') : router.push('/goals')
     },
     {
       id: 'weekly',
@@ -58,7 +58,7 @@ const StandardNavigation: React.FC<StandardNavigationProps> = ({
       id: 'profile',
       icon: User,
       title: 'Profile',
-      action: () => onNavigate ? onNavigate('profile') : router.push('/?view=profile')
+      action: () => onNavigate ? onNavigate('profile') : router.push('/profile')
     }
   ]
   

@@ -84,13 +84,20 @@ project-root/
    - Local testing before commits
    - User confirmation before deployment
 
-2. **CRITICAL: Never auto-fix reported issues:**
+2. **PIN WORKFLOW - "Let's put a pin in that":**
+   - **Immediately capture** the issue in `/project-docs/pinned-items.md`
+   - **Include:** Date, issue description, root cause analysis, proposed solution, affected files
+   - **Status as PINNED** for later prioritization
+   - **Continue with current work** - pins are for deferrals, not immediate action
+   - **Reference in session handoffs** so future Claude instances understand pinned items
+
+3. **CRITICAL: Never auto-fix reported issues:**
    - User may share screenshots, errors, or bug reports
    - This is for **discussion and analysis ONLY**
    - Always propose solution and ask for approval first
    - Do not assume user wants immediate implementation
 
-3. **Update documentation as you go:**
+4. **Update documentation as you go:**
    - Update project-status.md with progress
    - Document major decisions in session-log.md
    - Create new files in appropriate directories

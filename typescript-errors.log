@@ -1,0 +1,50 @@
+src/app/history/page.tsx(172,54): error TS2554: Expected 0 arguments, but got 2.
+src/components/AthleticTracker.tsx(1524,61): error TS2554: Expected 0 arguments, but got 1.
+src/components/AthleticTracker.tsx(1598,42): error TS2554: Expected 0 arguments, but got 1.
+src/components/AthleticTracker.tsx(1607,64): error TS2554: Expected 0 arguments, but got 1.
+src/components/AthleticTracker.tsx(1636,72): error TS2554: Expected 0 arguments, but got 1.
+src/components/AthleticTracker.tsx(1645,63): error TS2554: Expected 0 arguments, but got 1.
+src/components/AthleticTracker.tsx(1678,42): error TS2554: Expected 0 arguments, but got 1.
+src/components/AthleticTracker.tsx(1691,52): error TS2554: Expected 0 arguments, but got 1.
+src/components/AthleticTracker.tsx(1715,52): error TS2554: Expected 0 arguments, but got 2.
+src/components/AthleticTracker.tsx(1739,52): error TS2554: Expected 0 arguments, but got 1.
+src/components/AthleticTracker.tsx(1771,51): error TS2554: Expected 0 arguments, but got 2.
+src/components/AthleticTracker.tsx(1795,51): error TS2554: Expected 0 arguments, but got 1.
+src/components/WeeklyWorkoutView.tsx(248,40): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/WeeklyWorkoutView.tsx(274,20): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/components/WorkoutHistory.tsx(3,19): error TS2305: Module '"@/types"' has no exported member 'ProcessedWorkoutData'.
+src/components/WorkoutHistory.tsx(3,41): error TS2305: Module '"@/types"' has no exported member 'StrokeDistribution'.
+src/components/WorkoutHistory.tsx(46,36): error TS2339: Property 'processed_data' does not exist on type 'Workout'.
+src/components/WorkoutHistory.tsx(47,20): error TS2339: Property 'processed_data' does not exist on type 'Workout'.
+src/components/WorkoutHistory.tsx(48,23): error TS2339: Property 'processed_data' does not exist on type 'Workout'.
+src/components/WorkoutHistory.tsx(72,69): error TS2339: Property 'duration_minutes' does not exist on type 'Workout'.
+src/components/WorkoutHistory.tsx(75,22): error TS2339: Property 'distance_yards' does not exist on type 'Workout'.
+src/components/WorkoutHistory.tsx(75,48): error TS2339: Property 'distance_yards' does not exist on type 'Workout'.
+src/components/WorkoutHistory.tsx(78,71): error TS2339: Property 'distance_yards' does not exist on type 'Workout'.
+src/components/WorkoutHistory.tsx(93,51): error TS2339: Property 'processed_data' does not exist on type 'Workout'.
+src/components/WorkoutHistory.tsx(98,20): error TS2339: Property 'notes' does not exist on type 'Workout'.
+src/components/WorkoutHistory.tsx(100,74): error TS2339: Property 'notes' does not exist on type 'Workout'.
+src/components/WorkoutHistory.tsx(123,45): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(4,10): error TS2305: Module '"@/types"' has no exported member 'WorkoutParsingResult'.
+src/components/WorkoutReview.tsx(4,41): error TS2724: '"@/types"' has no exported member named 'WorkoutSet'. Did you mean 'Workout'?
+src/components/WorkoutReview.tsx(21,43): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(21,48): error TS7006: Parameter 'set' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(43,38): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(43,43): error TS7006: Parameter 'set' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(189,27): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(200,24): error TS7006: Parameter 'set' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(200,29): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(206,27): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(206,45): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(206,48): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(209,27): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(209,48): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(209,51): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(341,76): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ warmup: string; main: string; cooldown: string; drill: string; }'.
+src/lib/security/enhanced-db-helpers.ts(131,71): error TS2353: Object literal may only specify known properties, and 'defaultValue' does not exist in type 'SanitizeNumberOptions'.
+src/lib/security/enhanced-db-helpers.ts(139,14): error TS2345: Argument of type 'number | null' is not assignable to parameter of type 'number'.
+  Type 'null' is not assignable to type 'number'.
+src/lib/supabase.ts(156,39): error TS2339: Property 'getUserProfile' does not exist on type '{ createWorkout: (workoutData: WorkoutData) => Promise<DatabaseResponse<Workout>>; getUserWorkouts: (limit?: number) => Promise<DatabaseArrayResponse<Workout>>; ... 16 more ...; submitFeedback: (feedbackData: FeedbackData) => Promise<...>; }'.
+src/lib/supabase.ts(157,42): error TS2339: Property 'updateUserProfile' does not exist on type '{ createWorkout: (workoutData: WorkoutData) => Promise<DatabaseResponse<Workout>>; getUserWorkouts: (limit?: number) => Promise<DatabaseArrayResponse<Workout>>; ... 16 more ...; submitFeedback: (feedbackData: FeedbackData) => Promise<...>; }'.
+src/lib/supabase.ts(158,44): error TS2339: Property 'getUserAuditHistory' does not exist on type '{ createWorkout: (workoutData: WorkoutData) => Promise<DatabaseResponse<Workout>>; getUserWorkouts: (limit?: number) => Promise<DatabaseArrayResponse<Workout>>; ... 16 more ...; submitFeedback: (feedbackData: FeedbackData) => Promise<...>; }'.
+src/lib/supabase.ts(159,48): error TS2339: Property 'checkSuspiciousActivity' does not exist on type '{ createWorkout: (workoutData: WorkoutData) => Promise<DatabaseResponse<Workout>>; getUserWorkouts: (limit?: number) => Promise<DatabaseArrayResponse<Workout>>; ... 16 more ...; submitFeedback: (feedbackData: FeedbackData) => Promise<...>; }'.

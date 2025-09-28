@@ -1,0 +1,255 @@
+
+> athletic-tracker-mvp@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.32
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/11) ...
+   Generating static pages (2/11) 
+Supabase initialization debug: { hasUrl: true, hasKey: true, url: 'https://dnljelrcbsjg...' }
+dbHelpers export debug: {
+  hasCreateWorkout: 'function',
+  hasSubmitFeedback: 'function',
+  hasCreateEvent: 'function',
+  hasCreateGoal: 'function',
+  hasGetUserProfile: 'function',
+  hasUpdateUserProfile: 'function',
+  hasGetUserAuditHistory: 'function',
+  hasCheckSuspiciousActivity: 'function',
+  allMethods: [
+    'createWorkout',
+    'getUserWorkouts',
+    'updateWorkout',
+    'deleteWorkout',
+    'getWorkoutStats',
+    'getUserSettings',
+    'updateUserSettings',
+    'updateWeeklyFrequency',
+    'getUserEvents',
+    'createEvent',
+    'updateEvent',
+    'deleteEvent',
+    'getUserGoals',
+    'createGoal',
+    'deleteGoal',
+    'getUserCustomWorkoutTypes',
+    'addCustomWorkoutType',
+    'deleteCustomWorkoutType',
+    'getUserProfile',
+    'updateUserProfile',
+    'getUserAuditHistory',
+    'checkSuspiciousActivity',
+    'submitFeedback'
+  ]
+}
+Supabase initialization debug: { hasUrl: true, hasKey: true, url: 'https://dnljelrcbsjg...' }
+dbHelpers export debug: {
+  hasCreateWorkout: 'function',
+  hasSubmitFeedback: 'function',
+  hasCreateEvent: 'function',
+  hasCreateGoal: 'function',
+  hasGetUserProfile: 'function',
+  hasUpdateUserProfile: 'function',
+  hasGetUserAuditHistory: 'function',
+  hasCheckSuspiciousActivity: 'function',
+  allMethods: [
+    'createWorkout',
+    'getUserWorkouts',
+    'updateWorkout',
+    'deleteWorkout',
+    'getWorkoutStats',
+    'getUserSettings',
+    'updateUserSettings',
+    'updateWeeklyFrequency',
+    'getUserEvents',
+    'createEvent',
+    'updateEvent',
+    'deleteEvent',
+    'getUserGoals',
+    'createGoal',
+    'deleteGoal',
+    'getUserCustomWorkoutTypes',
+    'addCustomWorkoutType',
+    'deleteCustomWorkoutType',
+    'getUserProfile',
+    'updateUserProfile',
+    'getUserAuditHistory',
+    'checkSuspiciousActivity',
+    'submitFeedback'
+  ]
+}
+Supabase initialization debug: { hasUrl: true, hasKey: true, url: 'https://dnljelrcbsjg...' }
+dbHelpers export debug: {
+  hasCreateWorkout: 'function',
+  hasSubmitFeedback: 'function',
+  hasCreateEvent: 'function',
+  hasCreateGoal: 'function',
+  hasGetUserProfile: 'function',
+  hasUpdateUserProfile: 'function',
+  hasGetUserAuditHistory: 'function',
+  hasCheckSuspiciousActivity: 'function',
+  allMethods: [
+    'createWorkout',
+    'getUserWorkouts',
+    'updateWorkout',
+    'deleteWorkout',
+    'getWorkoutStats',
+    'getUserSettings',
+    'updateUserSettings',
+    'updateWeeklyFrequency',
+    'getUserEvents',
+    'createEvent',
+    'updateEvent',
+    'deleteEvent',
+    'getUserGoals',
+    'createGoal',
+    'deleteGoal',
+    'getUserCustomWorkoutTypes',
+    'addCustomWorkoutType',
+    'deleteCustomWorkoutType',
+    'getUserProfile',
+    'updateUserProfile',
+    'getUserAuditHistory',
+    'checkSuspiciousActivity',
+    'submitFeedback'
+  ]
+}
+Supabase initialization debug: { hasUrl: true, hasKey: true, url: 'https://dnljelrcbsjg...' }
+dbHelpers export debug: {
+  hasCreateWorkout: 'function',
+  hasSubmitFeedback: 'function',
+  hasCreateEvent: 'function',
+  hasCreateGoal: 'function',
+  hasGetUserProfile: 'function',
+  hasUpdateUserProfile: 'function',
+  hasGetUserAuditHistory: 'function',
+  hasCheckSuspiciousActivity: 'function',
+  allMethods: [
+    'createWorkout',
+    'getUserWorkouts',
+    'updateWorkout',
+    'deleteWorkout',
+    'getWorkoutStats',
+    'getUserSettings',
+    'updateUserSettings',
+    'updateWeeklyFrequency',
+    'getUserEvents',
+    'createEvent',
+    'updateEvent',
+    'deleteEvent',
+    'getUserGoals',
+    'createGoal',
+    'deleteGoal',
+    'getUserCustomWorkoutTypes',
+    'addCustomWorkoutType',
+    'deleteCustomWorkoutType',
+    'getUserProfile',
+    'updateUserProfile',
+    'getUserAuditHistory',
+    'checkSuspiciousActivity',
+    'submitFeedback'
+  ]
+}
+Supabase initialization debug: { hasUrl: true, hasKey: true, url: 'https://dnljelrcbsjg...' }
+dbHelpers export debug: {
+  hasCreateWorkout: 'function',
+  hasSubmitFeedback: 'function',
+  hasCreateEvent: 'function',
+  hasCreateGoal: 'function',
+  hasGetUserProfile: 'function',
+  hasUpdateUserProfile: 'function',
+  hasGetUserAuditHistory: 'function',
+  hasCheckSuspiciousActivity: 'function',
+  allMethods: [
+    'createWorkout',
+    'getUserWorkouts',
+    'updateWorkout',
+    'deleteWorkout',
+    'getWorkoutStats',
+    'getUserSettings',
+    'updateUserSettings',
+    'updateWeeklyFrequency',
+    'getUserEvents',
+    'createEvent',
+    'updateEvent',
+    'deleteEvent',
+    'getUserGoals',
+    'createGoal',
+    'deleteGoal',
+    'getUserCustomWorkoutTypes',
+    'addCustomWorkoutType',
+    'deleteCustomWorkoutType',
+    'getUserProfile',
+    'updateUserProfile',
+    'getUserAuditHistory',
+    'checkSuspiciousActivity',
+    'submitFeedback'
+  ]
+}
+   Generating static pages (5/11) 
+   Generating static pages (8/11) 
+Supabase initialization debug: { hasUrl: true, hasKey: true, url: 'https://dnljelrcbsjg...' }
+dbHelpers export debug: {
+  hasCreateWorkout: 'function',
+  hasSubmitFeedback: 'function',
+  hasCreateEvent: 'function',
+  hasCreateGoal: 'function',
+  hasGetUserProfile: 'function',
+  hasUpdateUserProfile: 'function',
+  hasGetUserAuditHistory: 'function',
+  hasCheckSuspiciousActivity: 'function',
+  allMethods: [
+    'createWorkout',
+    'getUserWorkouts',
+    'updateWorkout',
+    'deleteWorkout',
+    'getWorkoutStats',
+    'getUserSettings',
+    'updateUserSettings',
+    'updateWeeklyFrequency',
+    'getUserEvents',
+    'createEvent',
+    'updateEvent',
+    'deleteEvent',
+    'getUserGoals',
+    'createGoal',
+    'deleteGoal',
+    'getUserCustomWorkoutTypes',
+    'addCustomWorkoutType',
+    'deleteCustomWorkoutType',
+    'getUserProfile',
+    'updateUserProfile',
+    'getUserAuditHistory',
+    'checkSuspiciousActivity',
+    'submitFeedback'
+  ]
+}
+ ✓ Generating static pages (11/11)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    10.2 kB         146 kB
+├ ○ /_not-found                          873 B          88.1 kB
+├ ƒ /api/reanalyze                       0 B                0 B
+├ ƒ /api/update-analysis                 0 B                0 B
+├ ƒ /api/upload                          0 B                0 B
+├ ○ /history                             4.77 kB         137 kB
+├ ○ /reset-password                      2.93 kB         131 kB
+├ ƒ /voice-analysis/[workoutId]          4.64 kB         136 kB
+├ ○ /voice-test                          3.75 kB         135 kB
+└ ○ /weekly-view                         10.4 kB         143 kB
++ First Load JS shared by all            87.2 kB
+  ├ chunks/117-b0a85c36f84766de.js       31.6 kB
+  ├ chunks/fd9d1056-c3b2e0bf7bd7942c.js  53.6 kB
+  └ other shared chunks (total)          1.96 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

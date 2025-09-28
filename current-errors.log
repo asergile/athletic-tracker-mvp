@@ -1,0 +1,46 @@
+src/components/WeeklyWorkoutView.tsx(248,40): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/WeeklyWorkoutView.tsx(274,20): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/components/WorkoutHistory.tsx(72,61): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/components/WorkoutHistory.tsx(114,21): error TS2339: Property 'sets' does not exist on type 'ProcessedWorkoutData'.
+src/components/WorkoutHistory.tsx(115,27): error TS2339: Property 'stroke_distribution' does not exist on type 'ProcessedWorkoutData'.
+src/components/WorkoutHistory.tsx(116,29): error TS2339: Property 'achievements' does not exist on type 'ProcessedWorkoutData'.
+src/components/WorkoutHistory.tsx(123,45): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(18,30): error TS2339: Property 'workout_data' does not exist on type 'WorkoutParsingResult & { transcript?: string | undefined; recording_duration?: number | undefined; }'.
+src/components/WorkoutReview.tsx(21,43): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(21,48): error TS7006: Parameter 'set' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(28,48): error TS2339: Property 'workout_data' does not exist on type 'WorkoutParsingResult & { transcript?: string | undefined; recording_duration?: number | undefined; }'.
+src/components/WorkoutReview.tsx(35,42): error TS2339: Property 'workout_data' does not exist on type 'WorkoutParsingResult & { transcript?: string | undefined; recording_duration?: number | undefined; }'.
+src/components/WorkoutReview.tsx(36,35): error TS2339: Property 'workout_data' does not exist on type 'WorkoutParsingResult & { transcript?: string | undefined; recording_duration?: number | undefined; }'.
+src/components/WorkoutReview.tsx(37,38): error TS2339: Property 'workout_data' does not exist on type 'WorkoutParsingResult & { transcript?: string | undefined; recording_duration?: number | undefined; }'.
+src/components/WorkoutReview.tsx(40,12): error TS2345: Argument of type '{ processed_data: { sets: any; stroke_distribution: any; achievements: any; technical_focus: any; }; duration_minutes: number; distance_yards: any; workout_type: "pool" | "dryland" | "weights"; rating: 1 | 2 | 3; notes: string; }' is not assignable to parameter of type 'Partial<Workout>'.
+  Types of property 'processed_data' are incompatible.
+    Type '{ sets: any; stroke_distribution: any; achievements: any; technical_focus: any; }' has no properties in common with type 'ProcessedWorkoutData'.
+src/components/WorkoutReview.tsx(43,38): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(43,43): error TS7006: Parameter 'set' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(53,28): error TS2339: Property 'success' does not exist on type 'WorkoutParsingResult & { transcript?: string | undefined; recording_duration?: number | undefined; }'.
+src/components/WorkoutReview.tsx(66,54): error TS2339: Property 'confidence' does not exist on type 'WorkoutParsingResult & { transcript?: string | undefined; recording_duration?: number | undefined; }'.
+src/components/WorkoutReview.tsx(183,21): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'WorkoutSet'.
+src/components/WorkoutReview.tsx(189,27): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(200,24): error TS7006: Parameter 'set' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(200,29): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(206,27): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(206,45): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(206,48): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(209,27): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(209,48): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(209,51): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(264,26): error TS2339: Property 'type' does not exist on type 'WorkoutSet'.
+src/components/WorkoutReview.tsx(265,51): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'WorkoutSet'.
+src/components/WorkoutReview.tsx(289,26): error TS2339: Property 'stroke' does not exist on type 'WorkoutSet'.
+src/components/WorkoutReview.tsx(290,51): error TS2353: Object literal may only specify known properties, and 'stroke' does not exist in type 'WorkoutSet'.
+src/components/WorkoutReview.tsx(341,76): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ warmup: string; main: string; cooldown: string; drill: string; }'.
+src/components/WorkoutReview.tsx(341,91): error TS2339: Property 'type' does not exist on type 'WorkoutSet'.
+src/components/WorkoutReview.tsx(342,20): error TS2339: Property 'type' does not exist on type 'WorkoutSet'.
+src/components/WorkoutReview.tsx(342,55): error TS2339: Property 'type' does not exist on type 'WorkoutSet'.
+src/components/WorkoutReview.tsx(345,18): error TS2339: Property 'stroke' does not exist on type 'WorkoutSet'.
+src/components/WorkoutReview.tsx(346,62): error TS2339: Property 'stroke' does not exist on type 'WorkoutSet'.
+src/components/WorkoutReview.tsx(350,16): error TS2339: Property 'interval' does not exist on type 'WorkoutSet'.
+src/components/WorkoutReview.tsx(351,70): error TS2339: Property 'interval' does not exist on type 'WorkoutSet'.
+src/lib/security/enhanced-db-helpers.ts(278,14): error TS2345: Argument of type 'number | null' is not assignable to parameter of type 'number'.
+  Type 'null' is not assignable to type 'number'.

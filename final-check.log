@@ -1,0 +1,2 @@
+src/components/WorkoutReview.tsx(200,24): error TS7006: Parameter 'set' implicitly has an 'any' type.
+src/components/WorkoutReview.tsx(200,29): error TS7006: Parameter 'index' implicitly has an 'any' type.

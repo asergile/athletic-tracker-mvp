@@ -310,6 +310,7 @@ async function submitFeedback(feedbackData: FeedbackData): Promise<DatabaseRespo
       .from('feedback')
       .insert([{
         user_id: user.id,
+        user_email: user.email || 'unknown@example.com',
         message: sanitizedMessage,
         page_context: feedbackData.page_context || '',
         user_agent: feedbackData.user_agent || ''

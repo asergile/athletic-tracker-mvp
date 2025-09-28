@@ -79,7 +79,7 @@ const ratingLabels: Record<number, RatingConfig> = {
 }
 
 export default function HistoryPage(): React.ReactElement {
-  const { user, loading } = useAuth()
+  const { user, loading, isHydrated } = useAuth()
   const router = useRouter()
   
   // State
@@ -191,7 +191,7 @@ export default function HistoryPage(): React.ReactElement {
     setError('')
   }
 
-  if (loading || isLoading) {
+  if (loading || isLoading || !isHydrated) {
     return <LoadingScreen />
   }
 

@@ -1,0 +1,23 @@
+
+> athletic-tracker-mvp@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.32
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+Failed to compile.
+
+./src/app/history/page.tsx:172:54
+Type error: Expected 0 arguments, but got 2.
+
+[0m [90m 170 |[39m       }[0m
+[0m [90m 171 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 172 |[39m       [36mconst[39m response [33m=[39m [36mawait[39m dbHelpers[33m.[39mupdateWorkout(editingWorkout[33m.[39mid[33m,[39m updateData)[0m
+[0m [90m     |[39m                                                      [31m[1m^[22m[39m[0m
+[0m [90m 173 |[39m       [0m
+[0m [90m 174 |[39m       [36mif[39m (response[33m.[39merror) {[0m
+[0m [90m 175 |[39m         [36mthrow[39m response[33m.[39merror[0m
+Next.js build worker exited with code: 1 and signal: null

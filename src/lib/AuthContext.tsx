@@ -8,6 +8,7 @@ import { User } from '@supabase/supabase-js'
 interface AuthContextType {
   user: User | null
   loading: boolean
+  isHydrated: boolean
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>
   signUp: (email: string, password: string) => Promise<{ data: any; error: any }>
   signInWithGoogle: () => Promise<{ data: any; error: any }>
@@ -34,18 +35,54 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
+  const [isHydrated, setIsHydrated] = useState<boolean>(false)
 
   useEffect(() => {
+    // Mark as hydrated on client
+    setIsHydrated(true)
+    
+    // Check for cached user first (only on client)
+    const cachedUser = sessionStorage.getItem('auth-user')
+    if (cachedUser) {
+      try {
+        setUser(JSON.parse(cachedUser))
+        setLoading(false)
+      } catch (error) {
+        // Invalid cached data, proceed with normal auth check
+        sessionStorage.removeItem('auth-user')
+      }
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
       setLoading(false)
+      
+      // Cache user data
+      if (typeof window !== 'undefined') {
+        if (currentUser) {
+          sessionStorage.setItem('auth-user', JSON.stringify(currentUser))
+        } else {
+          sessionStorage.removeItem('auth-user')
+        }
+      }
     })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
       setLoading(false)
+      
+      // Update cache
+      if (typeof window !== 'undefined') {
+        if (currentUser) {
+          sessionStorage.setItem('auth-user', JSON.stringify(currentUser))
+        } else {
+          sessionStorage.removeItem('auth-user')
+        }
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -75,6 +112,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const signOut = async () => {
+    // Clear cached auth data before signing out
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('auth-user')
+    }
     const { error } = await supabase.auth.signOut()
     return { error }
   }
@@ -96,6 +137,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     loading,
+    isHydrated,
     signIn,
     signUp,
     signInWithGoogle,
