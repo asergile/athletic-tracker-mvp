@@ -362,8 +362,8 @@ export default function VoiceAnalysisPage() {
         {/* Top row - Title and StandardNavigation */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Voice Analysis</h1>
-            <p className="text-purple-200 text-sm sm:text-base">Detailed workout breakdown</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Log Book</h1>
+            <p className="text-purple-200 text-sm sm:text-base">Detailed AI workout breakdown</p>
           </div>
           <StandardNavigation currentPage="" />
         </div>

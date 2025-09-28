@@ -274,13 +274,13 @@ export default function ProfilePage(): React.ReactElement {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-teal-900 via-cyan-900 to-slate-900">
       {/* Header */}
       <div className="px-6 pt-12 pb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Profile</h1>
-            <p className="text-purple-200">Customize your preferences</p>
+            <p className="text-cyan-200">Customize your preferences</p>
           </div>
           <StandardNavigation currentPage="profile" />
         </div>

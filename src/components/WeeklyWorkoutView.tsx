@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Clock, Target, Plus, Flag, User, Activity, Calendar, BarChart3 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Target, Plus, Flag, User, Activity, Calendar, BarChart3, Mic, FileText, Edit, Route } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { dbHelpers } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -18,6 +18,23 @@ interface Workout {
   workout_type: string;
   distance?: number;
   distance_unit?: string;
+  voice_transcription?: string;
+  workout_analysis?: string;
+}
+
+interface EditingWorkout {
+  id: string;
+  workout_type: string;
+  duration: string | number;
+  rating: number;
+  date: string;
+  distance?: number | string;
+  distance_unit?: string;
+  created_at: string;
+  voice_transcription?: string;
+  workout_analysis?: string;
+  type: string;
+  distanceUnit?: string;
 }
 
 interface WeekDay {
@@ -85,34 +102,94 @@ const WeeklyWorkoutView: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [isScrolling, setIsScrolling] = useState<boolean>(false);
+  const [editingWorkout, setEditingWorkout] = useState<EditingWorkout | null>(null);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   // Navigation handlers - Clean route-based navigation with date picker for backdating
   const goToAddWorkout = (): void => {
     router.push('/?showDatePicker=true');
   };
 
+  // Voice analysis navigation
+  const handleVoiceAnalysis = (workoutId: string): void => {
+    router.push(`/voice-analysis/${workoutId}`);
+  };
+
+  // Edit workout functionality
+  const handleEditWorkout = (workout: Workout): void => {
+    setEditingWorkout({
+      ...workout,
+      type: workout.workout_type,
+      distanceUnit: workout.distance_unit || 'miles',
+      created_at: new Date().toISOString() // Add fallback for created_at
+    });
+    setError('');
+  };
+
+  const handleUpdateWorkout = async (): Promise<void> => {
+    if (!editingWorkout?.type || !editingWorkout?.duration || !editingWorkout?.rating) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    setIsUpdating(true);
+    setError('');
+
+    try {
+      const updateData = {
+        workout_type: editingWorkout.type,
+        duration: parseInt(editingWorkout.duration.toString()),
+        rating: editingWorkout.rating,
+        date: editingWorkout.date,
+        distance: editingWorkout.distance ? parseFloat(editingWorkout.distance.toString()) : undefined,
+        distance_unit: editingWorkout.distance ? editingWorkout.distanceUnit : undefined
+      };
+
+      const response = await dbHelpers.updateWorkout(editingWorkout.id, updateData);
+      
+      if (response.error) {
+        throw response.error;
+      }
+
+      // Reload workouts to show updated data
+      await loadWorkouts();
+      setEditingWorkout(null);
+    } catch (error) {
+      console.error('Error updating workout:', error);
+      setError('Failed to update workout. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleCancelEdit = (): void => {
+    setEditingWorkout(null);
+    setError('');
+  };
+
   // Load workouts data
   useEffect(() => {
-    const loadWorkouts = async (): Promise<void> => {
-      if (!user) return;
-      
-      setLoading(true);
-      try {
-        const { data, error } = await dbHelpers.getUserWorkouts();
-        if (error) {
-          console.error('Error loading workouts:', error);
-        } else {
-          setWorkouts(data || []);
-        }
-      } catch (err) {
-        console.error('Error loading workouts:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadWorkouts();
   }, [user]);
+  
+  const loadWorkouts = async (): Promise<void> => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await dbHelpers.getUserWorkouts();
+      if (error) {
+        console.error('Error loading workouts:', error);
+      } else {
+        setWorkouts(data || []);
+      }
+    } catch (err) {
+      console.error('Error loading workouts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Get current week days
   const weekDays = useMemo<WeekDay[]>(() => getWeekDays(currentWeekStart), [currentWeekStart]);
@@ -433,35 +510,64 @@ const WeeklyWorkoutView: React.FC = () => {
               <div className="space-y-4">
                 {dayWorkouts.map((workout: Workout) => {
                   const ratingConfig: RatingConfig = ratingLabels[workout.rating];
+                  const hasVoiceData = workout.voice_transcription || workout.workout_analysis;
                   
                   return (
-                    <div key={workout.id} className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-200">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-2">
-                            <h4 className="text-lg sm:text-xl font-bold text-gray-800">{workout.workout_type}</h4>
+                    <div key={workout.id} className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-200 relative">
+                      {/* Action Buttons - Bigger and better positioned */}
+                      <div className="absolute top-4 right-4 flex space-x-3 z-10">
+                        <button
+                          onClick={() => handleVoiceAnalysis(workout.id)}
+                          className="w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center justify-center transition-all relative"
+                          title={hasVoiceData ? "View voice analysis" : "Add voice note"}
+                        >
+                          {hasVoiceData ? (
+                            <FileText className="w-5 h-5 text-gray-600" />
+                          ) : (
+                            <>
+                              <Mic className="w-5 h-5 text-gray-600" />
+                              <Plus className="w-3 h-3 absolute -top-0.5 -right-0.5 bg-green-500 text-white rounded-full p-0.5" />
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleEditWorkout(workout)}
+                          className="w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center justify-center transition-all"
+                          title="Edit workout"
+                        >
+                          <Edit className="w-5 h-5 text-gray-600" />
+                        </button>
+                      </div>
+
+                      {/* Main Content */}
+                      <div className="pr-28">
+                        {/* Workout type - prominent */}
+                        <h3 className="text-2xl font-bold text-gray-900 mb-1">{workout.workout_type}</h3>
+                        <p className="text-gray-500 text-sm font-medium mb-4">
+                          {day.fullDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                        </p>
+
+                        {/* Stats in a row */}
+                        <div className="flex items-center space-x-6">
+                          <div className="flex items-center space-x-2">
+                            <Clock className="w-5 h-5 text-gray-600" />
+                            <span className="text-lg font-bold text-gray-900">{formatTime(workout.duration)}</span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                            <div className="flex items-center space-x-1 text-gray-600">
-                              <Clock className="w-4 h-4" />
-                              <span className="text-sm sm:text-base">{formatTime(workout.duration)}</span>
+                          {workout.distance && (
+                            <div className="flex items-center space-x-2">
+                              <Route className="w-5 h-5 text-gray-600" />
+                              <span className="text-lg font-bold text-gray-900">{workout.distance}</span>
+                              <span className="text-sm text-gray-600 font-medium">{workout.distance_unit}</span>
                             </div>
-                            {workout.distance && (
-                              <div className="flex items-center space-x-1 text-gray-600">
-                                <span>📏</span>
-                                <span className="text-sm sm:text-base">{workout.distance} {workout.distance_unit}</span>
-                              </div>
-                            )}
-                            <div className={`inline-flex items-center space-x-1 px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r ${ratingConfig.color} text-white text-xs sm:text-sm font-medium`}>
-                              <span>{ratingConfig.emoji}</span>
-                              <span>{ratingConfig.label}</span>
-                            </div>
-                          </div>
+                          )}
                         </div>
-                        <div className="text-right ml-2 sm:ml-0">
-                          <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r ${ratingConfig.color} flex items-center justify-center text-xl sm:text-2xl`}>
-                            {ratingConfig.emoji}
-                          </div>
+                      </div>
+
+                      {/* Rating pill positioned below action buttons on the right */}
+                      <div className="absolute top-20 right-4">
+                        <div className={`inline-flex items-center space-x-3 px-5 py-2.5 rounded-2xl bg-gradient-to-r ${ratingConfig.color} text-white shadow-lg transform hover:scale-105 transition-transform`}>
+                          <span className="text-xl">{ratingConfig.emoji}</span>
+                          <span className="text-base font-bold">{ratingConfig.label}</span>
                         </div>
                       </div>
                     </div>
@@ -481,8 +587,144 @@ const WeeklyWorkoutView: React.FC = () => {
         )}
       </div>
       
-      {/* Feedback Button */}
-      <FeedbackButton />
+      {/* Edit Workout Modal */}
+      {editingWorkout && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white rounded-3xl p-6 m-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Edit Workout</h3>
+              <button
+                onClick={handleCancelEdit}
+                className="text-gray-500 hover:text-gray-700 p-2"
+                disabled={isUpdating}
+              >
+                ×
+              </button>
+            </div>
+            
+            {error && (
+              <div className="bg-red-500 bg-opacity-10 border border-red-500 border-opacity-30 rounded-xl p-4 mb-4">
+                <p className="text-red-600">{error}</p>
+              </div>
+            )}
+            
+            <div className="space-y-4">
+              {/* Workout Type */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Activity</label>
+                <input
+                  type="text"
+                  value={editingWorkout.type}
+                  onChange={(e) => setEditingWorkout(prev => prev ? ({ ...prev, type: e.target.value }) : null)}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                  placeholder="e.g., Running, Swimming"
+                  disabled={isUpdating}
+                />
+              </div>
+              
+              {/* Duration */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Duration (minutes)</label>
+                <input
+                  type="number"
+                  value={editingWorkout.duration}
+                  onChange={(e) => setEditingWorkout(prev => prev ? ({ ...prev, duration: e.target.value }) : null)}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                  placeholder="45"
+                  min="1"
+                  disabled={isUpdating}
+                />
+              </div>
+              
+              {/* Distance (Optional) */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Distance (optional)</label>
+                <div className="flex space-x-3">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={editingWorkout.distance || ''}
+                    onChange={(e) => setEditingWorkout(prev => prev ? ({ ...prev, distance: e.target.value }) : null)}
+                    className="flex-1 p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                    placeholder="5.2"
+                    disabled={isUpdating}
+                  />
+                  <select
+                    value={editingWorkout.distanceUnit || 'miles'}
+                    onChange={(e) => setEditingWorkout(prev => prev ? ({ ...prev, distanceUnit: e.target.value }) : null)}
+                    className="w-28 p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
+                    disabled={isUpdating}
+                  >
+                    <option value="miles">miles</option>
+                    <option value="kilometers">km</option>
+                    <option value="meters">meters</option>
+                    <option value="yards">yards</option>
+                  </select>
+                </div>
+              </div>
+              
+              {/* Date */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Date</label>
+                <input
+                  type="date"
+                  value={editingWorkout.date}
+                  onChange={(e) => setEditingWorkout(prev => prev ? ({ ...prev, date: e.target.value }) : null)}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                  disabled={isUpdating}
+                />
+              </div>
+              
+              {/* Rating */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">How did it go?</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {Object.entries(ratingLabels).map(([rating, config]) => (
+                    <button
+                      key={rating}
+                      onClick={() => setEditingWorkout(prev => prev ? ({ ...prev, rating: parseInt(rating) }) : null)}
+                      disabled={isUpdating}
+                      className={`p-4 rounded-xl transition-all duration-200 disabled:opacity-50 ${
+                        editingWorkout.rating === parseInt(rating)
+                          ? `bg-gradient-to-r ${config.color} text-white shadow-lg`
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className="text-2xl mb-1">{config.emoji}</div>
+                      <div className="font-medium text-sm">{config.label}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={handleCancelEdit}
+                disabled={isUpdating}
+                className="flex-1 py-3 px-4 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateWorkout}
+                disabled={isUpdating || !editingWorkout.type || !editingWorkout.duration || !editingWorkout.rating}
+                className="flex-1 py-3 px-4 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:shadow-lg transition-all disabled:opacity-50"
+              >
+                {isUpdating ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Updating...</span>
+                  </div>
+                ) : (
+                  'Save Changes'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

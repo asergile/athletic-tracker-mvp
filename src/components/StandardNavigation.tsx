@@ -1,6 +1,6 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Flag, BarChart3, Calendar, User } from 'lucide-react'
+import { Plus, Target, BarChart3, Calendar, User } from 'lucide-react'
 
 interface StandardNavigationProps {
   currentPage?: string
@@ -15,12 +15,12 @@ interface NavItem {
 }
 
 /**
- * Standardized 5-Icon Navigation Component
+ * Standardized 4-Icon Navigation Component
  * 
- * Fixed order: Plus → Flag → BarChart3 → Calendar → User
- * Shows all 5 icons with current page highlighted (lighter opacity)
+ * Fixed order: Plus → Target → Calendar → User
+ * Shows all 4 icons with current page highlighted (lighter opacity)
  * 
- * @param currentPage - 'dashboard', 'goals', 'weekly', 'history', 'profile'
+ * @param currentPage - 'dashboard', 'goals', 'history', 'profile'
  * @param onNavigate - Optional callback for custom navigation (used by AthleticTracker state-based views)
  */
 const StandardNavigation: React.FC<StandardNavigationProps> = ({ 
@@ -38,15 +38,9 @@ const StandardNavigation: React.FC<StandardNavigationProps> = ({
     },
     {
       id: 'goals', 
-      icon: Flag,
+      icon: Target,
       title: 'Goals',
       action: () => onNavigate ? onNavigate('goals') : router.push('/goals')
-    },
-    {
-      id: 'weekly',
-      icon: BarChart3, 
-      title: 'Weekly View',
-      action: () => onNavigate ? onNavigate('weekly') : router.push('/weekly-view')
     },
     {
       id: 'history',
