@@ -115,6 +115,14 @@ Route Architecture Success:
 - **Project Philosophy:** Simplicity beats sophistication for behavior change
 - **Goal:** Alpha testing with real athletes to validate 30-second logging + retention
 
+**📌 COMMUNICATION STYLE:**
+- **"Let's put a pin in that"** means:
+  - STOP immediately - don't continue discussing
+  - Document current state/idea briefly
+  - Move on to something else
+  - NOT "we'll come back to this later" - it's shelved indefinitely
+  - User's way of saying "not worth pursuing, let's move forward"
+
 ## 📁 **COMPLETE DOCUMENTATION SYSTEM:**
 Essential files to review in `/Users/alain/Projects/athletic-tracker-mvp/project-docs/`:
 * `technical-specifications.md` - Technology versions and coding standards (READ FIRST)
@@ -134,7 +142,29 @@ Essential files to review in `/Users/alain/Projects/athletic-tracker-mvp/project
 6. Local testing and file updates only
 7. User handles git operations and deployments manually
 
-**⚠️ NEVER auto-fix issues:** When user shares screenshots, error messages, or describes bugs - this is for discussion ONLY. Always propose solution and ask for approval first.
+**⚠️ APPROVAL-REQUIRED WORKFLOW:**
+**When user shares screenshots, error messages, or describes bugs:**
+- This is for **DISCUSSION ONLY**
+- **NEVER auto-implement fixes**
+- **ALWAYS propose solution first**
+- **ALWAYS ask: "Should I implement this fix?"**
+- **WAIT for explicit approval** before making ANY changes
+
+**Goal:** User maintains full control over project direction and testing.
+
+## 📌 **"LET'S PUT A PIN IN THAT" WORKFLOW:**
+**When user says "Let's put a pin in that":**
+1. **Immediately capture** the issue/idea in `/project-docs/pinned-items.md`
+2. **Document with full context:**
+   - Date
+   - Root cause analysis
+   - Proposed solution
+   - Affected files
+3. **Mark as PINNED** for later prioritization
+4. **Continue work without interruption** - move on to next task
+5. **Session handoffs reference** pinned items for continuity
+
+**This means:** Stop discussing, document briefly, move forward. NOT "we'll come back to this" - it's deferred indefinitely until user decides to prioritize it.
 
 ## 🚀 **PROJECT MOMENTUM:**
 **Strategic Position:** We've successfully completed the route-based architecture transformation. All views are now independent routes with shareable URLs, positioning the app perfectly for coach/supporter sharing while maintaining the core 30-second logging experience. The architecture is clean, scalable, and ready for feature expansion.

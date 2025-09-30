@@ -260,14 +260,14 @@ async function checkSuspiciousActivity(): Promise<DatabaseResponse<any>> {
   }
 }
 
-async function getUserWorkouts(limit: number = 100): Promise<DatabaseArrayResponse<Workout>> {
+async function getUserWorkouts(limit: number = 500): Promise<DatabaseArrayResponse<Workout>> {
   try {
     const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
     if (userError || !user) {
       return { data: [], error: new Error('Authentication required') }
     }
 
-    const sanitizedLimit = sanitizeNumber(limit, { min: 1, max: 1000, defaultValue: 100 }) || 100;
+    const sanitizedLimit = sanitizeNumber(limit, { min: 1, max: 1000, defaultValue: 500 }) || 500;
 
     const { data, error } = await supabase
       .from('workouts')

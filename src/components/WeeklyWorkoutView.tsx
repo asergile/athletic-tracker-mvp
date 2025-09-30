@@ -69,9 +69,11 @@ const formatTime = (minutes: number): string => {
   return `${hours}h ${remainingMinutes}m`;
 };
 
-// Helper function to get start of week (Sunday) - using date-fns for reliability
+// Helper function to get start of week (Sunday) - normalized to midnight
 const getWeekStart = (date: Date): Date => {
-  return startOfWeek(date, { weekStartsOn: 0 }); // 0 = Sunday
+  const weekStart = startOfWeek(date, { weekStartsOn: 0 }); // 0 = Sunday
+  weekStart.setHours(0, 0, 0, 0);  // Normalize to midnight
+  return weekStart;
 };
 
 // Helper function to get week days array (Sunday first) - using date-fns

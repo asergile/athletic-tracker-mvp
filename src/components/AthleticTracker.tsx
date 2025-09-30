@@ -145,9 +145,11 @@ const formatTime = (minutes: number): string => {
 
 const getWeekStart = (date: Date): Date => {
   const d = new Date(date);
+  d.setHours(0, 0, 0, 0);  // Normalize to midnight
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(d.setDate(diff));
+  d.setDate(diff);
+  return d;
 };
 
 // ===== CONSTANTS =====
@@ -562,6 +564,7 @@ const AthleticTracker: React.FC = () => {
 
   // ===== HANDLERS (FULLY TYPED) =====
   const loadUserData = async (): Promise<void> => {
+    console.log('[AthleticTracker] loadUserData called');
     try {
       const [workoutsResponse, settingsResponse, customTypesResponse, eventsResponse, goalsResponse] = await Promise.all([
         dbHelpers.getUserWorkouts(),
@@ -571,7 +574,14 @@ const AthleticTracker: React.FC = () => {
         dbHelpers.getUserGoals()
       ]);
 
+      console.log('[AthleticTracker] workoutsResponse:', { 
+        hasData: !!workoutsResponse.data, 
+        count: workoutsResponse.data?.length,
+        error: workoutsResponse.error?.message 
+      });
+
       if (workoutsResponse.data) {
+        console.log('[AthleticTracker] Setting workouts state with', workoutsResponse.data.length, 'workouts');
         setWorkouts(workoutsResponse.data);
       }
 
@@ -1097,16 +1107,19 @@ const AthleticTracker: React.FC = () => {
 
   // ===== COMPUTED VALUES (FULLY TYPED) =====
   const weeklyStats = useMemo((): WeeklyStats => {
+    console.log('[AthleticTracker] weeklyStats calculation - workouts.length:', workouts.length);
     const now = new Date();
     const weekStart = getWeekStart(now);
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
+    console.log('[AthleticTracker] Week range:', weekStart.toISOString().split('T')[0], 'to', weekEnd.toISOString().split('T')[0]);
     
     const thisWeekWorkouts = workouts.filter(workout => {
       const workoutDate = new Date(workout.date + 'T00:00:00');
       return workoutDate >= weekStart && workoutDate <= weekEnd;
     });
 
+    console.log('[AthleticTracker] thisWeekWorkouts.length:', thisWeekWorkouts.length);
     const totalTime = thisWeekWorkouts.reduce((sum, workout) => sum + workout.duration, 0);
     const avgRating = thisWeekWorkouts.length > 0 
       ? thisWeekWorkouts.reduce((sum, workout) => sum + workout.rating, 0) / thisWeekWorkouts.length 
@@ -1137,6 +1150,7 @@ const AthleticTracker: React.FC = () => {
     
     for (let i = 0; i < 52; i++) {
       const weekStart = new Date(now);
+      weekStart.setHours(0, 0, 0, 0);  // Normalize to midnight
       weekStart.setDate(weekStart.getDate() - (i * 7) - (now.getDay() === 0 ? 6 : now.getDay() - 1));
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekEnd.getDate() + 6);

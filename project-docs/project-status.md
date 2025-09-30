@@ -1,9 +1,20 @@
 # Athletic Tracker MVP - Project Status
 
-**Last Updated:** September 28, 2025  
-**Status:** UI IMPROVEMENTS COMPLETE - Cards & Navigation Updated
+**Last Updated:** September 30, 2025  
+**Status:** METRICS BUG FIXES COMPLETE - Data Calculations Working Correctly
 
 ## Current State
+
+### Critical Bug Fixes: COMPLETE ✅ (09/30/2025)
+- **Timezone Bug Fixed:** Metrics now calculate correctly by normalizing all dates to midnight
+- **Workout Limit Increased:** Changed from 100 to 500 workouts to support growth
+- **Affected Files:** AthleticTracker.tsx, history/page.tsx, WeeklyWorkoutView.tsx, enhanced-db-helpers.ts
+- **Impact:** Metrics cards now display actual workout data instead of zeros
+- **Test Pages Created:** `/metrics-test` and `/debug` for isolated testing and diagnostics
+
+### Pinned Items for Future Implementation: 2 items 📌
+1. **PIN #1:** Navigation accessibility for large text/display scaling
+2. **PIN #2:** Data caching to eliminate page flash on navigation (20-30min implementation)
 
 ### UI/UX Improvements: COMPLETE ✅
 - **Card Design:** All workout cards updated to athlete-focused layout
