@@ -121,6 +121,9 @@ const MainComponent = () => {
 - **Import types:** Use `import type` for type-only imports
 
 ### **File Organization**
+
+**ALWAYS reference `project-docs/file-structure-reference.md` FIRST before searching the filesystem.**
+
 ```
 src/
 ├── app/                 # Next.js App Router pages
@@ -134,8 +137,37 @@ src/
 project-docs/
 ├── mockups/            # Interactive HTML prototypes and design artifacts
 ├── session-handoffs/   # Session continuation documents
+├── file-structure-reference.md  # 🔑 COMPREHENSIVE file location guide
 └── [other-docs].md     # Project documentation
 ```
+
+### **Finding Files Efficiently (Token Conservation)**
+
+**CRITICAL: Avoid expensive directory tree operations by following this protocol:**
+
+1. **FIRST:** Check `project-docs/file-structure-reference.md` for known file locations
+2. **SECOND:** Use targeted `filesystem:search_files` with specific patterns
+3. **LAST RESORT:** Use `filesystem:directory_tree` only for exploring NEW directory structures
+
+**Token-Efficient Search Patterns:**
+```typescript
+// ✅ GOOD - Targeted search
+filesystem:search_files pattern="Auth" path="src/components"
+
+// ✅ GOOD - Specific file type
+filesystem:search_files pattern="*.tsx" path="src/app"
+
+// ❌ AVOID - Expensive and usually unnecessary
+filesystem:directory_tree path="src/"
+```
+
+**Quick File Lookup Examples:**
+- Need auth component? → Check file-structure-reference.md (lists `AuthScreen.tsx` in components)
+- Need database helpers? → Check file-structure-reference.md (lists `lib/security/enhanced-db-helpers.ts`)
+- Need to find all pages? → Search for `page.tsx` in `src/app`
+- Need documentation? → Check file-structure-reference.md for doc organization
+
+**This approach saves 10,000+ tokens per session and provides faster responses.**
 
 ### **Mockups and Design Artifacts**
 

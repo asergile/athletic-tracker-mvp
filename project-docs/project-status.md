@@ -1,9 +1,23 @@
 # Athletic Tracker MVP - Project Status
 
-**Last Updated:** September 30, 2025  
-**Status:** METRICS BUG FIXES COMPLETE - Data Calculations Working Correctly
+**Last Updated:** October 6, 2025  
+**Status:** Token Optimization Complete + Onboarding Wireframe Refined
 
 ## Current State
+
+### Latest Session (10/06/2025): Token Optimization + Onboarding Refinement ✅
+- **Token Efficiency Improvements:**
+  - Created `file-structure-reference.md` - comprehensive file location guide
+  - Updated `technical-specifications.md` with token-efficient search protocols
+  - Saves 10,000+ tokens per session by eliminating directory tree requests
+  - Established 3-document Claude Projects setup (technical-specifications, best-practices, file-structure)
+- **Onboarding Wireframe Refinements:**
+  - Fixed logo path issue in onboarding-with-logo.html
+  - Matched screen 1 layout to login page (PB logo + "Goal Buddy" + tagline)
+  - Updated copy: "Stay consistent and smash your goals"
+  - Added circular outlines to screen 2 & 3 icons
+  - Standardized all screens to 120px sizing with 30px spacing
+  - Ready for integration into Next.js app when approved
 
 ### Critical Bug Fixes: COMPLETE ✅ (09/30/2025)
 - **Timezone Bug Fixed:** Metrics now calculate correctly by normalizing all dates to midnight

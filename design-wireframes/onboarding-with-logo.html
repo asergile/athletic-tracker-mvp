@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goal Buddy Onboarding - With Logo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .phone-frame {
+            width: 375px;
+            height: 667px;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .screen {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 60px 30px 40px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #84cc16 100%);
+            color: white;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+        
+        .screen-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .logo-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .icon-placeholder {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.2);
+            border: 3px solid rgba(255,255,255,0.5);
+            border-radius: 50%;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            transition: opacity 0.3s ease;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            opacity: 0.9;
+            max-width: 300px;
+        }
+        
+        .navigation {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            transition: all 0.3s;
+        }
+        
+        .dot.active {
+            width: 24px;
+            border-radius: 4px;
+            background: white;
+        }
+        
+        .btn {
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #1e3a8a;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        /* Screen 1 - Welcome - Using your brand gradient */
+        .screen-1 {
+            background: linear-gradient(135deg, #1e3a8a 0%, #84cc16 100%);
+        }
+        
+        /* Screen 2 - Set Goals */
+        .screen-2 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        /* Screen 3 - Track Progress */
+        .screen-3 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <!-- Screen 1: Welcome -->
+        <div class="screen screen-1 active" id="screen-1">
+            <div class="screen-content">
+                <div class="logo-container">
+                    <img src="Logo PB white.png" alt="Goal Buddy Logo" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2260%22 text-anchor=%22middle%22 dy=%22.3em%22%3E🎯%3C/text%3E%3C/svg%3E';" />
+                </div>
+                <h1 style="margin-bottom: 15px; font-size: 26px;">Goal Buddy</h1>
+                <p style="font-size: 16px; opacity: 0.95;">Welcome to your personal athletic goal setting and training tracker. Stay consistent and smash your goals.</p>
+            </div>
+            <div class="navigation">
+                <div class="dots">
+                    <div class="dot active"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <button class="btn btn-primary" onclick="nextScreen()">Get Started</button>
+                <button class="btn btn-secondary" onclick="skipToEnd()">I Already Have An Account</button>
+            </div>
+        </div>
+        
+        <!-- Screen 2: Set Goals -->
+        <div class="screen screen-2" id="screen-2">
+            <div class="screen-content">
+                <div class="icon-placeholder" id="sports-icon">🏊‍♂️</div>
+                <h1>Set Your Goals</h1>
+                <p>Create events and set specific goals for your competitions. Track countdown to race day and watch your progress build.</p>
+            </div>
+            <div class="navigation">
+                <div class="dots">
+                    <div class="dot"></div>
+                    <div class="dot active"></div>
+                    <div class="dot"></div>
+                </div>
+                <button class="btn btn-primary" onclick="nextScreen()">Next</button>
+                <button class="btn btn-secondary" onclick="skipToEnd()">Skip</button>
+            </div>
+        </div>
+        
+        <!-- Screen 3: Track Progress -->
+        <div class="screen screen-3" id="screen-3">
+            <div class="screen-content">
+                <div class="icon-placeholder">🏆</div>
+                <h1>Log & Track Workouts</h1>
+                <p>Quickly log every workout and bank hours toward your goals. See your training add up and stay motivated until race day.</p>
+            </div>
+            <div class="navigation">
+                <div class="dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot active"></div>
+                </div>
+                <button class="btn btn-primary" onclick="goToApp()">Create My First Goal</button>
+                <button class="btn btn-secondary" onclick="goToApp()">Skip</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentScreen = 1;
+        
+        function nextScreen() {
+            if (currentScreen < 3) {
+                document.getElementById(`screen-${currentScreen}`).classList.remove('active');
+                currentScreen++;
+                document.getElementById(`screen-${currentScreen}`).classList.add('active');
+            }
+        }
+        
+        function skipToEnd() {
+            document.getElementById(`screen-${currentScreen}`).classList.remove('active');
+            currentScreen = 3;
+            document.getElementById('screen-3').classList.add('active');
+        }
+        
+        function goToApp() {
+            alert('This would take you to the "Create Your First Goal" screen in the actual app!');
+        }
+        
+        // Cycle through sports icons
+        const sportsIcons = ['🏊‍♂️', '🏃‍♂️', '🚴‍♂️', '🎾', '⚽', '🏋️‍♂️', '🏀', '⛷️'];
+        let currentIconIndex = 0;
+        
+        setInterval(() => {
+            currentIconIndex = (currentIconIndex + 1) % sportsIcons.length;
+            const iconElement = document.getElementById('sports-icon');
+            if (iconElement) {
+                iconElement.style.opacity = '0';
+                setTimeout(() => {
+                    iconElement.textContent = sportsIcons[currentIconIndex];
+                    iconElement.style.opacity = '1';
+                }, 300);
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
