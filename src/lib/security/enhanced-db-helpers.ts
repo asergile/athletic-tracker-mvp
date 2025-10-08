@@ -657,7 +657,7 @@ async function getUserGoals(): Promise<DatabaseArrayResponse<any>> {
     }
 
     const { data, error } = await supabase
-      .from('goals')
+      .from('athlete_goals')
       .select(`
         *,
         events!inner(*)
@@ -691,7 +691,7 @@ async function createGoal(eventId: string, targetWorkouts: number): Promise<Data
     const validatedTargetWorkouts = sanitizeNumber(targetWorkouts, { min: 1, max: 365, defaultValue: 20 });
 
     const { data, error } = await supabase
-      .from('goals')
+      .from('athlete_goals')
       .insert([{
         user_id: user.id,
         event_id: eventId,
@@ -724,7 +724,7 @@ async function deleteGoal(goalId: string): Promise<DatabaseResponse<null>> {
     }
 
     const { error } = await supabase
-      .from('goals')
+      .from('athlete_goals')
       .delete()
       .eq('id', goalId)
       .eq('user_id', user.id)

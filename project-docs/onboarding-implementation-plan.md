@@ -4,7 +4,7 @@
 **Feature:** First-Time User Onboarding Experience  
 **Created:** October 8, 2025  
 **Last Updated:** October 8, 2025  
-**Status:** Segments 1, 2 & 4 Complete - Segment 3 Next
+**Status:** Segments 1, 2, 3 & 4 Complete - Ready for Segment 5 Testing
 
 ---
 
@@ -56,9 +56,9 @@ import Link from 'next/link'                  // Next.js Link component
 ### **✅ Completion Tracking**
 - [x] Segment 1: Database Schema & Helpers (COMPLETE - Oct 8, 2025)
 - [x] Segment 2: Onboarding Screens Page (COMPLETE - Oct 8, 2025)
-- [ ] Segment 3: First Goal Creation Page (NEXT PRIORITY)
+- [x] Segment 3: First Goal Creation Page (COMPLETE - Oct 8, 2025)
 - [x] Segment 4: Flow Control & Routing Logic (COMPLETE - Oct 8, 2025)
-- [ ] Segment 5: Testing & Polish
+- [ ] Segment 5: Testing & Polish (NEXT PRIORITY)
 
 **Each segment can be completed independently across chat sessions.**
 
@@ -1395,14 +1395,15 @@ Part 5/5 of onboarding implementation - COMPLETE ✅
 
 **Last Updated:** October 8, 2025
 
-**Current Status:** Segments 1, 2 & 4 Complete - Ready for Segment 3
+**Current Status:** Segments 1, 2, 3 & 4 Complete and TESTED - Onboarding fully functional!
 
 **Completed:**
 - ✅ Segment 1: Database schema & helpers implemented and tested
 - ✅ Segment 2: 3-screen onboarding carousel implemented and tested
+- ✅ Segment 3: First Goal Creation Page implemented and TESTED (Oct 8, 2025)
 - ✅ Segment 4: Flow control & routing logic implemented and tested
 
-**Next Action:** Implement Segment 3 (First Goal Creation Page)
+**Next Action:** Segment 5 (Testing & Polish) - optional refinements
 
 **Blocked By:** None - ready to continue
 
@@ -1415,8 +1416,16 @@ Part 5/5 of onboarding implementation - COMPLETE ✅
 - Manual testing complete: no page flash on login, smooth redirects
 - User chose to implement Segment 4 before Segment 3
 - TypeScript build passes with no errors
-- Clicking "Create My First Goal" shows 404 (expected - Segment 3 not yet implemented)
-- Skip functionality works perfectly and sets flag correctly
+- Segment 3 (First Goal Creation Page) now implemented at `/onboarding/create-goal`
+  - Auto-calculation of suggested workouts based on event date and weekly frequency
+  - Form validation preventing invalid submissions
+  - Event creation → Goal creation → Mark onboarding complete → Success celebration → User-controlled redirect
+  - Skip functionality included with proper database flag update
+  - Mobile-first responsive design with gradient backgrounds matching onboarding screens
+  - **FIX APPLIED:** Updated database helpers to use correct table name `athlete_goals` instead of `goals`
+  - **UX IMPROVEMENT:** Success screen now has "Log My First Workout" button instead of auto-redirect
+- Complete onboarding flow now functional and tested end-to-end
+- ✅ **TESTED:** Goal creation works, success screen displays, redirect to log workout page works
 
 ---
 
