@@ -25,6 +25,7 @@ interface AppEvent {
   goal?: string | null;
   created_by: string;
   created_at: string;
+  is_archived?: boolean;
 }
 
 interface Goal {
@@ -66,6 +67,7 @@ export default function GoalsPage(): React.ReactElement {
   const [goals, setGoals] = useState<Goal[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string>('')
+  const [showArchived, setShowArchived] = useState<boolean>(false)
   
   // Goals-specific state
   const [showCreateEvent, setShowCreateEvent] = useState<boolean>(false)
@@ -95,12 +97,19 @@ export default function GoalsPage(): React.ReactElement {
     }
   }, [user])
 
+  // Reload when showArchived changes
+  useEffect(() => {
+    if (user && !isLoading) {
+      loadUserData()
+    }
+  }, [showArchived])
+
   const loadUserData = async (): Promise<void> => {
     setIsLoading(true)
     try {
       const [settingsResponse, eventsResponse, goalsResponse] = await Promise.all([
         dbHelpers.getUserSettings(),
-        dbHelpers.getUserEvents(),
+        dbHelpers.getUserEvents(showArchived), // Pass showArchived flag
         dbHelpers.getUserGoals()
       ])
 
@@ -222,8 +231,29 @@ export default function GoalsPage(): React.ReactElement {
     }
   }, [goalForm])
 
+  const handleArchiveEvent = useCallback(async (eventId: string, isArchived: boolean): Promise<void> => {
+    try {
+      const response = isArchived 
+        ? await dbHelpers.unarchiveEvent(eventId)
+        : await dbHelpers.archiveEvent(eventId)
+      
+      if (response.error) {
+        throw new Error(response.error.message)
+      }
+      
+      // Reload events
+      const eventsResponse = await dbHelpers.getUserEvents(showArchived)
+      if (eventsResponse.data) {
+        setEvents(eventsResponse.data)
+      }
+    } catch (error) {
+      console.error('Error archiving event:', error)
+      setError('Failed to archive event. Please try again.')
+    }
+  }, [showArchived])
+
   const handleDeleteEvent = useCallback(async (eventId: string): Promise<void> => {
-    if (window.confirm('Delete this event? This will also delete any associated goals.')) {
+    if (window.confirm('Permanently delete this event? This will also delete any associated training goals. This cannot be undone.')) {
       try {
         const response = await dbHelpers.deleteEvent(eventId)
         if (response.error) {
@@ -232,7 +262,7 @@ export default function GoalsPage(): React.ReactElement {
         
         // Reload both events and goals (cascade delete)
         const [eventsResponse, goalsResponse] = await Promise.all([
-          dbHelpers.getUserEvents(),
+          dbHelpers.getUserEvents(showArchived),
           dbHelpers.getUserGoals()
         ])
         
@@ -248,7 +278,7 @@ export default function GoalsPage(): React.ReactElement {
         setError('Failed to delete event. Please try again.')
       }
     }
-  }, [])
+  }, [showArchived])
 
   const handleDeleteGoal = useCallback(async (goalId: string): Promise<void> => {
     if (window.confirm('Delete this training goal? This will remove your workout target, but the event will remain.')) {
@@ -363,7 +393,15 @@ export default function GoalsPage(): React.ReactElement {
 
         {/* Events Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-white mb-4">Upcoming Events</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white">Upcoming Events</h2>
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className="px-4 py-2 rounded-lg bg-white bg-opacity-10 text-white hover:bg-opacity-20 transition-colors text-sm font-medium"
+            >
+              {showArchived ? 'Hide Archived' : 'Show Archived'}
+            </button>
+          </div>
           {events.length === 0 ? (
             <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 text-center">
               <Calendar className="w-12 h-12 text-green-400 mx-auto mb-4" />
@@ -375,9 +413,11 @@ export default function GoalsPage(): React.ReactElement {
               {events.map((event: AppEvent) => {
                 const eventGoal = goals.find(g => g.event_id === event.id)
                 const daysRemaining = Math.max(0, Math.ceil((new Date(event.event_date).getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)))
+                const isArchived = (event as any).is_archived || false
+                const isPastEvent = daysRemaining === 0 || new Date(event.event_date) < new Date()
                 
                 return (
-                  <div key={event.id} className="bg-white rounded-xl p-6 shadow-lg">
+                  <div key={event.id} className={`bg-white rounded-xl p-6 shadow-lg ${isArchived ? 'opacity-75 border-2 border-gray-300' : ''}`}>
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-800 mb-1">{event.name}</h3>
@@ -399,17 +439,39 @@ export default function GoalsPage(): React.ReactElement {
                         </p>
                       </div>
                       <div className="flex space-x-2 ml-4">
+                        {isArchived && (
+                          <div className="px-3 py-1 rounded-lg bg-gray-200 text-gray-600 text-xs font-semibold">
+                            ARCHIVED
+                          </div>
+                        )}
+                        {!isArchived && (
+                          <button
+                            onClick={() => handleEditEvent(event)}
+                            className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                            title="Edit event"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                        )}
                         <button
-                          onClick={() => handleEditEvent(event)}
-                          className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                          onClick={() => handleArchiveEvent(event.id, isArchived)}
+                          className={`p-2 rounded-lg transition-colors ${isArchived ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' : 'bg-amber-100 text-amber-600 hover:bg-amber-200'}`}
+                          title={isArchived ? 'Unarchive event' : 'Archive event'}
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            {isArchived ? (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                            ) : (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                            )}
                           </svg>
                         </button>
                         <button
                           onClick={() => handleDeleteEvent(event.id)}
                           className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                          title="Permanently delete event"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

@@ -520,18 +520,24 @@ async function markOnboardingComplete(): Promise<DatabaseResponse<boolean>> {
 
 // ===== EVENTS FUNCTIONS =====
 
-async function getUserEvents(): Promise<DatabaseArrayResponse<any>> {
+async function getUserEvents(includeArchived: boolean = false): Promise<DatabaseArrayResponse<any>> {
   try {
     const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
     if (userError || !user) {
       return { data: [], error: new Error('Authentication required') }
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('events')
       .select('*')
       .eq('created_by', user.id)
-      .order('event_date', { ascending: true })
+
+    // Filter archived events unless explicitly requested
+    if (!includeArchived) {
+      query = query.eq('is_archived', false)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Enhanced security - get user events error:', {
@@ -542,7 +548,23 @@ async function getUserEvents(): Promise<DatabaseArrayResponse<any>> {
       return { data: [], error: new Error('Unable to retrieve events') }
     }
 
-    return { data: data || [], error: null }
+    // Sort events: active events by date ascending, archived events at the end by date descending
+    const sortedData = (data || []).sort((a: any, b: any) => {
+      const aArchived = a.is_archived || false
+      const bArchived = b.is_archived || false
+      
+      // If both have same archived status, sort by date
+      if (aArchived === bArchived) {
+        const aDate = new Date(a.event_date).getTime()
+        const bDate = new Date(b.event_date).getTime()
+        return aArchived ? bDate - aDate : aDate - bDate // Archived: newest first, Active: nearest first
+      }
+      
+      // Active events come before archived events
+      return aArchived ? 1 : -1
+    })
+
+    return { data: sortedData, error: null }
   } catch (err: any) {
     const secureError = formatSecureError(err, 'retrieving events');
     return { data: [], error: new Error(secureError) }
@@ -643,6 +665,68 @@ async function deleteEvent(eventId: string): Promise<DatabaseResponse<null>> {
     return { data: null, error: null }
   } catch (err: any) {
     const secureError = formatSecureError(err, 'deleting event');
+    return { data: null, error: new Error(secureError) }
+  }
+}
+
+async function archiveEvent(eventId: string): Promise<DatabaseResponse<any>> {
+  try {
+    const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('Authentication required') }
+    }
+
+    const { data, error } = await supabase
+      .from('events')
+      .update({ is_archived: true })
+      .eq('id', eventId)
+      .eq('created_by', user.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Enhanced security - archive event error:', {
+        code: error.code,
+        userId: user.id,
+        message: error.message?.substring(0, 100)
+      });
+      return { data: null, error: new Error('Unable to archive event') }
+    }
+
+    return { data, error: null }
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'archiving event');
+    return { data: null, error: new Error(secureError) }
+  }
+}
+
+async function unarchiveEvent(eventId: string): Promise<DatabaseResponse<any>> {
+  try {
+    const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('Authentication required') }
+    }
+
+    const { data, error } = await supabase
+      .from('events')
+      .update({ is_archived: false })
+      .eq('id', eventId)
+      .eq('created_by', user.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Enhanced security - unarchive event error:', {
+        code: error.code,
+        userId: user.id,
+        message: error.message?.substring(0, 100)
+      });
+      return { data: null, error: new Error('Unable to unarchive event') }
+    }
+
+    return { data, error: null }
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'unarchiving event');
     return { data: null, error: new Error(secureError) }
   }
 }
@@ -891,6 +975,8 @@ export const dbHelpers = {
   createEvent,
   updateEvent,
   deleteEvent,
+  archiveEvent,
+  unarchiveEvent,
   getUserGoals,
   createGoal,
   deleteGoal,
