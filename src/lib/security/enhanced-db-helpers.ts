@@ -674,7 +674,40 @@ async function getUserGoals(): Promise<DatabaseArrayResponse<any>> {
       return { data: [], error: new Error('Unable to retrieve goals') }
     }
 
-    return { data: data || [], error: null }
+    // Calculate workouts_completed and hours_completed for each goal
+    const goalsWithProgress = await Promise.all(
+      (data || []).map(async (goal: any) => {
+        // Get workouts for this goal's date range
+        const { data: workouts, error: workoutsError } = await supabase
+          .from('workouts')
+          .select('duration')
+          .eq('user_id', user.id)
+          .gte('date', goal.created_at.split('T')[0]) // From goal creation date
+          .lte('date', goal.events.event_date) // Until event date
+
+        if (workoutsError) {
+          console.error('Error fetching workouts for goal:', workoutsError)
+        }
+
+        const workoutsCompleted = workouts?.length || 0
+        const totalMinutes = workouts?.reduce((sum: number, w: any) => sum + (w.duration || 0), 0) || 0
+        const hoursCompleted = Math.round((totalMinutes / 60) * 10) / 10 // Round to 1 decimal
+
+        // Calculate days remaining
+        const today = new Date()
+        const eventDate = new Date(goal.events.event_date)
+        const daysRemaining = Math.max(0, Math.ceil((eventDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)))
+
+        return {
+          ...goal,
+          workouts_completed: workoutsCompleted,
+          hours_completed: hoursCompleted,
+          days_remaining: daysRemaining
+        }
+      })
+    )
+
+    return { data: goalsWithProgress, error: null }
   } catch (err: any) {
     const secureError = formatSecureError(err, 'retrieving goals');
     return { data: [], error: new Error(secureError) }

@@ -215,8 +215,8 @@ export default function GoalsPage(): React.ReactElement {
       setShowCreateGoal(false)
       setSelectedEventForGoal('')
     } catch (error) {
-      console.error('Error creating goal:', error)
-      setError('Failed to create goal. Please try again.')
+    console.error('Error creating goal:', error)
+    setError('Failed to create training goal. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -251,7 +251,7 @@ export default function GoalsPage(): React.ReactElement {
   }, [])
 
   const handleDeleteGoal = useCallback(async (goalId: string): Promise<void> => {
-    if (window.confirm('Delete this goal?')) {
+    if (window.confirm('Delete this training goal? This will remove your workout target, but the event will remain.')) {
       try {
         const response = await dbHelpers.deleteGoal(goalId)
         if (response.error) {
@@ -265,7 +265,7 @@ export default function GoalsPage(): React.ReactElement {
         }
       } catch (error) {
         console.error('Error deleting goal:', error)
-        setError('Failed to delete goal. Please try again.')
+        setError('Failed to delete training goal. Please try again.')
       }
     }
   }, [])
@@ -391,7 +391,7 @@ export default function GoalsPage(): React.ReactElement {
                         </p>
                         {event.goal && (
                           <div className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-lg text-sm font-medium mb-2">
-                            Goal: {event.goal}
+                            Athletic Goal: {event.goal}
                           </div>
                         )}
                         <p className="text-sm text-gray-500">
@@ -510,13 +510,13 @@ export default function GoalsPage(): React.ReactElement {
               </div>
               
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Goal (Optional)</label>
+                <label className="block text-gray-700 font-medium mb-2">Athletic Goal (Optional)</label>
                 <input
                   type="text"
                   name="goal"
                   value={eventForm.goal}
                   onChange={handleEventFormChange}
-                  placeholder="e.g., Finish under 4 hours"
+                  placeholder="e.g., Finish under 4 hours, PB in 200 free"
                   className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
                 />
               </div>
