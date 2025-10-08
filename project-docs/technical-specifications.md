@@ -1,10 +1,12 @@
 # Technical Specifications & Coding Standards
 
 **Project:** Athletic Tracker MVP  
-**Last Updated:** September 22, 2025  
+**Last Updated:** October 8, 2025  
 **Purpose:** Single source of truth for all technical decisions and standards
 
 ⚠️ **CRITICAL SECURITY UPDATE:** All database implementations MUST follow security patterns in `supabase-security-implementation.md`
+
+⚠️ **TYPESCRIPT ONLY:** This project uses TypeScript exclusively. All `.js` and `.jsx` files are backups only - DO NOT USE.
 
 ## 👨‍💻 **DEVELOPMENT PERSONA: Seasoned Software Architect**
 
@@ -48,10 +50,17 @@
 
 ## 🔧 **Technology Stack & Versions**
 
-### **Frontend Framework**
-- **Next.js:** `14.0.3` (App Router, current stable)
+### **Framework Architecture**
+- **Framework:** Next.js 14 with App Router
+- **Language:** TypeScript exclusively (`.tsx` for components, `.ts` for utilities)
+- **Routing:** File-based routing in `/src/app/`
+- **JavaScript Files:** Backups only (`.js.backup`, `.jsx.backup`) - DO NOT USE
+
+### **Core Technologies**
+- **Next.js:** `14.2.32` (App Router)
 - **React:** `^18.2.0` 
 - **TypeScript:** `^5.2.2` (Strict mode enabled)
+- **Node.js:** Latest LTS (as per Vercel default)
 
 ### **Backend & Database**
 - **Supabase:** `^2.38.4` (PostgreSQL + Auth + Real-time)
@@ -118,6 +127,9 @@ const MainComponent = () => {
 - **Strict mode:** Enabled (`"strict": true`)
 - **No `any` types:** Use proper type unions instead
 - **Interface definitions:** All props and state properly typed
+- **Import types:** Use `import type` for type-only imports (e.g., `import type { Metadata } from 'next'`)
+- **File extensions:** `.tsx` for React components, `.ts` for utilities
+- **CRITICAL:** JavaScript files (`.js`, `.jsx`) are backups - do not reference or modify
 - **Import types:** Use `import type` for type-only imports
 
 ### **File Organization**
