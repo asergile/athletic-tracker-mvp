@@ -1,11 +1,33 @@
 # Athletic Tracker MVP - Project Status
 
 **Last Updated:** October 8, 2025  
-**Status:** Onboarding Segments 1 & 2 Complete - Ready for Segment 4 (Flow Control)
+**Status:** Onboarding Segments 1, 2 & 4 Complete - Ready for Segment 3 (Goal Creation)
 
 ## Current State
 
-### Latest Session (10/08/2025 - Part 2): Onboarding Segments 1 & 2 Implementation ✅
+### Latest Session (10/08/2025 - Part 3): Onboarding Segment 4 Implementation ✅
+- **Segment 4: Flow Control & Routing Logic - COMPLETE:**
+  - Created `/src/components/OnboardingCheck.tsx` - routing guard component
+  - Modified `/src/app/page.tsx` - added onboarding status check before rendering main app
+  - Modified `/src/app/layout.tsx` - integrated OnboardingCheck component
+  - Flow control working: new users automatically redirected to `/onboarding` on login
+  - Completed users blocked from accessing `/onboarding` routes (redirected to dashboard)
+  - Loading states handled properly - no page flash on login
+  - Root page checks onboarding status and shows loading spinner during verification
+  - Only renders AthleticTracker after confirming user has completed onboarding
+- **Testing Complete:**
+  - Manual testing with new user account: smooth redirect to onboarding, no flash
+  - Skip button works: marks `onboarding_completed = true` in database
+  - Completed user cannot access `/onboarding` (automatic redirect to dashboard)
+  - Back button, refresh, and edge cases all work correctly
+  - TypeScript build successful with no errors
+  - Known issue: "Create My First Goal" shows 404 (expected - Segment 3 not implemented yet)
+- **Next Steps:**
+  - **Segment 3 NEXT:** First goal creation page (40-50 min)
+  - Then Segment 5: Testing & polish (20-30 min)
+  - Onboarding feature ~75% complete
+
+### Previous Session (10/08/2025 - Part 2): Onboarding Segments 1 & 2 Implementation ✅
 - **Segment 1: Database Schema & Helpers - COMPLETE:**
   - Added `onboarding_completed` boolean column to `user_settings` table (SQL migration)
   - Created `markOnboardingComplete()` helper function in `enhanced-db-helpers.ts`
@@ -133,14 +155,16 @@
 - **Ready for Commit:** All changes tested and functional
 
 ## Next Session Priority
-**Onboarding Implementation - Segment 4:** Flow Control & Routing Logic
-- Follow `onboarding-implementation-plan.md` Segment 4 for step-by-step guide
-- Add redirect logic to root layout to check onboarding status
-- Route new users (`onboarding_completed = false`) to `/onboarding` automatically
-- Prevent completed users from accessing `/onboarding` again
-- Handle auth loading states properly
-- Estimated 20-30 minutes for Segment 4
-- This "activates" the onboarding flow for automatic redirect on login
+**Onboarding Implementation - Segment 3:** First Goal Creation Page
+- Follow `onboarding-implementation-plan.md` Segment 3 for step-by-step guide
+- Create `/src/app/onboarding/create-goal/page.tsx` - simplified goal creation for new users
+- Single-page form combining event + goal creation
+- Auto-calculate suggested workout targets based on event date and weekly frequency
+- Show calculation logic to encourage users
+- Mark onboarding complete after successful goal creation
+- Success celebration screen before redirecting to dashboard
+- Estimated 40-50 minutes for Segment 3
+- This completes the core onboarding flow (final step: Segment 5 testing & polish)
 
 ## Architecture Overview
 - **Framework:** Next.js 14.2.32 with App Router

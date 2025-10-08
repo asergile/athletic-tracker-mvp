@@ -4,7 +4,7 @@
 **Feature:** First-Time User Onboarding Experience  
 **Created:** October 8, 2025  
 **Last Updated:** October 8, 2025  
-**Status:** Segments 1 & 2 Complete - Segment 4 Next
+**Status:** Segments 1, 2 & 4 Complete - Segment 3 Next
 
 ---
 
@@ -56,8 +56,8 @@ import Link from 'next/link'                  // Next.js Link component
 ### **✅ Completion Tracking**
 - [x] Segment 1: Database Schema & Helpers (COMPLETE - Oct 8, 2025)
 - [x] Segment 2: Onboarding Screens Page (COMPLETE - Oct 8, 2025)
-- [ ] Segment 3: First Goal Creation Page
-- [ ] Segment 4: Flow Control & Routing Logic (NEXT PRIORITY)
+- [ ] Segment 3: First Goal Creation Page (NEXT PRIORITY)
+- [x] Segment 4: Flow Control & Routing Logic (COMPLETE - Oct 8, 2025)
 - [ ] Segment 5: Testing & Polish
 
 **Each segment can be completed independently across chat sessions.**
@@ -1395,22 +1395,28 @@ Part 5/5 of onboarding implementation - COMPLETE ✅
 
 **Last Updated:** October 8, 2025
 
-**Current Status:** Segments 1 & 2 Complete - Ready for Segment 4
+**Current Status:** Segments 1, 2 & 4 Complete - Ready for Segment 3
 
 **Completed:**
 - ✅ Segment 1: Database schema & helpers implemented and tested
 - ✅ Segment 2: 3-screen onboarding carousel implemented and tested
+- ✅ Segment 4: Flow control & routing logic implemented and tested
 
-**Next Action:** Implement Segment 4 (Flow Control & Routing Logic)
+**Next Action:** Implement Segment 3 (First Goal Creation Page)
 
 **Blocked By:** None - ready to continue
 
 **Notes:** 
 - Database has `onboarding_completed` column with helper function
 - Onboarding screens functional at `/onboarding` route
-- Manual testing complete, all features working
+- Flow control working: new users redirect to onboarding, completed users blocked from accessing it
+- Root page (`/src/app/page.tsx`) checks onboarding status before rendering
+- OnboardingCheck component prevents completed users from accessing `/onboarding` routes
+- Manual testing complete: no page flash on login, smooth redirects
 - User chose to implement Segment 4 before Segment 3
 - TypeScript build passes with no errors
+- Clicking "Create My First Goal" shows 404 (expected - Segment 3 not yet implemented)
+- Skip functionality works perfectly and sets flag correctly
 
 ---
 
