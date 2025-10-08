@@ -1,4 +1,4 @@
-# Current Workout Processing Prompt
+# Experimental Workout Processing Prompt
 
 **Version:** 2.0  
 **Created:** 10/08/25  
@@ -78,8 +78,8 @@ FORMATTING RULES:
 ## Performance Notes
 - Cost per workout: ~$0.0015 with Claude Haiku
 - Average processing time: 10-15 seconds
-- Validation prevents hallucination on non-workout transcripts
+- **NEW:** Validation step prevents hallucination on non-workout transcripts
 
 ## Change Log
-- v2.0 (10/08/25): Added explicit validation step to reject non-workout transcripts
-- v1.1 (archived): Previous version without validation (caused hallucinations)
+- v2.0: Added explicit validation step to reject non-workout transcripts
+- v1.1: Previous version without validation (caused hallucinations)

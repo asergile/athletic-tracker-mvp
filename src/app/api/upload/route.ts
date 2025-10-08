@@ -118,6 +118,11 @@ ${transcript}`;
 
     const analysisText = completion.content[0]?.type === 'text' ? completion.content[0].text : '';
     
+    // Check if LLM rejected the transcript as non-workout content
+    if (analysisText.trim() === 'NO_WORKOUT_DETECTED') {
+      throw new Error('TRANSCRIPT_NOT_WORKOUT');
+    }
+    
     // Store the markdown analysis directly
     const structuredWorkout = {
       markdownAnalysis: analysisText,
@@ -137,7 +142,20 @@ ${transcript}`;
   } catch (error) {
     console.error('LLM analysis failed:', error);
     
-    // Fallback to basic transcript storage
+    // Special handling for rejected non-workout transcripts
+    if (error instanceof Error && error.message === 'TRANSCRIPT_NOT_WORKOUT') {
+      return {
+        structuredWorkout: {
+          markdownAnalysis: `# Not a Workout\n\nThe voice note did not contain workout information.\n\n**Raw Transcript:**\n${transcript}`,
+          rawTranscript: transcript,
+          analysisType: 'rejected',
+          error: 'NO_WORKOUT_DETECTED'
+        },
+        summary: 'Not a workout (no exercise information detected)'
+      };
+    }
+    
+    // Fallback for other errors
     return {
     structuredWorkout: {
     markdownAnalysis: `# Workout Analysis Failed\n\n**Raw Transcript:**\n${transcript}\n\n**Error:** ${error instanceof Error ? error.message : 'Unknown error'}`,
