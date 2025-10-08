@@ -1,11 +1,39 @@
 # Athletic Tracker MVP - Project Status
 
 **Last Updated:** October 8, 2025  
-**Status:** Onboarding Implementation Plan Complete
+**Status:** Onboarding Segments 1 & 2 Complete - Ready for Segment 4 (Flow Control)
 
 ## Current State
 
-### Latest Session (10/08/2025): Onboarding Implementation Plan Created ✅
+### Latest Session (10/08/2025 - Part 2): Onboarding Segments 1 & 2 Implementation ✅
+- **Segment 1: Database Schema & Helpers - COMPLETE:**
+  - Added `onboarding_completed` boolean column to `user_settings` table (SQL migration)
+  - Created `markOnboardingComplete()` helper function in `enhanced-db-helpers.ts`
+  - Updated `UserSettings` TypeScript interface in `/src/types/index.ts`
+  - Exported helper function in dbHelpers object
+  - Tested: Database flag updates correctly, TypeScript build passes with no errors
+  - Existing users automatically marked as completed (already know the app)
+- **Segment 2: Onboarding Screens - COMPLETE:**
+  - Created `/src/app/onboarding/layout.tsx` - minimal layout without bottom navigation
+  - Created `/src/app/onboarding/page.tsx` - 3-screen carousel component
+  - Screen 1: Welcome with PB logo + "Goal Buddy" + tagline (Blue/Green gradient)
+  - Screen 2: "Set Your Goals" with animated sports icons rotating every 2s (Purple/Pink gradient)
+  - Screen 3: "Log & Track Workouts" with trophy emoji (Blue/Cyan gradient)
+  - Features: Progress dots, Next/Skip buttons, loading states, smooth transitions
+  - Integration: Calls `markOnboardingComplete()` on skip, navigates to `/onboarding/create-goal`
+  - Tested: All screens display correctly, navigation works, flag updates in database
+- **Testing Complete:**
+  - Manual testing at `localhost:3000/onboarding` - all screens functional
+  - Skip button marks onboarding complete and redirects to dashboard
+  - Database flag changes from `false` to `true` correctly
+  - TypeScript build successful with no errors
+  - 404 on `/onboarding/create-goal` expected (Segment 3 not yet implemented)
+- **Next Steps:**
+  - **Segment 4 NEXT:** Flow control & routing logic (20-30 min) - User requested this before Segment 3
+  - Then Segment 3: First goal creation page (40-50 min)
+  - Then Segment 5: Testing & polish (20-30 min)
+
+### Previous Session (10/08/2025 - Part 1): Onboarding Implementation Plan Created ✅
 - **Comprehensive Implementation Plan:**
   - Created `onboarding-implementation-plan.md` - complete 5-segment implementation guide
   - Breaks onboarding feature into manageable chunks across sessions (~2.5-3 hours total)
@@ -105,12 +133,14 @@
 - **Ready for Commit:** All changes tested and functional
 
 ## Next Session Priority
-**Onboarding Implementation - Segment 1:** Database schema and helper functions
-- Follow `onboarding-implementation-plan.md` for step-by-step guide
-- Start with Segment 1: Add `onboarding_completed` field to database
-- Create `markOnboardingComplete()` helper function
-- Estimated 15-20 minutes for Segment 1
-- Foundation for complete first-time user onboarding experience
+**Onboarding Implementation - Segment 4:** Flow Control & Routing Logic
+- Follow `onboarding-implementation-plan.md` Segment 4 for step-by-step guide
+- Add redirect logic to root layout to check onboarding status
+- Route new users (`onboarding_completed = false`) to `/onboarding` automatically
+- Prevent completed users from accessing `/onboarding` again
+- Handle auth loading states properly
+- Estimated 20-30 minutes for Segment 4
+- This "activates" the onboarding flow for automatic redirect on login
 
 ## Architecture Overview
 - **Framework:** Next.js 14.2.32 with App Router

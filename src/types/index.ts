@@ -143,6 +143,7 @@ export interface UserSettings {
   distance_unit_swimming: string
   weekly_goal_minutes: number
   weekly_workout_frequency: number
+  onboarding_completed?: boolean
   created_at?: string
   updated_at?: string
 }

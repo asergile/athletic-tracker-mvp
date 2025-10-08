@@ -3,7 +3,8 @@
 **Project:** Athletic Tracker MVP (Goal Buddy)  
 **Feature:** First-Time User Onboarding Experience  
 **Created:** October 8, 2025  
-**Status:** Not Started
+**Last Updated:** October 8, 2025  
+**Status:** Segments 1 & 2 Complete - Segment 4 Next
 
 ---
 
@@ -53,10 +54,10 @@ import Link from 'next/link'                  // Next.js Link component
 ## 📋 **Work Segments (Phases)**
 
 ### **✅ Completion Tracking**
-- [ ] Segment 1: Database Schema & Helpers (PREREQUISITE)
-- [ ] Segment 2: Onboarding Screens Page
+- [x] Segment 1: Database Schema & Helpers (COMPLETE - Oct 8, 2025)
+- [x] Segment 2: Onboarding Screens Page (COMPLETE - Oct 8, 2025)
 - [ ] Segment 3: First Goal Creation Page
-- [ ] Segment 4: Flow Control & Routing Logic
+- [ ] Segment 4: Flow Control & Routing Logic (NEXT PRIORITY)
 - [ ] Segment 5: Testing & Polish
 
 **Each segment can be completed independently across chat sessions.**
@@ -1394,17 +1395,22 @@ Part 5/5 of onboarding implementation - COMPLETE ✅
 
 **Last Updated:** October 8, 2025
 
-**Current Status:** Planning Complete - Ready for Implementation
+**Current Status:** Segments 1 & 2 Complete - Ready for Segment 4
 
-**Next Action:** Begin Segment 1 (Database Schema & Helpers)
+**Completed:**
+- ✅ Segment 1: Database schema & helpers implemented and tested
+- ✅ Segment 2: 3-screen onboarding carousel implemented and tested
 
-**Blocked By:** None - ready to start
+**Next Action:** Implement Segment 4 (Flow Control & Routing Logic)
+
+**Blocked By:** None - ready to continue
 
 **Notes:** 
-- All design specs finalized
-- Database schema planned
-- Component structure defined
-- Ready for implementation
+- Database has `onboarding_completed` column with helper function
+- Onboarding screens functional at `/onboarding` route
+- Manual testing complete, all features working
+- User chose to implement Segment 4 before Segment 3
+- TypeScript build passes with no errors
 
 ---
 

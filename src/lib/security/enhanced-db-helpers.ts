@@ -484,6 +484,40 @@ async function updateWeeklyFrequency(): Promise<DatabaseResponse<any>> {
   return { data: null, error: new Error('Not implemented yet') }
 }
 
+/**
+ * Mark user's onboarding as completed
+ * Called after user completes onboarding flow or clicks skip
+ */
+async function markOnboardingComplete(): Promise<DatabaseResponse<boolean>> {
+  try {
+    const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('Authentication required') }
+    }
+
+    const { data, error } = await supabase
+      .from('user_settings')
+      .update({ onboarding_completed: true })
+      .eq('user_id', user.id)
+      .select('onboarding_completed')
+      .single()
+
+    if (error) {
+      console.error('Enhanced security - mark onboarding complete error:', {
+        code: error.code,
+        userId: user.id,
+        message: error.message?.substring(0, 100)
+      });
+      return { data: null, error: new Error('Unable to mark onboarding complete') }
+    }
+
+    return { data: data?.onboarding_completed ?? true, error: null }
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'marking onboarding complete');
+    return { data: null, error: new Error(secureError) }
+  }
+}
+
 // ===== EVENTS FUNCTIONS =====
 
 async function getUserEvents(): Promise<DatabaseArrayResponse<any>> {
@@ -818,6 +852,7 @@ export const dbHelpers = {
   getUserSettings,
   updateUserSettings,
   updateWeeklyFrequency,
+  markOnboardingComplete,
   // Phase 3: Events & Goals
   getUserEvents,
   createEvent,
