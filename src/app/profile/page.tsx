@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Clock, Target, Activity, User, LogOut } from 'lucide-react'
+import { Plus, Clock, Target, Activity, User, LogOut, Route } from 'lucide-react'
 import { useAuth } from '@/lib/AuthContext'
 import AuthScreen from '@/components/AuthScreen'
 import LoadingScreen from '@/components/LoadingScreen'
@@ -371,7 +371,7 @@ export default function ProfilePage(): React.ReactElement {
         {/* Distance Unit Preferences */}
         <div className="bg-white rounded-xl p-6 shadow-lg">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
-            <Activity className="w-5 h-5 text-purple-600" />
+            <Route className="w-5 h-5 text-purple-600" />
             <span>Distance Units</span>
           </h3>
           <div className="space-y-4">

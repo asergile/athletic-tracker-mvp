@@ -16,12 +16,67 @@
 
 ### Previous Session (10/08/2025 - Part 2): Onboarding Segments 1 & 2 Implementation ✅# Athletic Tracker MVP - Project Status
 
-**Last Updated:** October 8, 2025  
-**Status:** Onboarding Feature COMPLETE - All 4 Core Segments Implemented and Tested (Segment 5 polish optional)
+**Last Updated:** October 9, 2025  
+**Status:** Goals & Events Page Enhanced - Archive functionality, progress calculations, and terminology improvements complete
 
 ## Current State
 
-### Latest Session (10/08/2025 - Part 4): Onboarding Segment 3 Implementation & Testing ✅
+### Latest Session (10/09/2025): Goals Page Archive & Progress Improvements ✅
+- **Progress Calculation Fix - COMPLETE:**
+  - Fixed critical bug: Training goals showed "NaN%" and "h" instead of actual progress
+  - Root cause: `athlete_goals` table only stores `target_workouts`, not calculated progress
+  - Enhanced `getUserGoals()` in `enhanced-db-helpers.ts` to calculate metrics on-the-fly:
+    - Queries workouts table for completions between goal creation and event date
+    - Calculates `workouts_completed` (count of matching workouts)
+    - Calculates `hours_completed` (sum of durations ÷ 60, rounded to 1 decimal)
+    - Calculates `days_remaining` (time until event date)
+  - Result: Progress bars show correct percentages, hours display properly (e.g., "5.2h")
+- **Terminology Improvements - COMPLETE:**
+  - Established clear distinctions:
+    - **Athletic Goal** = Performance target (stored in `events.goal`)
+    - **Training Goal** = Workout count target (stored in `athlete_goals.target_workouts`)
+    - **Event** = The competition/race (stored in `events` table)
+  - Updated all labels, messages, and confirmations to use correct terminology
+  - Delete confirmation now specifies: "Delete this training goal? This will remove your workout target, but the event will remain."
+  - Form labels changed to "Athletic Goal (Optional)" for clarity
+  - Added swimming-specific examples to placeholders
+- **Archive Functionality - COMPLETE:**
+  - Added `is_archived` boolean column to events table (requires SQL migration)
+  - Implemented `archiveEvent()` and `unarchiveEvent()` functions
+  - Smart sorting: Future events (nearest first) → Past events → Archived events (bottom)
+  - Visual distinction: Archived events show with 75% opacity, gray border, "ARCHIVED" badge
+  - "Show Archived" / "Hide Archived" toggle button in UI
+  - Edit button hidden for archived events (can't edit while archived)
+  - Archive button color: Amber (to archive) → Blue (to unarchive)
+  - Delete still available with strong permanence warning
+- **Past Event Display Fix - COMPLETE:**
+  - Fixed sorting: Past events now appear after future events (before were at top)
+  - Fixed time display: Past events show "X days ago" or "Yesterday" (not "Today!")
+  - Future events show "X days away", today shows "Today!"
+  - Accurate date comparison with timezone handling
+- **Database Migration Required:**
+  ```sql
+  ALTER TABLE events ADD COLUMN IF NOT EXISTS is_archived BOOLEAN DEFAULT FALSE;
+  CREATE INDEX IF NOT EXISTS idx_events_archived ON events(is_archived, event_date);
+  ```
+- **Files Modified:**
+  - `/src/lib/security/enhanced-db-helpers.ts` - Progress calculations, archive functions, smart sorting
+  - `/src/app/goals/page.tsx` - Archive UI, terminology updates, time display fix
+  - `/src/app/onboarding/create-goal/page.tsx` - Terminology updates
+- **Testing Complete:**
+  - Progress calculations accurate (percentages, hours, workout counts all correct)
+  - Archive/unarchive functionality working
+  - Show/Hide archived toggle working
+  - Event sorting correct (future → past → archived)
+  - Time display accurate for all event types
+  - Visual distinction clear on archived events
+  - TypeScript build successful with no errors
+- **Production Ready:**
+  - ✅ All features tested and working
+  - ✅ Ready to commit and deploy (after SQL migration)
+  - 🎯 Next: Consider Edit Training Goal feature or Enhanced Progress Indicators
+
+### Previous Session (10/08/2025 - Part 4): Onboarding Segment 3 Implementation & Testing ✅
 - **Segment 3: First Goal Creation Page - COMPLETE & TESTED:**
   - Created `/src/app/onboarding/create-goal/page.tsx` - complete goal creation form
   - Smart auto-calculation of workout targets based on event date and weekly frequency

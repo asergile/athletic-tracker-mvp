@@ -7,8 +7,9 @@ import { supabase } from '../../../lib/supabase'
 import { dbHelpers } from '../../../lib/security/enhanced-db-helpers'
 import { getUserWorkouts, Workout } from '../../../lib/workouts'
 import VoiceRecorder from '../../../components/VoiceRecorder'
-import { Calendar, Clock, Target, Edit2, Plus, BarChart3, Flag, User, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, Clock, Route, Edit2, Plus, BarChart3, Flag, User, ChevronLeft, ChevronRight } from 'lucide-react'
 import StandardNavigation from '../../../components/StandardNavigation'
+import FeedbackButton from '@/components/FeedbackButton'
 
 
 
@@ -362,7 +363,7 @@ export default function VoiceAnalysisPage() {
         {/* Top row - Title and StandardNavigation */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Log Book</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Logbook</h1>
             <p className="text-purple-200 text-sm sm:text-base">Detailed AI workout breakdown</p>
           </div>
           <StandardNavigation currentPage="" />
@@ -413,7 +414,7 @@ export default function VoiceAnalysisPage() {
                   </div>
                   {workout.distance && (
                     <div className="flex items-center space-x-1">
-                      <Target className="w-4 h-4" />
+                      <Route className="w-4 h-4" />
                       <span>{workout.distance} {workout.distance_unit}</span>
                     </div>
                   )}
@@ -590,6 +591,8 @@ export default function VoiceAnalysisPage() {
           </button>
         </div>
       </div>
+      
+      <FeedbackButton />
     </div>
   )
 }

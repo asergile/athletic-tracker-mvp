@@ -17,10 +17,6 @@ export default function OnboardingPage(): React.ReactElement {
     }
   }
 
-  const skipToEnd = () => {
-    setCurrentScreen(3)
-  }
-
   // Handle "Create My First Goal" button
   const handleCreateGoal = () => {
     router.push('/onboarding/create-goal')
@@ -47,17 +43,14 @@ export default function OnboardingPage(): React.ReactElement {
         {/* Screen 1: Welcome */}
         {currentScreen === 1 && (
           <Screen1 
-            onNext={nextScreen} 
-            onSkip={handleSkip}
-            isLoading={isLoading}
+            onNext={nextScreen}
           />
         )}
 
         {/* Screen 2: Set Goals */}
         {currentScreen === 2 && (
           <Screen2 
-            onNext={nextScreen} 
-            onSkip={skipToEnd}
+            onNext={nextScreen}
           />
         )}
 
@@ -75,10 +68,8 @@ export default function OnboardingPage(): React.ReactElement {
 }
 
 // Individual Screen Components
-const Screen1 = ({ onNext, onSkip, isLoading }: {
+const Screen1 = ({ onNext }: {
   onNext: () => void
-  onSkip: () => void
-  isLoading: boolean
 }) => (
   <div className="h-full flex flex-col justify-between p-8 bg-gradient-to-br from-blue-900 to-green-500">
     <div className="flex-1 flex flex-col justify-center items-center text-center">
@@ -93,7 +84,7 @@ const Screen1 = ({ onNext, onSkip, isLoading }: {
       </div>
       <h1 className="text-[26px] font-bold text-white mb-4">Goal Buddy</h1>
       <p className="text-white text-opacity-95 text-base leading-relaxed max-w-[300px]">
-        Welcome to your personal athletic goal setting and training tracker. Stay consistent and smash your goals.
+        Welcome to your athletic goal setting and training tracker. Watch your progress, stay consistent, smash your goals.
       </p>
     </div>
 
@@ -105,20 +96,12 @@ const Screen1 = ({ onNext, onSkip, isLoading }: {
       >
         Get Started
       </button>
-      <button
-        onClick={onSkip}
-        disabled={isLoading}
-        className="w-full py-4 rounded-xl bg-transparent border-2 border-white border-opacity-50 text-white font-semibold text-lg hover:bg-white hover:bg-opacity-10 transition-all duration-200"
-      >
-        {isLoading ? 'Loading...' : 'I Already Have An Account'}
-      </button>
     </div>
   </div>
 )
 
-const Screen2 = ({ onNext, onSkip }: {
+const Screen2 = ({ onNext }: {
   onNext: () => void
-  onSkip: () => void
 }) => {
   const [currentIcon, setCurrentIcon] = useState('🏊‍♂️')
   const sportsIcons = ['🏊‍♂️', '🏃‍♂️', '🚴‍♂️', '🎾', '⚽', '🏋️‍♂️', '🏀', '⛷️']
@@ -143,7 +126,7 @@ const Screen2 = ({ onNext, onSkip }: {
         </div>
         <h1 className="text-[28px] font-bold text-white mb-4">Set Your Goals</h1>
         <p className="text-white text-opacity-90 text-base leading-relaxed max-w-[300px]">
-          Create events and set specific goals for your competitions. Track countdown to race day and watch your progress build.
+          Create milestones and set specific goals for your competitions. Countdown to race day and watch your progress.
         </p>
       </div>
 
@@ -154,12 +137,6 @@ const Screen2 = ({ onNext, onSkip }: {
           className="w-full py-4 rounded-xl bg-white text-purple-900 font-semibold text-lg hover:shadow-lg transition-all duration-200"
         >
           Next
-        </button>
-        <button
-          onClick={onSkip}
-          className="w-full py-4 rounded-xl bg-transparent border-2 border-white border-opacity-50 text-white font-semibold text-lg hover:bg-white hover:bg-opacity-10 transition-all duration-200"
-        >
-          Skip
         </button>
       </div>
     </div>
@@ -176,9 +153,9 @@ const Screen3 = ({ onCreateGoal, onSkip, isLoading }: {
       <div className="w-[120px] h-[120px] mb-8 bg-white bg-opacity-20 border-3 border-white border-opacity-50 rounded-full flex items-center justify-center text-6xl">
         🏆
       </div>
-      <h1 className="text-[28px] font-bold text-white mb-4">Log & Track Workouts</h1>
+      <h1 className="text-[28px] font-bold text-white mb-4">Personal Logbook</h1>
       <p className="text-white text-opacity-90 text-base leading-relaxed max-w-[300px]">
-        Quickly log every workout and bank hours toward your goals. See your training add up and stay motivated until race day.
+        Quickly log your training sessions and bank hours toward your goals. See your training add up and stay motivated until the big day.
       </p>
     </div>
 
