@@ -548,20 +548,41 @@ async function getUserEvents(includeArchived: boolean = false): Promise<Database
       return { data: [], error: new Error('Unable to retrieve events') }
     }
 
-    // Sort events: active events by date ascending, archived events at the end by date descending
+    // Sort events: future events first (nearest first), then past events, then archived events
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Reset to start of day for accurate comparison
+    
     const sortedData = (data || []).sort((a: any, b: any) => {
       const aArchived = a.is_archived || false
       const bArchived = b.is_archived || false
+      const aDate = new Date(a.event_date)
+      const bDate = new Date(b.event_date)
+      aDate.setHours(0, 0, 0, 0)
+      bDate.setHours(0, 0, 0, 0)
       
-      // If both have same archived status, sort by date
-      if (aArchived === bArchived) {
-        const aDate = new Date(a.event_date).getTime()
-        const bDate = new Date(b.event_date).getTime()
-        return aArchived ? bDate - aDate : aDate - bDate // Archived: newest first, Active: nearest first
+      const aIsPast = aDate < today
+      const bIsPast = bDate < today
+      
+      // Archived events always go to the bottom
+      if (aArchived !== bArchived) {
+        return aArchived ? 1 : -1
       }
       
-      // Active events come before archived events
-      return aArchived ? 1 : -1
+      // If both archived, sort by date descending (most recent first)
+      if (aArchived && bArchived) {
+        return bDate.getTime() - aDate.getTime()
+      }
+      
+      // For active events: future events before past events
+      if (aIsPast !== bIsPast) {
+        return aIsPast ? 1 : -1
+      }
+      
+      // If both future: sort ascending (nearest first)
+      // If both past: sort descending (most recent past event first)
+      return aIsPast 
+        ? bDate.getTime() - aDate.getTime() // Past events: most recent first
+        : aDate.getTime() - bDate.getTime() // Future events: nearest first
     })
 
     return { data: sortedData, error: null }

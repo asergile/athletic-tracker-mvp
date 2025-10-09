@@ -412,9 +412,37 @@ export default function GoalsPage(): React.ReactElement {
             <div className="space-y-4">
               {events.map((event: AppEvent) => {
                 const eventGoal = goals.find(g => g.event_id === event.id)
-                const daysRemaining = Math.max(0, Math.ceil((new Date(event.event_date).getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)))
+                
+                // Calculate days difference (can be negative for past events)
+                const today = new Date()
+                today.setHours(0, 0, 0, 0)
+                const eventDate = new Date(event.event_date)
+                eventDate.setHours(0, 0, 0, 0)
+                const daysDiff = Math.ceil((eventDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000))
+                
+                const isPastEvent = daysDiff < 0
+                const isToday = daysDiff === 0
+                const daysRemaining = Math.abs(daysDiff)
+                
+                // Generate appropriate time text
+                let timeText = ''
+                if (isToday) {
+                  timeText = 'Today!'
+                } else if (isPastEvent) {
+                  if (daysRemaining === 1) {
+                    timeText = 'Yesterday'
+                  } else {
+                    timeText = `${daysRemaining} days ago`
+                  }
+                } else {
+                  if (daysRemaining === 1) {
+                    timeText = '1 day away'
+                  } else {
+                    timeText = `${daysRemaining} days away`
+                  }
+                }
+                
                 const isArchived = (event as any).is_archived || false
-                const isPastEvent = daysRemaining === 0 || new Date(event.event_date) < new Date()
                 
                 return (
                   <div key={event.id} className={`bg-white rounded-xl p-6 shadow-lg ${isArchived ? 'opacity-75 border-2 border-gray-300' : ''}`}>
@@ -435,7 +463,7 @@ export default function GoalsPage(): React.ReactElement {
                           </div>
                         )}
                         <p className="text-sm text-gray-500">
-                          {daysRemaining === 0 ? 'Today!' : daysRemaining === 1 ? '1 day left' : `${daysRemaining} days left`}
+                          {timeText}
                         </p>
                       </div>
                       <div className="flex space-x-2 ml-4">
