@@ -31,15 +31,42 @@ const formatTime = (minutes: number) => {
   return `${hours}h ${remainingMinutes}m`
 }
 
+// Format date string without timezone conversion
+const formatDateString = (dateStr: string) => {
+  const [year, month, day] = dateStr.split('-')
+  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+  return date.toLocaleDateString()
+}
+
+// Calendar helper functions
+const getDaysInMonth = (date: Date) => {
+  const year = date.getFullYear()
+  const month = date.getMonth()
+  return new Date(year, month + 1, 0).getDate()
+}
+
+const getFirstDayOfMonth = (date: Date) => {
+  const year = date.getFullYear()
+  const month = date.getMonth()
+  return new Date(year, month, 1).getDay()
+}
+
+const isSameDay = (date1: Date, date2: Date) => {
+  return date1.getFullYear() === date2.getFullYear() &&
+         date1.getMonth() === date2.getMonth() &&
+         date1.getDate() === date2.getDate()
+}
+
 export default function VoiceAnalysisPage() {
   const params = useParams()
   const router = useRouter()
   const { user, loading } = useAuth()
   const workoutId = params.workoutId as string
 
-  // State management - copying from voice-test
+  // State management
   const [workout, setWorkout] = useState<Workout | null>(null)
   const [voiceWorkouts, setVoiceWorkouts] = useState<Workout[]>([])
+  const [allWorkouts, setAllWorkouts] = useState<Workout[]>([])
   const [currentWorkoutIndex, setCurrentWorkoutIndex] = useState<number>(-1)
   const [transcriptionResult, setTranscriptionResult] = useState<string>('')
   const [workoutAnalysis, setWorkoutAnalysis] = useState<any>(null)
@@ -50,6 +77,10 @@ export default function VoiceAnalysisPage() {
   const [editedTranscription, setEditedTranscription] = useState<string>('')
   const [isEditingAnalysis, setIsEditingAnalysis] = useState(false)
   const [editedAnalysis, setEditedAnalysis] = useState<string>('')
+  
+  // Calendar state
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [calendarMonth, setCalendarMonth] = useState(new Date())
 
   // Load workout data on mount
   useEffect(() => {
@@ -63,7 +94,10 @@ export default function VoiceAnalysisPage() {
 
     try {
       // Get all user workouts
-      const userWorkouts = await getUserWorkouts(user.id, 100)
+      const userWorkouts = await getUserWorkouts(user.id, 500)
+      
+      // Store all workouts for calendar
+      setAllWorkouts(userWorkouts || [])
       
       // Filter to only workouts with voice data
       const workoutsWithVoice = userWorkouts?.filter(w => 
@@ -119,6 +153,56 @@ export default function VoiceAnalysisPage() {
   const canGoToPrevious = currentWorkoutIndex < voiceWorkouts.length - 1
   const canGoToNext = currentWorkoutIndex > 0
 
+  // Calendar functions
+  const goToPreviousMonth = () => {
+    const newMonth = new Date(calendarMonth)
+    newMonth.setMonth(newMonth.getMonth() - 1)
+    setCalendarMonth(newMonth)
+  }
+
+  const goToNextMonth = () => {
+    const newMonth = new Date(calendarMonth)
+    newMonth.setMonth(newMonth.getMonth() + 1)
+    // Don't go past current month
+    const today = new Date()
+    if (newMonth <= today) {
+      setCalendarMonth(newMonth)
+    }
+  }
+
+  const canGoToNextMonth = () => {
+    const nextMonth = new Date(calendarMonth)
+    nextMonth.setMonth(nextMonth.getMonth() + 1)
+    const today = new Date()
+    return nextMonth <= today
+  }
+
+  const handleDateClick = (date: Date) => {
+    // Normalize to midnight to avoid timezone issues
+    date.setHours(0, 0, 0, 0)
+    // Format date in local timezone as YYYY-MM-DD to match database format
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
+    
+    // Find ANY workout on this date (with or without voice data)
+    const workoutsOnDate = allWorkouts.filter(w => w.date === dateStr)
+    if (workoutsOnDate.length > 0) {
+      router.push(`/voice-analysis/${workoutsOnDate[0].id}`)
+      setShowCalendar(false)
+    }
+  }
+
+  // Get dates with workouts or voice data
+  const getDatesWithData = () => {
+    const dates = new Set<string>()
+    allWorkouts.forEach(w => {
+      dates.add(w.date)
+    })
+    return dates
+  }
+
   // Mobile swipe gesture support
   const [touchStartX, setTouchStartX] = useState<number>(0)
   const [touchEndX, setTouchEndX] = useState<number>(0)
@@ -146,10 +230,10 @@ export default function VoiceAnalysisPage() {
     }
   }
 
-  // Voice upload handler - copying from voice-test
+  // Voice upload handler
   const handleVoiceUpload = async (audioBlob: Blob) => {
     if (!workoutId || !user) {
-      setError('No workout found for voice note')
+      setError('No workout found for journal entry')
       return
     }
 
@@ -158,18 +242,18 @@ export default function VoiceAnalysisPage() {
     setTranscriptionResult('')
 
     try {
-      // Get auth token - copying from voice-test approach
+      // Get auth token
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
         throw new Error('No valid session found')
       }
 
-      // Create form data - copying from voice-test approach
+      // Create form data
       const formData = new FormData()
-      formData.append('audio', audioBlob, 'workout-voice-note.webm')
+      formData.append('audio', audioBlob, 'workout-journal-entry.webm')
       formData.append('workoutId', workoutId)
 
-      // Upload and transcribe - copying from voice-test approach
+      // Upload and transcribe
       const response = await fetch('/api/upload', {
         method: 'POST',
         headers: {
@@ -198,7 +282,7 @@ export default function VoiceAnalysisPage() {
     }
   }
 
-  // Edit transcription handler - copying from voice-test
+  // Edit transcription handler
   const handleEditTranscription = () => {
     setEditedTranscription(transcriptionResult)
     setIsEditing(true)
@@ -261,7 +345,7 @@ export default function VoiceAnalysisPage() {
     }
   }
 
-  // Edit analysis handler - copying from voice-test
+  // Edit analysis handler
   const handleEditAnalysis = () => {
     if (workoutAnalysis?.markdownAnalysis) {
       setEditedAnalysis(workoutAnalysis.markdownAnalysis)
@@ -350,6 +434,126 @@ export default function VoiceAnalysisPage() {
   }
 
   const ratingConfig = workout ? ratingLabels[workout.rating] : null
+  const datesWithData = getDatesWithData()
+  
+  // Calendar rendering
+  const renderCalendar = () => {
+    const daysInMonth = getDaysInMonth(calendarMonth)
+    const firstDayOfMonth = getFirstDayOfMonth(calendarMonth)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Normalize to midnight
+    
+    const monthName = calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    
+    const days = []
+    const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+    
+    // Add empty cells for days before month starts
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(<div key={`empty-${i}`} className="h-8 sm:h-10" />)
+    }
+    
+    // Add days of month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day)
+      date.setHours(0, 0, 0, 0) // Normalize to midnight
+      // Format date in local timezone
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const dateDay = String(date.getDate()).padStart(2, '0')
+      const dateStr = `${year}-${month}-${dateDay}`
+      
+      const hasData = datesWithData.has(dateStr)
+      const hasVoiceData = voiceWorkouts.some(w => w.date === dateStr)
+      const hasWorkoutOnly = hasData && !hasVoiceData
+      const isToday = isSameDay(date, today)
+      const isCurrentWorkout = workout && workout.date === dateStr
+      
+      days.push(
+        <button
+          key={day}
+          onClick={() => handleDateClick(date)}
+          disabled={!hasData}
+          className={`h-8 sm:h-10 flex items-center justify-center rounded-lg transition-all relative text-sm sm:text-base ${
+            isToday ? 'bg-blue-500 text-white font-bold' : ''
+          } ${
+            isCurrentWorkout ? 'ring-2 ring-white ring-offset-2' : ''
+          } ${
+            hasVoiceData ? 'hover:bg-white hover:bg-opacity-20 cursor-pointer text-green-400 font-bold' : ''
+          } ${
+            hasWorkoutOnly ? 'hover:bg-white hover:bg-opacity-20 cursor-pointer text-white font-semibold' : ''
+          } ${
+            !hasData && !isToday ? 'text-gray-500 cursor-default' : ''
+          }`}
+        >
+          {day}
+        </button>
+      )
+    }
+    
+    return (
+      <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-3 sm:p-4">
+        {/* Month header with navigation and close button */}
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={goToPreviousMonth}
+            className="p-2 hover:bg-white hover:bg-opacity-10 rounded-lg transition-all"
+          >
+            <ChevronLeft className="w-5 h-5 text-white" />
+          </button>
+          <h3 className="text-lg font-bold text-white">{monthName}</h3>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={goToNextMonth}
+              disabled={!canGoToNextMonth()}
+              className={`p-2 rounded-lg transition-all ${
+                canGoToNextMonth() ? 'hover:bg-white hover:bg-opacity-10' : 'cursor-not-allowed opacity-50'
+              }`}
+            >
+              <ChevronRight className="w-5 h-5 text-white" />
+            </button>
+            <button
+              onClick={() => setShowCalendar(false)}
+              className="p-2 hover:bg-white hover:bg-opacity-10 rounded-lg transition-all ml-2"
+              title="Close calendar"
+            >
+              <span className="text-white text-2xl leading-none">×</span>
+            </button>
+          </div>
+        </div>
+        
+        {/* Day names */}
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
+          {dayNames.map(name => (
+            <div key={name} className="text-center text-purple-200 text-xs sm:text-sm font-medium">
+              {name}
+            </div>
+          ))}
+        </div>
+        
+        {/* Calendar grid */}
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 relative">
+          {days}
+        </div>
+        
+        {/* Legend */}
+        <div className="mt-3 pt-3 border-t border-white border-opacity-20 flex items-center justify-center space-x-3 text-[10px] sm:text-xs text-purple-200">
+          <div className="flex items-center space-x-1">
+            <div className="w-3 h-3 bg-green-400 rounded flex items-center justify-center text-[8px] font-bold text-gray-900">1</div>
+            <span>Journal</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <div className="w-3 h-3 bg-white rounded flex items-center justify-center text-[8px] font-bold text-gray-900">1</div>
+            <span>Workout</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <div className="w-3 h-3 bg-blue-500 rounded flex items-center justify-center text-[8px] font-bold text-white">1</div>
+            <span>Today</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div 
@@ -363,39 +567,66 @@ export default function VoiceAnalysisPage() {
         {/* Top row - Title and StandardNavigation */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Logbook</h1>
-            <p className="text-purple-200 text-sm sm:text-base">Detailed AI workout breakdown</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Performance Journal</h1>
+            <p className="text-purple-200 text-sm sm:text-base">Detailed voice journal</p>
           </div>
           <StandardNavigation currentPage="" />
         </div>
         
-        {/* Centered voice navigation arrows */}
-        {(canGoToPrevious || canGoToNext) && (
-          <div className="flex items-center justify-center space-x-4 mb-6">
-            {canGoToPrevious ? (
-              <button
-                onClick={goToPrevious}
-                className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-                title="Previous voice analysis"
-              >
-                <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-              </button>
-            ) : (
-              <div className="w-12 h-12 sm:w-16 sm:h-16"></div>
-            )}
-            {canGoToNext ? (
-              <button
-                onClick={goToNext}
-                className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
-                title="Next voice analysis"
-              >
-                <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-              </button>
-            ) : (
-              <div className="w-12 h-12 sm:w-16 sm:h-16"></div>
-            )}
+        {/* Centered navigation: Back, Calendar, Forward */}
+        <div className="flex items-center justify-center space-x-4 mb-6">
+          {/* Previous button */}
+          {canGoToPrevious ? (
+            <button
+              onClick={goToPrevious}
+              className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+              title="Previous voice analysis"
+            >
+              <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+            </button>
+          ) : (
+            <div className="w-12 h-12 sm:w-16 sm:h-16"></div>
+          )}
+          
+          {/* Calendar button */}
+          <button
+          onClick={() => setShowCalendar(!showCalendar)}
+          className={`bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 hover:bg-opacity-20 transition-all duration-200 touch-manipulation ${
+          showCalendar ? 'ring-2 ring-white ring-opacity-60' : ''
+          }`}
+          title="Show calendar"
+          >
+          <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+          </button>
+          
+          {/* Next button */}
+          {canGoToNext ? (
+          <button
+          onClick={goToNext}
+          className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 hover:bg-opacity-20 transition-all duration-200 touch-manipulation"
+          title="Next voice analysis"
+          >
+          <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+          </button>
+          ) : (
+          <div className="w-12 h-12 sm:w-16 sm:h-16"></div>
+          )}
           </div>
-        )}
+          
+          {/* Calendar Modal - Fixed overlay */}
+          {showCalendar && (
+          <>
+          {/* Backdrop */}
+            <div 
+                className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setShowCalendar(false)}
+          />
+          {/* Calendar */}
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md px-4">
+            {renderCalendar()}
+          </div>
+        </>
+      )}
 
         {/* Workout Details Card */}
         {workout && (
@@ -406,7 +637,7 @@ export default function VoiceAnalysisPage() {
                 <div className="flex items-center space-x-4 text-gray-600 mt-2">
                   <div className="flex items-center space-x-1">
                     <Calendar className="w-4 h-4" />
-                    <span>{new Date(workout.date).toLocaleDateString()}</span>
+                    <span>{formatDateString(workout.date)}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Clock className="w-4 h-4" />
@@ -442,7 +673,7 @@ export default function VoiceAnalysisPage() {
         {/* Voice Recording Section - only show if no transcription exists */}
         {!transcriptionResult && (
           <div className="bg-white rounded-2xl p-6 shadow-xl mb-8">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Add Voice Note</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Add Journal Entry</h3>
             
             {isUploading && (
               <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
