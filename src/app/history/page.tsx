@@ -290,7 +290,7 @@ export default function HistoryPage(): React.ReactElement {
                   <button
                     onClick={() => handleVoiceAnalysis(workout.id)}
                     className="w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center justify-center transition-all relative"
-                    title={hasVoiceData ? "View voice analysis" : "Add voice note"}
+                    title={hasVoiceData ? "View journal entry" : "Add journal entry"}
                   >
                     {hasVoiceData ? (
                       <FileText className="w-5 h-5 text-gray-600" />

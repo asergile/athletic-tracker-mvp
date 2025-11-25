@@ -1,6 +1,6 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Target, BarChart3, Calendar, User } from 'lucide-react'
+import { Plus, Target, BarChart3, NotebookPen, User } from 'lucide-react'
 
 interface StandardNavigationProps {
   currentPage?: string
@@ -17,7 +17,7 @@ interface NavItem {
 /**
  * Standardized 4-Icon Navigation Component
  * 
- * Fixed order: Plus → Target → Calendar → User
+ * Fixed order: Plus → Target → Journal → User
  * Shows all 4 icons with current page highlighted (lighter opacity)
  * 
  * @param currentPage - 'dashboard', 'goals', 'history', 'profile'
@@ -44,8 +44,8 @@ const StandardNavigation: React.FC<StandardNavigationProps> = ({
     },
     {
       id: 'history',
-      icon: Calendar,
-      title: 'History', 
+      icon: NotebookPen,
+      title: 'Journal', 
       action: () => onNavigate ? onNavigate('history') : router.push('/history')
     },
     {
