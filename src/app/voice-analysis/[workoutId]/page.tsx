@@ -208,7 +208,16 @@ export default function VoiceAnalysisPage() {
   const [touchEndX, setTouchEndX] = useState<number>(0)
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement
+    if (target.closest('textarea, input, [contenteditable="true"]')) {
+      // Ignore touches inside editable fields so cursor placement / text
+      // selection isn't misread as a swipe that navigates to another workout.
+      setTouchStartX(0)
+      setTouchEndX(0)
+      return
+    }
     setTouchStartX(e.targetTouches[0].clientX)
+    setTouchEndX(e.targetTouches[0].clientX) // reset so a stationary tap can't inherit a stale touchEndX from a prior gesture
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
