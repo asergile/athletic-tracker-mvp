@@ -130,11 +130,13 @@ You are a swimming workout processor...
 
 **Category:** `workout-processing`  
 **Current Version:** `current.md`  
-**Model:** Claude 3 Haiku  
+**Model:** Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) — migrated 08/11/26 after Claude 3 Haiku retired  
 **Temperature:** 0.3  
 **Max Tokens:** 1500
 
 ### What It Does
+
+**Cost note:** Claude 3 Haiku's ~$0.0015/workout estimate below is stale — that was Claude 3 Haiku pricing ($0.25/$1.25 per MTok). Haiku 4.5 runs $1/$5 per MTok (4x higher). A typical ~1,500-token analysis call now costs roughly $0.005–0.006/workout. Still trivial at current volume, but the old figure below is out of date.
 
 Converts raw voice transcripts like:
 
@@ -268,7 +270,7 @@ ${transcript}`;
 **Cause:** Multiple projects with similar structure  
 **Fix:** Always verify file path:
 ```bash
-/Users/alain/Projects/athletic-tracker-mvp/prompts/workout-processing/current.md
+prompts/workout-processing/current.md
 ```
 
 ### Prompt extraction failing

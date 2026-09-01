@@ -54,6 +54,9 @@ next-env.d.ts
 # Private chat summaries (do not push to GitHub)
 /project-docs/chat-summaries/
 
+# Internal infra notes - project IDs, hosting details, table-level metrics (do not push to GitHub)
+/project-docs/internal/
+
 # Test and backup files (prevent build errors)
 test-input-backup/
 *.backup
