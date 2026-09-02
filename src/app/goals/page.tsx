@@ -231,6 +231,36 @@ export default function GoalsPage(): React.ReactElement {
     }
   }, [goalForm])
 
+  const handleUpdateGoal = useCallback(async (): Promise<void> => {
+    if (!editingGoal || goalForm.targetWorkouts <= 0) {
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await dbHelpers.updateGoal(editingGoal.id, goalForm.targetWorkouts)
+      if (response.error) {
+        throw new Error(response.error.message)
+      }
+
+      // Reload goals
+      const goalsResponse = await dbHelpers.getUserGoals()
+      if (goalsResponse.data) {
+        setGoals(goalsResponse.data)
+      }
+
+      setGoalForm({ eventId: '', targetWorkouts: 0 })
+      setShowCreateGoal(false)
+      setSelectedEventForGoal('')
+      setEditingGoal(null)
+    } catch (error) {
+      console.error('Error updating goal:', error)
+      setError('Failed to update training goal. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [editingGoal, goalForm])
+
   const handleArchiveEvent = useCallback(async (eventId: string, isArchived: boolean): Promise<void> => {
     try {
       const response = isArchived 
@@ -315,10 +345,18 @@ export default function GoalsPage(): React.ReactElement {
     setShowCreateGoal(true)
   }, [])
 
+  const handleEditGoal = useCallback((goal: Goal): void => {
+    setEditingGoal(goal)
+    setSelectedEventForGoal(goal.event_id)
+    setGoalForm({ eventId: goal.event_id, targetWorkouts: goal.target_workouts })
+    setShowCreateGoal(true)
+  }, [])
+
   const resetForms = useCallback((): void => {
     setEventForm({ name: '', eventDate: '', goal: '' })
     setGoalForm({ eventId: '', targetWorkouts: 0 })
     setEditingEvent(null)
+    setEditingGoal(null)
     setShowCreateEvent(false)
     setShowCreateGoal(false)
     setSelectedEventForGoal('')
@@ -513,14 +551,26 @@ export default function GoalsPage(): React.ReactElement {
                       <div className="border-t border-gray-200 pt-4">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-semibold text-gray-800">Your Training Goal</h4>
-                          <button
-                            onClick={() => handleDeleteGoal(eventGoal.id)}
-                            className="p-1 rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleEditGoal(eventGoal)}
+                              className="p-1 rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+                              title="Edit target workouts"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteGoal(eventGoal.id)}
+                              className="p-1 rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                              title="Delete training goal"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                         <div className="grid grid-cols-3 gap-4 text-center">
                           <div>
@@ -639,7 +689,7 @@ export default function GoalsPage(): React.ReactElement {
       {showCreateGoal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white rounded-2xl p-6 m-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Create Training Goal</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">{editingGoal ? 'Edit Training Goal' : 'Create Training Goal'}</h3>
             
             <div className="space-y-4">
               <div>
@@ -672,7 +722,7 @@ export default function GoalsPage(): React.ReactElement {
                 Cancel
               </button>
               <button
-                onClick={handleCreateGoal}
+                onClick={editingGoal ? handleUpdateGoal : handleCreateGoal}
                 disabled={!goalForm.eventId || goalForm.targetWorkouts <= 0 || isSubmitting}
                 className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
                   !goalForm.eventId || goalForm.targetWorkouts <= 0 || isSubmitting
@@ -680,7 +730,9 @@ export default function GoalsPage(): React.ReactElement {
                     : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg'
                 }`}
               >
-                {isSubmitting ? 'Creating...' : 'Create Goal'}
+                {isSubmitting
+                  ? (editingGoal ? 'Updating...' : 'Creating...')
+                  : (editingGoal ? 'Update Goal' : 'Create Goal')}
               </button>
             </div>
           </div>

@@ -854,6 +854,43 @@ async function createGoal(eventId: string, targetWorkouts: number): Promise<Data
   }
 }
 
+async function updateGoal(goalId: string, targetWorkouts: number): Promise<DatabaseResponse<any>> {
+  try {
+    const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('Authentication required') }
+    }
+
+    const validatedTargetWorkouts = sanitizeNumber(targetWorkouts, { min: 1, max: 365, defaultValue: 20 });
+
+    // Intentionally only updates target_workouts. Leaving created_at untouched matters:
+    // getUserGoals() counts a goal's completed workouts by date range starting at
+    // created_at, so touching that field here would silently drop credit for workouts
+    // already logged against this goal.
+    const { data, error } = await supabase
+      .from('athlete_goals')
+      .update({ target_workouts: validatedTargetWorkouts })
+      .eq('id', goalId)
+      .eq('user_id', user.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Enhanced security - update goal error:', {
+        code: error.code,
+        userId: user.id,
+        message: error.message?.substring(0, 100)
+      });
+      return { data: null, error: new Error('Unable to update goal') }
+    }
+
+    return { data, error: null }
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'updating goal');
+    return { data: null, error: new Error(secureError) }
+  }
+}
+
 async function deleteGoal(goalId: string): Promise<DatabaseResponse<null>> {
   try {
     const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
@@ -1000,6 +1037,7 @@ export const dbHelpers = {
   unarchiveEvent,
   getUserGoals,
   createGoal,
+  updateGoal,
   deleteGoal,
   // Phase 4: Custom Workout Types
   getUserCustomWorkoutTypes,

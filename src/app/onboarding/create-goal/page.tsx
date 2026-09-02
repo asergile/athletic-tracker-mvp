@@ -16,6 +16,7 @@ export default function CreateFirstGoalPage(): React.ReactElement {
   const [goalDescription, setGoalDescription] = useState('')
   const [targetWorkouts, setTargetWorkouts] = useState<number | ''>('')
   const [suggestedWorkouts, setSuggestedWorkouts] = useState(0)
+  const [hasEditedTarget, setHasEditedTarget] = useState(false)
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -45,12 +46,16 @@ export default function CreateFirstGoalPage(): React.ReactElement {
       const suggested = Math.ceil(weeksRemaining * weeklyFrequency)
       setSuggestedWorkouts(suggested)
       
-      // Auto-fill target if not manually set
-      if (!targetWorkouts) {
+      // Auto-fill target only if the user hasn't manually touched this field yet.
+      // (Previously this checked `!targetWorkouts`, which meant clearing the field
+      // while editing - e.g. to type a new number - looked identical to "never touched"
+      // and got immediately overwritten by this effect, making the field feel like it
+      // only accepted edits to the last digit.)
+      if (!hasEditedTarget) {
         setTargetWorkouts(suggested)
       }
     }
-  }, [eventDate, weeklyFrequency, targetWorkouts])
+  }, [eventDate, weeklyFrequency, hasEditedTarget])
 
   // Form validation
   const isValid = eventName.trim() !== '' && eventDate !== '' && targetWorkouts && targetWorkouts > 0
@@ -224,7 +229,10 @@ export default function CreateFirstGoalPage(): React.ReactElement {
             <input
               type="number"
               value={targetWorkouts}
-              onChange={(e) => setTargetWorkouts(e.target.value ? parseInt(e.target.value) : '')}
+              onChange={(e) => {
+                setHasEditedTarget(true)
+                setTargetWorkouts(e.target.value ? parseInt(e.target.value) : '')
+              }}
               min="1"
               max="365"
               placeholder={suggestedWorkouts.toString()}
