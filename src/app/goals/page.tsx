@@ -554,7 +554,7 @@ export default function GoalsPage(): React.ReactElement {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => handleEditGoal(eventGoal)}
-                              className="p-1 rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+                              className="p-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                               title="Edit target workouts"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
