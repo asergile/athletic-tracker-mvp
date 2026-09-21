@@ -1,54 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import Anthropic from '@anthropic-ai/sdk'
+import { PromptManager } from '@/lib/prompt-manager'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
-// Process workout transcript into structured data (reused from upload route)
+// Process workout transcript into structured data (shares the same prompt
+// source as the initial upload route - see /prompts/workout-processing/current.md)
 async function processWorkoutTranscript(transcript: string): Promise<{
   structuredWorkout: any;
   summary: string;
 }> {
-  const WORKOUT_ANALYSIS_PROMPT = `You are a swimming workout processor. Convert the raw voice transcript into a clean, structured workout summary that the athlete will see and save. Output ONLY the formatted workout summary - no processing notes, confidence levels, or meta-commentary.
+  let basePrompt: string;
+  try {
+    basePrompt = await PromptManager.loadPrompt('workout-processing');
+  } catch (error) {
+    console.error('Failed to load workout processing prompt:', error);
+    throw new Error('Prompt loading failed');
+  }
+
+  const WORKOUT_ANALYSIS_PROMPT = `${basePrompt}
 
 TRANSCRIPT:
-${transcript}
-
-REQUIRED OUTPUT FORMAT:
-# [Athlete Name]'s Workout - [Date]
-## WORKOUT STRUCTURE
-### WARM-UP ([X] yards/meters total)
-- [Clean, specific sets with distances]
-### PRE-SET ([X] yards/meters total) 
-[Only include if mentioned]
-### MAIN SET ([X] yards/meters total)
-- [Clean, specific sets with distances]
-### COOL DOWN ([X] yards/meters total)
-[Only include if mentioned]
-## PERFORMANCE HIGHLIGHTS
-- **[Stroke] [Distance]:** [Time] [context if mentioned]
-- **[Notable achievement]:** [Description]
-## WORKOUT METRICS
-- **Total Distance:** [X] yards/meters
-- **Course:** [Long course/Short course/Pool size if mentioned]
-- **Equipment Used:** [List if mentioned: fins, paddles, snorkel, etc.]
-- **Session Rating:** [X]/3 [with brief reason if given]
-- **Primary Focus:** [Training type: aerobic, sprint, technique, etc.]
-## TRAINING NOTES
-[2-3 bullet points of athlete's key observations, feelings, or improvements mentioned]
-
-RULES:
-- Use athlete's exact times when mentioned
-- Convert rambling descriptions into clean set structures
-- Include equipment context when mentioned
-- Calculate total distance accurately
-- Keep athlete's own assessment/rating
-- Only include sections that apply
-- No processing confidence notes
-- No suggestions or coaching advice
-- Use athlete's preferred stroke terminology`;
+${transcript}`;
 
   try {
     const completion = await anthropic.messages.create({
@@ -64,7 +40,12 @@ RULES:
     });
 
     const analysisText = completion.content[0]?.type === 'text' ? completion.content[0].text : '';
-    
+
+    // Check if LLM rejected the transcript as having no connection to training
+    if (analysisText.trim() === 'NO_WORKOUT_DETECTED') {
+      throw new Error('TRANSCRIPT_NOT_WORKOUT');
+    }
+
     // Store the markdown analysis directly
     const structuredWorkout = {
       markdownAnalysis: analysisText,
@@ -83,8 +64,21 @@ RULES:
 
   } catch (error) {
     console.error('LLM analysis failed:', error);
-    
-    // Fallback to basic transcript storage
+
+    // Special handling for rejected transcripts with no connection to training
+    if (error instanceof Error && error.message === 'TRANSCRIPT_NOT_WORKOUT') {
+      return {
+        structuredWorkout: {
+          markdownAnalysis: `# Not a Workout\n\nThe voice note did not contain workout or training information.\n\n**Raw Transcript:**\n${transcript}`,
+          rawTranscript: transcript,
+          analysisType: 'rejected',
+          error: 'NO_WORKOUT_DETECTED'
+        },
+        summary: 'Not a workout (no training information detected)'
+      };
+    }
+
+    // Fallback for other errors
     return {
       structuredWorkout: {
         markdownAnalysis: `# Workout Analysis Failed\n\n**Raw Transcript:**\n${transcript}\n\n**Error:** ${error instanceof Error ? error.message : 'Unknown error'}`,
