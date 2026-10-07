@@ -13,6 +13,7 @@ import {
   sanitizeDate,
   formatSecureError
 } from './input-validation'
+import { getLocalDateString } from '../utils'
 
 // ===== TYPESCRIPT INTERFACES =====
 
@@ -82,11 +83,12 @@ async function createWorkout(workoutData: WorkoutData): Promise<DatabaseResponse
 
     const validatedData = validateWorkoutData(workoutData);
     
+    // In practice validatedData.date is always already set here (see
+    // validateWorkoutData's own fallback), but this stays as a defensive
+    // second layer rather than assuming that invariant holds forever.
     let workoutDate = validatedData.date;
     if (!workoutDate) {
-      const today = new Date();
-      const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
-      workoutDate = localDate.toISOString().split('T')[0];
+      workoutDate = getLocalDateString();
     }
 
     const secureWorkoutData = {

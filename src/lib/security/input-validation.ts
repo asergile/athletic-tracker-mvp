@@ -1,6 +1,8 @@
 // Advanced Input Validation & Sanitization for Athletic Tracker
 // Builds on existing security foundation with enterprise-grade validation
 
+import { getLocalDateString } from '../utils'
+
 /**
  * SECURITY PRINCIPLE: Defense in Depth
  * - Client-side validation for UX
@@ -417,8 +419,8 @@ export function validateWorkoutData(workoutData: WorkoutData): ValidatedWorkoutD
       rating: validateRating(workoutData.rating),
       date: sanitizeDate(workoutData.date, {
         required: false,
-        maxDate: new Date().toISOString().split('T')[0] // No future dates
-      }) || new Date().toISOString().split('T')[0]
+        maxDate: new Date().toISOString().split('T')[0] // No future dates (comparison bound only - UTC is fine here)
+      }) || getLocalDateString()
     };
 
     // Handle optional distance

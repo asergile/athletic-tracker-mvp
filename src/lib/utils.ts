@@ -67,6 +67,27 @@ export function calculateWeekStart(date: Date): Date {
   return new Date(d.setDate(diff))
 }
 
+/**
+ * Returns the LOCAL calendar date (YYYY-MM-DD) for the given Date, using
+ * the environment's own local-time accessors rather than toISOString()
+ * (which is always UTC). This is the single source of truth for "what date
+ * is it right now" used when saving a new workout with no explicit date.
+ *
+ * Deliberately avoids manual UTC-offset arithmetic (e.g. shifting a
+ * timestamp by getTimezoneOffset() and re-reading it via toISOString()) -
+ * that approach has caused this exact bug to ship twice in this codebase
+ * (July 2025 in createWorkout, September 2026 in validateWorkoutData, each
+ * written independently of the other). getFullYear()/getMonth()/getDate()
+ * are always local by spec, so on a real device (iOS Safari, Android
+ * Chrome, desktop) this is correct automatically with no arithmetic at all.
+ */
+export function getLocalDateString(date: Date = new Date()): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function formatAttendanceRate(attended: number, planned: number): string {
   if (planned === 0) return '0%'
   const rate = Math.round((attended / planned) * 100)
