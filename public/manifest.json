@@ -1,24 +1,30 @@
 {
-  "name": "Athletic Tracker - Voice-Powered Workout Logging",
-  "short_name": "Athletic Tracker",
-  "description": "Log your swimming workouts with voice. Simple, fast, and built for athletes.",
+  "name": "Goal Buddy",
+  "short_name": "Goal Buddy",
+  "description": "Log your workout in under 30 seconds. See your progress instantly.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "theme_color": "#0f172a",
   "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "icon-512x512.png", 
+      "src": "icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["sports", "fitness", "health"],
@@ -29,14 +35,6 @@
       "description": "Quickly record a new workout",
       "url": "/?action=record",
       "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshot-mobile.png",
-      "sizes": "375x812",
-      "type": "image/png",
-      "form_factor": "narrow"
     }
   ]
 }
