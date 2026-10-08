@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Welcome - Goal Buddy',
-  description: 'Get started with Goal Buddy',
+  title: 'Welcome - PBGB',
+  description: 'Get started with PBGB (Personal Best Goal Buddy)',
 }
 
 export default function OnboardingLayout({

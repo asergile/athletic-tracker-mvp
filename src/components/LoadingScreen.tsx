@@ -17,7 +17,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = 'Loading...' })
         </div>
         
         {/* Loading Text */}
-        <h2 className="text-2xl font-bold text-white mb-4">💪 Goal Buddy</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">💪 PBGB</h2>
         <p className="text-blue-200 mb-8">{message}</p>
         
         {/* Loading Animation */}

@@ -128,10 +128,11 @@ const AuthScreen: React.FC = () => {
         <div style={{ textAlign: 'center', marginBottom: '25px' }}>
           <img 
             src="/images/Logo PB white.png" 
-            alt="Goal Buddy Logo" 
+            alt="PBGB Logo" 
             style={{ width: '100px', height: '100px', margin: '0 auto 0px', display: 'block' }} 
           />
-          <h1 style={{ color: 'white', fontSize: '26px', fontWeight: '700', marginBottom: '15px' }}>Goal Buddy</h1>
+          <h1 style={{ color: 'white', fontSize: '26px', fontWeight: '700', marginBottom: '4px' }}>PBGB</h1>
+          <p style={{ color: '#f0f9ff', fontSize: '13px', letterSpacing: '0.5px', opacity: 0.85, marginBottom: '12px' }}>Personal Best Goal Buddy</p>
           <p style={{ color: '#f0f9ff', fontSize: '16px' }}>Track progress. Smash goals.</p>
         </div>
 

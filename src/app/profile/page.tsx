@@ -305,7 +305,7 @@ export default function ProfilePage(): React.ReactElement {
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-800">{user?.email}</h2>
-              <p className="text-gray-600">Athletic Tracker User</p>
+              <p className="text-gray-600">PBGB User</p>
             </div>
           </div>
           <button

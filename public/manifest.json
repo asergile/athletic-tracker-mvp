@@ -1,7 +1,7 @@
 {
-  "name": "Goal Buddy",
-  "short_name": "Goal Buddy",
-  "description": "Log your workout in under 30 seconds. See your progress instantly.",
+  "name": "PBGB - Voice-Powered Performance Journal",
+  "short_name": "PBGB",
+  "description": "PBGB (Personal Best Goal Buddy) - a voice powered performance journal.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

@@ -76,13 +76,14 @@ const Screen1 = ({ onNext }: {
       <div className="w-[120px] h-[120px] mb-8">
         <Image
           src="/images/Logo PB white.png"
-          alt="Goal Buddy Logo"
+          alt="PBGB Logo"
           width={120}
           height={120}
           className="object-contain"
         />
       </div>
-      <h1 className="text-[26px] font-bold text-white mb-4">Goal Buddy</h1>
+      <h1 className="text-[26px] font-bold text-white mb-1">PBGB</h1>
+      <p className="text-white text-opacity-80 text-sm tracking-wide mb-4">Personal Best Goal Buddy</p>
       <p className="text-white text-opacity-95 text-base leading-relaxed max-w-[300px]">
         Welcome to your athletic goal setting and training tracker. Watch your progress, stay consistent, smash your goals.
       </p>

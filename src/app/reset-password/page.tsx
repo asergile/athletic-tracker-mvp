@@ -178,7 +178,7 @@ function ResetPasswordForm() {
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
           <Activity style={{ width: '60px', height: '60px', color: 'white', margin: '0 auto 20px' }} />
           <h1 style={{ color: 'white', fontSize: '28px', fontWeight: 'bold', marginBottom: '10px' }}>
-            💪 Athletic Tracker
+            💪 PBGB
           </h1>
           <p style={{ color: '#bfdbfe', fontSize: '16px' }}>Reset your password</p>
         </div>
