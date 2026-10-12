@@ -5,11 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { dbHelpers, USERNAME_PATTERN } from '@/lib/security/enhanced-db-helpers'
-import { ageFromDateOfBirth, setAgeBlock } from '@/lib/age-gate'
+import { ageFromDateOfBirth, parseDateParts, setAgeBlock } from '@/lib/age-gate'
 import AuthScreen from '@/components/AuthScreen'
 import LoadingScreen from '@/components/LoadingScreen'
 import AgeBlockedScreen from '@/components/AgeBlockedScreen'
-import { getLocalDateString } from '@/lib/utils'
 
 type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 
@@ -28,7 +27,9 @@ export default function CompleteProfilePage(): React.ReactElement {
 
   const [displayName, setDisplayName] = useState('')
   const [username, setUsername] = useState('')
-  const [dateOfBirth, setDateOfBirth] = useState('')
+  const [dobMonth, setDobMonth] = useState('')
+  const [dobDay, setDobDay] = useState('')
+  const [dobYear, setDobYear] = useState('')
 
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle')
   const [error, setError] = useState('')
@@ -81,7 +82,7 @@ export default function CompleteProfilePage(): React.ReactElement {
     return () => clearTimeout(timer)
   }, [username, needsUsername])
 
-  const handleUnder13 = async (): Promise<void> => {
+  const handleUnder13 = async (dateOfBirth: string): Promise<void> => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.access_token) {
@@ -113,15 +114,18 @@ export default function CompleteProfilePage(): React.ReactElement {
       setError(usernameStatus === 'taken' ? 'That username is taken.' : 'Choose an available username.')
       return
     }
+    let dateOfBirth = ''
     if (needsDob) {
-      const age = ageFromDateOfBirth(dateOfBirth)
-      if (age === null || age < 0 || age > 120) {
-        setError('Enter a valid date of birth.')
+      const parsed = parseDateParts(dobMonth, dobDay, dobYear)
+      if ('error' in parsed) {
+        setError(parsed.error)
         return
       }
-      if (age < 13) {
+      dateOfBirth = parsed.date
+      const age = ageFromDateOfBirth(dateOfBirth)
+      if (age !== null && age < 13) {
         setSaving(true)
-        await handleUnder13()
+        await handleUnder13(dateOfBirth)
         return
       }
     }
@@ -131,7 +135,7 @@ export default function CompleteProfilePage(): React.ReactElement {
       if (needsDob) {
         const { error: dobError } = await dbHelpers.saveDateOfBirth(dateOfBirth)
         if (dobError?.message === 'under_13') {
-          await handleUnder13()
+          await handleUnder13(dateOfBirth)
           return
         }
         if (dobError) {
@@ -216,18 +220,55 @@ export default function CompleteProfilePage(): React.ReactElement {
           )}
 
           {needsDob && (
-            <div>
-              <label htmlFor="dob" className="block text-gray-700 font-medium mb-1">Date of birth</label>
-              <input
-                id="dob"
-                type="date"
-                value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
-                max={getLocalDateString()}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-              />
-              <p className="mt-1 text-sm text-gray-500">Private. Used only for age checks and never shown to anyone.</p>
-            </div>
+            <fieldset>
+              <legend className="block text-gray-700 font-medium mb-1">Date of birth</legend>
+              <p className="mb-2 text-sm text-gray-500">For example, 3 27 2010</p>
+              <div className="flex gap-3">
+                <div className="w-16">
+                  <label htmlFor="dobMonth" className="block text-sm text-gray-600 mb-1">Month</label>
+                  <input
+                    id="dobMonth"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="bday-month"
+                    maxLength={2}
+                    value={dobMonth}
+                    onChange={(e) => setDobMonth(e.target.value.replace(/\D/g, ''))}
+                    className="w-full p-3 border border-gray-200 rounded-lg text-center focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+                <div className="w-16">
+                  <label htmlFor="dobDay" className="block text-sm text-gray-600 mb-1">Day</label>
+                  <input
+                    id="dobDay"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="bday-day"
+                    maxLength={2}
+                    value={dobDay}
+                    onChange={(e) => setDobDay(e.target.value.replace(/\D/g, ''))}
+                    className="w-full p-3 border border-gray-200 rounded-lg text-center focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+                <div className="w-24">
+                  <label htmlFor="dobYear" className="block text-sm text-gray-600 mb-1">Year</label>
+                  <input
+                    id="dobYear"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="bday-year"
+                    maxLength={4}
+                    value={dobYear}
+                    onChange={(e) => setDobYear(e.target.value.replace(/\D/g, ''))}
+                    className="w-full p-3 border border-gray-200 rounded-lg text-center focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <p className="mt-2 text-sm text-gray-500">Private. Used only for age checks and never shown to anyone.</p>
+            </fieldset>
           )}
         </div>
 
