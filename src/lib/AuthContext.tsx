@@ -100,13 +100,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        // Return to the site the user signed up on (production, test project or preview)
+        emailRedirectTo: window.location.origin,
+      },
     })
     return { data, error }
   }
 
   const signInWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google'
+      provider: 'google',
+      options: {
+        // Without this, Supabase sends every Google login to the Site URL (production)
+        redirectTo: window.location.origin,
+      },
     })
     return { data, error }
   }
