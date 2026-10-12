@@ -15,7 +15,7 @@
 ### Development Workflow
 ```bash
 # 1. Develop locally
-cd /Users/alain/Projects/athletic-tracker-mvp
+cd path/to/athletic-tracker-mvp
 npm start  # Test at localhost:3000
 
 # 2. Push to staging
@@ -68,7 +68,7 @@ npm run build
 npm install -g vercel
 
 # In project directory
-cd /Users/alain/Projects/athletic-tracker-mvp
+cd path/to/athletic-tracker-mvp
 
 # Install project dependencies
 npm install

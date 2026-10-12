@@ -1,534 +1,104 @@
-# Technical Specifications & Coding Standards
+# Technical specifications
 
-**Project:** Athletic Tracker MVP  
-**Last Updated:** October 8, 2025  
-**Purpose:** Single source of truth for all technical decisions and standards
+**Last reviewed:** 2026-10-12
+**Scope:** How code in this repo is written. Workflow rules (approvals, git, deploys, docs) live in `CLAUDE.md` at the repo root.
 
-⚠️ **CRITICAL SECURITY UPDATE:** All database implementations MUST follow security patterns in `supabase-security-implementation.md`
+If this file disagrees with the code, the code wins. Fix this file.
 
-⚠️ **TYPESCRIPT ONLY:** This project uses TypeScript exclusively. All `.js` and `.jsx` files are backups only - DO NOT USE.
+## Stack
 
-## 👨‍💻 **DEVELOPMENT PERSONA: Seasoned Software Architect**
+| Layer | Choice | Notes |
+| --- | --- | --- |
+| Framework | Next.js 14, App Router | File-based routes in `src/app/` |
+| Language | TypeScript, `strict: true` | `.tsx` for components, `.ts` for utilities |
+| UI | React 18, Tailwind CSS 3, Lucide icons | Mobile-first |
+| Database and auth | Supabase (Postgres, Auth, Row Level Security) | Google OAuth and email/password |
+| Voice transcription | AssemblyAI | Called server-side from `src/app/api/upload` |
+| Workout analysis | Anthropic API (Claude Haiku) | Called server-side from `src/app/api/upload` and `src/app/api/reanalyze` |
+| Hosting | Vercel | Builds from the `staging` branch |
+| Tests | Vitest | `npm test` |
 
-**Approach all technical work as a senior software developer with 10+ years of experience building production systems.**
+Check `package.json` for exact versions rather than copying them here.
 
-### **Decision-Making Framework**
-- **Long-term thinking:** Consider maintenance, scalability, and technical debt in every decision
-- **Risk assessment:** Identify what could go wrong, edge cases, and failure modes
-- **Trade-off analysis:** Explicitly weigh pros/cons of different approaches
-- **Performance mindset:** Consider memory usage, bundle size, and runtime performance
-- **Security awareness:** Think about authentication, data protection, and attack vectors
-- **User impact:** How do technical decisions affect user experience and reliability?
+The `openai` package is still installed but no code uses it. Remove it in the next dependency cleanup.
 
-### **Code Quality Standards**
-- **Readability first:** Code is written once, read many times
-- **Defensive programming:** Handle edge cases, validate inputs, graceful error handling
-- **Testing mindset:** Write code that's easy to test and debug
-- **Documentation habit:** Explain WHY decisions were made, not just what was done
-- **Technical debt awareness:** Identify when shortcuts are acceptable vs. when to invest time
+## Environment variables
 
-### **Architecture Principles**
-- **KISS (Keep It Simple, Stupid):** Simplest solution that meets requirements
-- **YAGNI (You Aren't Gonna Need It):** Don't build for hypothetical future needs
-- **DRY (Don't Repeat Yourself):** But not at the expense of clarity
-- **Separation of concerns:** Each component should have a single responsibility
-- **Fail fast:** Surface errors early rather than hiding them
+| Variable | Where it's used | Exposed to the browser? |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase client | Yes |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase client | Yes (safe; RLS protects data) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only admin client (`src/lib/supabase-admin.ts`) | **Never** |
+| `ASSEMBLYAI_API_KEY` | Voice upload route | Never |
+| `ANTHROPIC_API_KEY` | Upload and reanalyze routes | Never |
 
-### **Problem-Solving Approach**
-1. **Understand the root cause** - Don't just fix symptoms
-2. **Consider multiple solutions** - Present alternatives with trade-offs
-3. **Think about edge cases** - What happens when things go wrong?
-4. **Plan for testing** - How will we verify this works?
-5. **Document decisions** - Why did we choose this approach?
+Real values live in `.env.local` (not in git) and in Vercel project settings. `.env.example` holds placeholders only.
 
-### **Communication Style**
-- **Be direct and honest** about limitations and risks
-- **Explain technical trade-offs** in business terms when relevant
-- **Propose concrete solutions** rather than abstract suggestions
-- **Anticipate questions** and provide context for recommendations
-- **Flag potential issues** before they become problems
+## TypeScript and files
 
-## 🔧 **Technology Stack & Versions**
+- TypeScript only. Files ending in `.js`, `.jsx` or `.backup` under `src/` are dead code. Don't import, edit or copy from them.
+- No `any` unless there is a comment explaining why.
+- Use `import type` for type-only imports.
+- Shared types go in `src/types/`. Check there before creating a new type.
 
-### **Framework Architecture**
-- **Framework:** Next.js 14 with App Router
-- **Language:** TypeScript exclusively (`.tsx` for components, `.ts` for utilities)
-- **Routing:** File-based routing in `/src/app/`
-- **JavaScript Files:** Backups only (`.js.backup`, `.jsx.backup`) - DO NOT USE
+## Where new files go
 
-### **Core Technologies**
-- **Next.js:** `14.2.32` (App Router)
-- **React:** `^18.2.0` 
-- **TypeScript:** `^5.2.2` (Strict mode enabled)
-- **Node.js:** Latest LTS (as per Vercel default)
+| Kind of file | Location | Naming |
+| --- | --- | --- |
+| Page or route | `src/app/<route>/page.tsx` | lowercase route folder |
+| API route | `src/app/api/<name>/route.ts` | kebab-case folder |
+| Reusable component | `src/components/` | `PascalCase.tsx` |
+| Hook | `src/hooks/` | `useThing.ts` |
+| Utility | `src/lib/` | `kebab-case.ts` |
+| Database helper | `src/lib/security/enhanced-db-helpers.ts` | add to the existing module |
+| Test | `__tests__/` next to the code | `name.test.ts` |
+| Migration SQL | `supabase/migration-drafts/` until applied | see "Database" below |
+| UI mockup | `project-docs/mockups/` | `kebab-case.html` |
 
-### **Backend & Database**
-- **Supabase:** `^2.38.4` (PostgreSQL + Auth + Real-time)
-- **Database:** PostgreSQL with Row Level Security
-- **Authentication:** Supabase Auth (Google OAuth + email/password)
+## React patterns
 
-### **Styling & UI**
-- **Tailwind CSS:** `^3.3.5`
-- **Icons:** Lucide React `^0.294.0`
-- **Design System:** Custom gradient-based premium design
+- **Never define a component inside another component.** It remounts on every render and causes the input-focus bug (inputs lose focus after one keystroke). Define components at module level and render conditionally.
+- Global state: React Context only (auth today). Local state: `useState`. No Redux or Zustand.
+- Every async action shows a loading state, a success confirmation and a readable error with a retry path.
+- The root layout is a client component, so Next.js `metadata` and `viewport` exports don't apply there. Put head tags in the layout's `<head>` until that changes.
 
-### **Deployment & Hosting**
-- **Platform:** Vercel (Next.js optimized)
-- **Node.js:** Latest LTS (as per Vercel default)
-- **Build Target:** Static generation where possible
+## Database
 
-## 📋 **Coding Standards & Best Practices**
+**Access**
+- Client code goes through `src/lib/security/enhanced-db-helpers.ts`. Helpers check `supabase.auth.getUser()` first and filter by the user's id, even though RLS also enforces it.
+- Validate user input with `src/lib/security/input-validation.ts` before writing.
+- Use the service role key only in server code, and only when RLS has to be bypassed on purpose.
+- Get the signed-in user's email from the auth session (`supabase.auth.getUser()`), never from a table.
 
-### **Next.js 14+ Patterns (REQUIRED)**
-```javascript
-// ✅ CORRECT - Next.js 14 metadata pattern
-import type { Metadata, Viewport } from 'next'
+**Schema rules**
+- Every table has RLS enabled with explicit policies per operation.
+- Never store a user's email outside `auth.users`. Other users may be able to read profile rows once sharing ships, and RLS filters rows, not columns.
+- Every function sets `search_path` and has explicit `EXECUTE` grants. `anon` gets nothing unless the function is meant to be public.
+- Prefer `SECURITY INVOKER`. Use `SECURITY DEFINER` only when the function must bypass RLS, and then check `auth.uid()` inside it.
+- Private per-user data (date of birth and similar) goes in owner-only tables that never join into shared views.
 
-export const metadata: Metadata = {
-  title: 'Page Title',
-  description: 'Page description',
-}
+**Migrations**
+1. Write the SQL in `supabase/migration-drafts/`.
+2. Review it, then apply it.
+3. Move the applied file to `supabase/migrations/<timestamp>_<name>.sql` and add a rollback in `supabase/rollbacks/`.
+4. Run the Supabase security advisor and fix new warnings.
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  themeColor: '#3b82f6',
-}
+Never put unapplied SQL in `supabase/migrations/`.
 
-// ❌ WRONG - Old pattern (DO NOT USE)
-export const metadata: Metadata = {
-  viewport: { ... }, // This belongs in viewport export
-  themeColor: '#3b82f6', // This belongs in viewport export
-}
-```
+## Mobile and UX
 
-### **Component Architecture**
-```javascript
-// ✅ CORRECT - Stable components outside main component
-const StableComponent = ({ props }) => { ... }
+- Primary targets: iOS Safari and Android Chrome. Test mobile first.
+- Touch targets at least 44px.
+- Must still work with large system text sizes (see the navigation pin in `pinned-items.md`).
+- The core promise is logging a workout in under 30 seconds. Don't add steps to the logging path without a reason.
 
-const MainComponent = () => {
-  return (
-    <>
-      {condition && <StableComponent {...props} />}
-    </>
-  )
-}
+## Checks before proposing a commit
 
-// ❌ WRONG - Components inside components (causes re-renders)
-const MainComponent = () => {
-  const InnerComponent = () => { ... } // DON'T DO THIS
-  
-  return <InnerComponent />
-}
-```
-
-### **TypeScript Standards**
-- **Strict mode:** Enabled (`"strict": true`)
-- **No `any` types:** Use proper type unions instead
-- **Interface definitions:** All props and state properly typed
-- **Import types:** Use `import type` for type-only imports (e.g., `import type { Metadata } from 'next'`)
-- **File extensions:** `.tsx` for React components, `.ts` for utilities
-- **CRITICAL:** JavaScript files (`.js`, `.jsx`) are backups - do not reference or modify
-- **Import types:** Use `import type` for type-only imports
-
-### **File Organization**
-
-**ALWAYS reference `project-docs/file-structure-reference.md` FIRST before searching the filesystem.**
-
-```
-src/
-├── app/                 # Next.js App Router pages
-│   ├── layout.tsx       # Root layout with metadata/viewport exports
-│   └── page.tsx         # Home page
-├── components/          # Reusable UI components
-├── lib/                # Utilities, Supabase client, contexts
-├── types/              # TypeScript interface definitions
-└── styles/             # Global CSS (globals.css)
-
-project-docs/
-├── mockups/            # Interactive HTML prototypes and design artifacts
-├── session-handoffs/   # Session continuation documents
-├── file-structure-reference.md  # 🔑 COMPREHENSIVE file location guide
-└── [other-docs].md     # Project documentation
-```
-
-### **Finding Files Efficiently (Token Conservation)**
-
-**CRITICAL: Avoid expensive directory tree operations by following this protocol:**
-
-1. **FIRST:** Check `project-docs/file-structure-reference.md` for known file locations
-2. **SECOND:** Use targeted `filesystem:search_files` with specific patterns
-3. **LAST RESORT:** Use `filesystem:directory_tree` only for exploring NEW directory structures
-
-**Token-Efficient Search Patterns:**
-```typescript
-// ✅ GOOD - Targeted search
-filesystem:search_files pattern="Auth" path="src/components"
-
-// ✅ GOOD - Specific file type
-filesystem:search_files pattern="*.tsx" path="src/app"
-
-// ❌ AVOID - Expensive and usually unnecessary
-filesystem:directory_tree path="src/"
-```
-
-**Quick File Lookup Examples:**
-- Need auth component? → Check file-structure-reference.md (lists `AuthScreen.tsx` in components)
-- Need database helpers? → Check file-structure-reference.md (lists `lib/security/enhanced-db-helpers.ts`)
-- Need to find all pages? → Search for `page.tsx` in `src/app`
-- Need documentation? → Check file-structure-reference.md for doc organization
-
-**This approach saves 10,000+ tokens per session and provides faster responses.**
-
-### **Mockups and Design Artifacts**
-
-**All UI mockups, prototypes, and design artifacts MUST be saved in `project-docs/mockups/`**
-
-**Mockup Standards:**
-- **Format:** Interactive HTML files with CSS and JavaScript
-- **Mobile-first:** 375px container width (iPhone standard)
-- **Self-contained:** All styles and scripts inline (only cdnjs.cloudflare.com external)
-- **Realistic data:** Use example data that reflects real use cases
-- **Documentation:** Include notes explaining design decisions
-
-**When to Create Mockups:**
-- New UI components or features
-- Design explorations and alternatives
-- User flow prototypes
-- Layout and interaction validation
-
-**File Naming:**
-- Use kebab-case: `feature-name-component.html`
-- Include version if iterating: `dashboard-v2.html`
-- Be descriptive: `goal-creation-form.html`
-
-**Integration with Development:**
-- Mockups serve as source of truth for UI implementation
-- Include exact styling, spacing, and interaction patterns
-- Reference mockups in session handoff documents
-- Update mockups README.md with new additions
-
-## 🎯 **Architecture Principles**
-
-### **Component Design**
-1. **Stable component identity** - No function components inside render functions
-2. **Prop-based communication** - Pass data down, callbacks up
-3. **Single responsibility** - Each component has one clear purpose
-4. **Performance first** - useMemo/useCallback only when beneficial
-
-### **State Management**
-- **React Context:** For auth state and global data
-- **Local state:** useState for component-specific data
-- **Server state:** Supabase real-time subscriptions
-- **NO Redux/Zustand:** Keep it simple with React built-ins
-
-### **Error Handling**
-```javascript
-// ✅ CORRECT - Comprehensive error handling
-try {
-  const { data, error } = await supabaseCall()
-  if (error) {
-    console.error('Specific error:', error)
-    setError(`Action failed: ${error.message}`)
-    return
-  }
-  // Handle success
-} catch (err) {
-  console.error('Unexpected error:', err)
-  setError(`Unexpected error: ${err.message}`)
-}
-```
-
-## 📱 **Design & UX Standards**
-
-### **Mobile-First Responsive**
-- **Primary target:** Mobile (iOS Safari, Android Chrome)
-- **Breakpoints:** Use Tailwind's default breakpoints
-- **Touch targets:** Minimum 44px for interactive elements
-- **Performance:** <3 second load time on 3G
-
-### **Visual Design System**
-```css
-/* Primary Colors */
---blue-500: #3b82f6    /* Primary brand */
---purple-600: #9333ea  /* Secondary actions */
---green-500: #10b981   /* Success states */
---red-500: #ef4444     /* Error states */
-
-/* Gradients */
---gradient-primary: from-blue-500 to-purple-600
---gradient-success: from-green-500 to-emerald-600
-```
-
-### **Interaction Patterns**
-- **Loading states:** Always show loading spinners for async actions
-- **Success feedback:** Immediate visual confirmation + auto-navigation
-- **Error states:** Clear error messages with retry options
-- **Input focus:** Maintain focus during typing (critical!)
-
-## 🔒 **Security & Data Standards**
-
-### **Environment Variables**
 ```bash
-# REQUIRED - Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-
-# OPTIONAL - App Configuration  
-NEXT_PUBLIC_APP_URL=https://your-domain.com
+npm run type-check   # tsc --noEmit
+npm run lint
+npm test             # vitest
+npm run build
 ```
 
-### **Database Security**
-- **Row Level Security:** ALWAYS enabled on all tables
-- **User isolation:** Users can only access their own data
-- **Auth policies:** Explicit policies for all operations
-- **No direct DB access:** All access through Supabase client
-
-### **Authentication**
-- **Session duration:** 48 hours with activity reset
-- **OAuth providers:** Google (primary), email/password (backup)
-- **Email verification:** Required for email signups
-- **Auto-logout:** Graceful session expiry handling
-
-## 🧪 **Testing & Quality Standards**
-
-### **Local Development**
-```bash
-# Required commands for development
-npm run dev          # Development server
-npm run build        # Production build test
-npm run type-check   # TypeScript validation
-npm run lint         # ESLint validation
-```
-
-### **Pre-commit Checklist**
-- [ ] `npm run build` succeeds without errors
-- [ ] `npm run type-check` passes
-- [ ] Manual testing in Chrome + Safari mobile
-- [ ] No console errors in browser
-- [ ] All features work as expected
-
-### **Production Deployment**
-- **Platform:** Vercel with automatic deployments
-- **Environment:** Production environment variables configured
-- **Monitoring:** Manual testing post-deployment
-- **Rollback:** Use Vercel deployment history if needed
-
-## 🔄 **Development Workflow**
-
-### **CRITICAL: Explicit Approval Protocol**
-⚠️ **NEVER make code changes or update files without explicit user approval, even when troubleshooting bugs.**
-
-**When user reports issues:**
-1. **Analyze and explain** the problem
-2. **Propose specific solution** with rationale
-3. **Ask explicitly:** "Should I implement this fix?"
-4. **Wait for confirmation** before making ANY changes
-5. **Only proceed** after user says "Yes" or "Implement this"
-
-**Examples of what requires approval:**
-- Fixing bugs reported by user
-- Updating configurations
-- Installing dependencies
-- Modifying existing code
-- Creating new files
-- ANY file system changes
-
-**User may share screenshots, error messages, or describe problems - this is for discussion ONLY, not automatic implementation.**
-
-### **Code Changes Protocol**
-1. **Propose:** Present solution with rationale
-2. **Approve:** Wait for explicit "Yes, implement this"
-3. **Implement:** Code following these specifications **USING EFFICIENT UPDATE OPERATIONS**
-4. **Test locally:** Verify build + functionality
-5. **Commit:** With descriptive commit messages
-6. **Deploy:** Push to trigger Vercel deployment
-
-### **CRITICAL: Efficient Development Protocol**
-**ALWAYS use `update` operations instead of rewriting entire files to conserve tokens and maintain efficiency.**
-
-**When to use `update` vs `rewrite`:**
-- **Use `update`:** For targeted changes, bug fixes, adding/modifying specific functions, replacing components
-- **Use `rewrite`:** Only when structural changes require rebuilding the entire file architecture
-- **Maximum efficiency:** Break large changes into multiple small `update` operations
-- **Token conservation:** Never recreate 500+ line files when targeted updates will work
-
-**Update Operation Guidelines:**
-- Use `update` for changes affecting <20 lines and <5 locations
-- Can call `update` up to 4 times per response for multiple targeted changes
-- Always ensure `old_str` matches exactly (including whitespace)
-- Make `old_str` unique enough to appear exactly once in the file
-- **Priority:** Efficiency over convenience - always choose the most token-efficient approach
-
-**Examples:**
-- ✅ **Good:** Replace single component with `update`
-- ✅ **Good:** Fix bug with targeted `update` to specific function
-- ✅ **Good:** Add new import with `update` at top of file
-- ❌ **Bad:** Rewrite entire 800-line file to change one component
-- ❌ **Bad:** Use `rewrite` when 3-4 `update` operations would work
-
-### **Git Standards**
-```bash
-# Commit message format
-"Fix critical input focus bug - restructure component architecture
-
-- Move LogWorkoutView outside main component to prevent recreation
-- Fixes duration input losing focus on keystroke
-- Tested on iOS Safari, Android Chrome, desktop browsers
-
-Ready for production deployment."
-```
-
-## ⚠️ **Critical Requirements**
-
-### **Input Focus Bug Prevention**
-- **NEVER** define function components inside other components
-- **ALWAYS** use conditional rendering instead of function factories
-- **TEST** multi-digit input immediately after component changes
-
-### **Performance Requirements**
-- **Bundle size:** <500KB total
-- **Interaction response:** <100ms
-- **Load time:** <3 seconds on 3G
-- **Memory usage:** Stable (no memory leaks)
-
-### **Browser Compatibility**
-- **Primary:** iOS Safari, Android Chrome
-- **Secondary:** Desktop Chrome, Firefox, Safari
-- **Testing:** Always test mobile first
-
-## 📚 **Reference Documentation**
-
-### **Primary Sources**
-- **Next.js 14 Docs:** https://nextjs.org/docs (App Router patterns)
-- **React 18 Docs:** https://react.dev (Current patterns)
-- **Tailwind CSS:** https://tailwindcss.com/docs
-- **Supabase Docs:** https://supabase.com/docs
-
-### **Internal Documentation**
-- **Security Implementation:** `supabase-security-implementation.md` (CRITICAL - READ FIRST)
-- **Best Practices:** `claude-collaboration-best-practices.md`
-- **Project Status:** `project-status.md`
-- **Implementation Plan:** `supabase-implementation-plan.md`
-- **Session Handoffs:** `session-handoffs/` directory
-
-## 🔒 **Database Security Requirements (CRITICAL)**
-
-### **Mandatory Security Patterns**
-**EVERY database interaction MUST follow these patterns. No exceptions.**
-
-```typescript
-// ✅ SECURE - Always check authentication first
-export async function secureDBOperation() {
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (!user || error) {
-    throw new Error('Authentication required')
-  }
-  
-  // All queries automatically filtered by RLS policies
-  const { data } = await supabase
-    .from('workouts')
-    .select()
-    .eq('user_id', user.id) // Redundant but explicit
-  
-  return data
-}
-
-// ❌ INSECURE - Never do direct queries without auth check
-const badQuery = await supabase.from('workouts').select()
-```
-
-### **Required Database Tables**
-
-```sql
--- profiles table (REQUIRED for user queries)
-CREATE TABLE profiles (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
-  email TEXT NOT NULL,
-  display_name TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Enable RLS on ALL tables (MANDATORY)
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE workouts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE athlete_goals ENABLE ROW LEVEL SECURITY;
-
--- Create policies (REQUIRED)
-CREATE POLICY "Users manage own data" ON workouts
-  FOR ALL USING (auth.uid() = user_id);
-```
-
-### **Security Checklist for All DB Work**
-- [ ] **RLS enabled** on table
-- [ ] **Policies created** for user access
-- [ ] **Auth check** in application code
-- [ ] **Input validation** on all user data
-- [ ] **No raw SQL** - use Supabase client only
-- [ ] **Error handling** doesn't leak sensitive info
-
-### **Database Query Patterns**
-
-```typescript
-// Get workouts with user info (CORRECT pattern)
-const workoutsWithUser = await supabase
-  .from('workouts')
-  .select(`
-    id,
-    workout_type,
-    duration,
-    rating,
-    date,
-    profiles!inner(display_name, email)
-  `)
-  .eq('user_id', user.id)
-
-// This replaces your original question about joining user data
-// The profiles table gives you the user info you need
-```
-
-### **Critical Security Notes**
-- **Row Level Security (RLS)** prevents users from accessing each other's data
-- **profiles table** replaces direct auth.users queries (which are restricted)
-- **NEVER expose** service role key to client-side code
-- **ALWAYS validate** user input before database operations
-- **TEST security** by trying to access other users' data (should fail)
-
-**🚨 PRODUCTION BLOCKER:** Cannot deploy without implementing all security measures in `supabase-security-implementation.md`
-
-## 🚀 **Upgrade Path**
-
-### **When to Update Versions**
-- **Next.js:** Only update for security fixes or critical features
-- **React:** Follow Next.js compatibility requirements
-- **Dependencies:** Update monthly for security patches
-- **Node.js:** Follow Vercel platform updates
-
-### **Breaking Change Protocol**
-1. **Document reason** for breaking change
-2. **Test thoroughly** in development
-3. **Update this specification** document
-4. **Communicate impact** to future sessions
-
-## 🎯 **Success Metrics**
-
-### **Code Quality**
-- Zero TypeScript errors in production builds
-- Zero console errors in browser
-- All features work across target browsers
-- Loading states and error handling complete
-
-### **Performance**
-- Lighthouse score >90 for Performance
-- Core Web Vitals in "Good" range
-- Mobile usability score >95
-- No memory leaks or performance degradation
-
----
-
-**This document should be the FIRST reference for any new development session.**
-
-**When starting a new session:** Read this document BEFORE making any code changes to ensure you're following current standards and using the correct versions.
-
-**When in doubt:** Refer to the specific version numbers and patterns documented here rather than assuming or using older patterns.
+Then test the changed flow in a mobile browser and check the console for errors.

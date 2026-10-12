@@ -1,193 +1,34 @@
-# Athletic Tracker MVP - Project Documentation
+# Project docs
 
-**Last Updated:** September 22, 2025  
-**Project Status:** Phase 1 Complete - Security Implementation Required  
-**Location:** `/Users/alain/Projects/athletic-tracker-mvp`
+**Last reviewed:** 2026-10-12
 
-⚠️ **CRITICAL SECURITY UPDATE:** Database security implementation required before production deployment.
+Start with `CLAUDE.md` and `PROJECT_STATUS.md` at the repo root. This folder holds reference material.
 
-## 📁 Documentation Overview
+## Current
 
-This folder contains the complete living documentation for the Athletic Tracker MVP project. These files serve as persistent context for Claude sessions and project continuity.
+| File | What it's for |
+| --- | --- |
+| `technical-specifications.md` | Stack, coding standards, database rules, migrations workflow |
+| `pinned-items.md` | Deferred issues with proposed fixes |
+| `mockups/` | Interactive HTML mockups |
 
-### 💬 **Session Summaries**
-Detailed session-by-session documentation in `/chat-summaries/`:
-- `session-01-strategic-simplification-mvp.md` - Initial MVP development and strategic pivot
+## Reference (older, read with the date in mind)
 
-### 📋 **Core Project Files**
+These predate October 2026. Check them against the code before relying on them.
 
-#### `supabase-security-implementation.md` 🚨
-**CRITICAL: Complete security setup for database and authentication**
-- Row Level Security (RLS) implementation
-- Secure query patterns and authentication
-- Database policies and user isolation
-- Security testing and validation protocols
+| File | What it's for |
+| --- | --- |
+| `GIT_WORKFLOW_GUIDE.md` | Manual git workflow |
+| `deployment-guide.md` | Deploying to Vercel |
+| `database-status-reference.md` | Database structure notes |
+| `supabase-security-implementation.md` | Original RLS and security setup |
+| `supabase-implementation-plan.md` | Original Supabase plan |
+| `mvp-requirements.md` | Original MVP requirements |
+| `alpha-testing-protocol.md` | Alpha testing plan |
+| `onboarding-implementation-plan.md` | Onboarding build plan (shipped) |
+| `product-strategy-roadmap-business-model-evolution.md` | Earlier strategy notes |
+| `Seperate Events and Goals.md` | Events vs goals design notes |
 
-#### `database-status-reference.md`
-**Quick reference for database queries and current security status**
-- Current table structure and security state
-- Secure query patterns for user data joins
-- Development testing commands
-- Common security mistakes to avoid
+## History
 
-#### `project-status.md`
-**Current project state and immediate next steps**
-- Phase 1 completion status
-- Key metrics validated
-- Immediate action items
-- Project philosophy and core value proposition
-
-#### `mvp-requirements.md`  
-**Detailed feature specifications and constraints**
-- 3-field logging requirements
-- User experience principles
-- Technical performance requirements
-- Success metrics and validation criteria
-
-#### `session-log.md`
-**Record of key decisions and strategic pivots**
-- Original concept vs final implementation
-- Critical decision rationale
-- Architecture evolution through phases
-- Key learnings and insights
-
-### 🔄 **Session Management**
-
-#### `session-handoffs/`
-**Organized Claude session transition documents**
-- `README.md` - How to use session handoffs
-- `session-ender-template.md` - Reusable template for ending sessions
-- `2025-07-11-phase1-complete.md` - Ready handoff for next session
-- Future dated handoffs as project progresses
-
-#### `claude-collaboration-best-practices.md`
-**Complete guide for working with Claude on development projects**
-- Project organization standards
-- Session management protocols
-- Communication best practices
-- Technical workflow guidelines
-
-### 🧪 **Testing & Implementation**
-
-#### `alpha-testing-protocol.md`
-**Complete alpha user testing strategy**
-- User recruitment templates
-- Data collection methodology
-- Success criteria and failure indicators
-- Iteration and improvement protocols
-
-#### `supabase-implementation-plan.md`
-**Technical implementation details for Phase 1**
-- Database schema and authentication
-- Component architecture plans
-- Integration roadmap and timeline
-
-#### `GIT_WORKFLOW_GUIDE.md`
-**Complete guide for manual git operations**
-- What files to commit vs exclude
-- Commit message conventions
-- Emergency procedures for sensitive data
-- Quick workflow reference
-
-## 🎯 **Quick Reference**
-
-### **Current Priority:** Database Security Implementation
-1. **Security Setup:** Follow `supabase-security-implementation.md` guide (CRITICAL)
-2. **Database Security:** Enable Row Level Security and create profiles table
-3. **Code Updates:** Implement secure query patterns in application
-4. **Testing:** Verify users cannot access each other's data
-5. **Deploy:** Only after security verification complete
-
-### **Core Value Proposition**
-**"Log your workout in under 30 seconds. See your progress instantly."**
-*Now with cloud sync and cross-device persistence*
-
-### **Strategic Philosophy**  
-**"Brutal honesty and realistic takes over being led down paths of maybes."**
-- Simplicity beats sophistication for behavior change
-- Visual design drives engagement and retention
-- Cloud-first enables cross-device usage without complexity
-
-## 🔄 **Using This Documentation**
-
-### **For New Claude Sessions**
-**Use the latest session handoff:**
-```
-/Users/alain/Projects/athletic-tracker-mvp/project-docs/session-handoffs/2025-07-11-phase1-complete.md
-```
-
-Copy the entire content and paste as first message in new Claude session.
-
-### **For Ending Claude Sessions**
-1. **Copy:** `session-handoffs/session-ender-template.md`
-2. **Customize:** Replace [brackets] with actual session details
-3. **Save:** As new file: `session-handoffs/YYYY-MM-DD-description.md`
-4. **Use:** Customized version for next session handoff
-
-### **For Project Updates**
-When making changes or decisions:
-1. **Update relevant documentation files** immediately
-2. **Maintain decision trail** in session-log.md
-3. **Keep project-status.md current** with latest state
-4. **Create session handoff** when ending significant work
-
-## 📊 **File Maintenance**
-
-### **Update Frequency**
-- **project-status.md:** After every significant change
-- **mvp-requirements.md:** When specifications evolve
-- **session-log.md:** After every major decision or pivot
-- **session-handoffs/:** At the end of every productive session
-- **alpha-testing-protocol.md:** Before and after testing phases
-
-### **Version Control**
-All documentation files are:
-- ✅ **Stored locally** for Claude access
-- ✅ **Version controlled** in Git repository  
-- ✅ **Easily updatable** by Claude in future sessions
-- ✅ **Persistent** across development phases
-
-## 🎯 **Next Session Handoff**
-
-### **Ready-to-Use Handoff:**
-**File:** `session-handoffs/2025-07-11-phase1-complete.md`
-
-**Context Summary:** Phase 1 implementation complete with Supabase authentication and cloud database integration. Ready for user configuration and testing.
-
-### **Key Files to Reference:**
-1. **supabase-security-implementation.md** - CRITICAL: Database security requirements
-2. **database-status-reference.md** - Quick database query reference
-3. **project-status.md** - Current state (Phase 1 complete)
-4. **session-handoffs/2025-07-11-phase1-complete.md** - Complete context for continuation
-5. **claude-collaboration-best-practices.md** - How to work effectively with Claude
-6. **mvp-requirements.md** - What we're building and why
-7. **alpha-testing-protocol.md** - How to validate with users
-
-## 🛡️ **Emergency References**
-
-### **If Claude Misunderstands (at project root):**
-- **`EMERGENCY_CORRECTION.md`** - Quick fix for confused sessions
-- **`PROJECT_STATUS.md`** - Current state summary
-
-### **Configuration Guides:**
-- **`SUPABASE_SETUP.md`** - Complete Supabase configuration guide
-
-## 🚀 **Ready for Action**
-
-**Status:** Phase 1 implementation complete, all code committed to GitHub  
-**Next:** User configures Supabase, tests authentication and cloud storage  
-**Goal:** Validate cloud-synced 30-second logging drives behavior change
-
-**Project is positioned for real user validation of core hypothesis.** 💪
-
-## 📋 **Best Practices Summary**
-
-- **Always use session handoffs** for Claude transitions
-- **Update documentation** as project evolves
-- **Follow established workflow protocols** (approval before coding)
-- **Maintain user control** over project direction
-- **Document decisions** for future reference
-- **Test locally** before any deployments
-- **Keep project-status.md current** at all times
-
-**See `claude-collaboration-best-practices.md` for complete guidelines.**
+Session handoffs, the old status log and earlier process docs are in `archive/process-2025-2026/`.

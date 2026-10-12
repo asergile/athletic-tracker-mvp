@@ -1,39 +1,38 @@
-# PROJECT STATUS
+# Project status
 
-**Last verified:** August 11, 2026
-**Production status:** ✅ Live at [pbgb.ai](https://pbgb.ai)
+**Last updated:** 2026-10-12
+**Production:** live at [pbgb.ai](https://pbgb.ai)
 
-## Where things stand
+## What's live
 
-PBGB (Goal Buddy) is live and in active use. A batch of work — a Performance Journal calendar view, timezone fixes, and a History → Journal rebrand — recently shipped to production after being built but sitting undeployed for a while.
+- Workout logging: quick manual entry, plus voice logging with AI analysis of the workout
+- Goals and events with progress tracking, archive and unarchive
+- Onboarding: intro screens and first-goal creation
+- Performance Journal: calendar view of workout history
+- Sign-in with Google or email and password
 
-## What's built
+## Current phase
 
-- **Core logging:** manual 3-field workout entry, cloud sync
-- **Auth:** Google OAuth + email/password
-- **Goals & Events:** create events, set training goals, archive/unarchive
-- **Onboarding:** 3-screen carousel + first-goal creation flow
-- **Voice-to-text workout analysis:** speak a workout description, get it parsed into structured data
-- **Performance Journal:** calendar-based history view with timezone-correct dates
+Foundations for profiles and sharing. The spec is a PRD in the PBGB Claude Project.
 
-## Architecture
+## In flight
 
-- **Framework:** Next.js 14, App Router, TypeScript
-- **Backend:** Supabase (Postgres, Auth, Row Level Security)
-- **Styling:** Tailwind CSS
-- **AI:** Claude for workout analysis, AssemblyAI for voice transcription
-- **Deployment:** Vercel
+- Database security hardening: applied and verified.
+- Profile and identity schema changes: drafted in `supabase/migration-drafts/`, not applied.
+- Next: build the onboarding and backfill screen for the new profile fields, then apply the drafts.
 
-## Known follow-ups
+## Open decisions
 
-- Investigating an anomaly in one settings table despite active app usage
-- General branch/deployment hygiene cleanup pending
-- A couple of dependencies are past end-of-support and due for a bump
+- Open questions in the profiles and sharing PRD.
+- Pricing model (under consideration).
 
-## Where to look for more detail
+## Backlog
 
-- `project-docs/session-handoffs/` — chronological session log
-- `PROMPT_MANAGEMENT.md` (root) — voice-analysis prompt versioning system
-
----
-*Infrastructure-level detail (hosting IDs, table-level metrics, deployment topology) is intentionally not included in this file.*
+- Pinned items in `project-docs/pinned-items.md`: navigation at large text sizes, data caching between pages.
+- Cleanup:
+  - Dead files in `src/lib` (`database-functions.js`, `shared-events-helpers.js`, `*.backup`)
+  - Debug and test pages reachable in production (`/debug`, `/voice-test`, `/metrics-test`, `/card-playground`)
+  - Root-level check scripts and logs (`*.sh`, `*.log`)
+  - Unused `openai` dependency
+  - Upgrade `eslint` 8 (past end of support)
+  - Merge or retire the stale `main` branch

@@ -21,7 +21,7 @@
    - **Project API Key (anon public):** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
 
 ### 3. Configure Environment Variables
-1. In your project root: `/Users/alain/Projects/athletic-tracker-mvp/`
+1. Go to your project root.
 2. Create `.env.local` file:
    ```bash
    cp .env.example .env.local
