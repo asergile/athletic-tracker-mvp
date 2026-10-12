@@ -9,6 +9,7 @@ import { dbHelpers } from '@/lib/security/enhanced-db-helpers'
  * OnboardingCheck Component
  * 
  * Handles routing logic for the onboarding flow:
+ * - Sends users with an incomplete profile to /complete-profile
  * - Prevents completed users from accessing /onboarding routes
  * - Runs once per auth session to avoid redirect loops
  */
@@ -33,6 +34,21 @@ export default function OnboardingCheck() {
       // Already checked this session
       if (checked) {
         return
+      }
+
+      // Pages that must stay reachable with an incomplete profile
+      if (pathname === '/complete-profile' || pathname === '/reset-password') {
+        return
+      }
+
+      // Everyone needs a display name, username and date of birth (dashboard '/' checks this itself)
+      if (pathname !== '/') {
+        const { data: profile } = await dbHelpers.getMyProfile()
+        if (profile && !profile.is_complete) {
+          router.push('/complete-profile')
+          setChecked(true)
+          return
+        }
       }
 
       // Only check if user is trying to access onboarding routes

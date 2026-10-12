@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Clock, Target, Activity, User, LogOut, Route } from 'lucide-react'
+import { Plus, Clock, Target, Activity, User, LogOut, Route, Pencil } from 'lucide-react'
 import { useAuth } from '@/lib/AuthContext'
 import AuthScreen from '@/components/AuthScreen'
 import LoadingScreen from '@/components/LoadingScreen'
-import { dbHelpers } from '@/lib/security/enhanced-db-helpers'
+import { dbHelpers, USERNAME_PATTERN } from '@/lib/security/enhanced-db-helpers'
+import type { MyProfile } from '@/lib/security/enhanced-db-helpers'
 import FeedbackButton from '@/components/FeedbackButton'
 import StandardNavigation from '@/components/StandardNavigation'
 
@@ -68,6 +69,15 @@ export default function ProfilePage(): React.ReactElement {
   const [showAddNewActivity, setShowAddNewActivity] = useState<boolean>(false)
   const [newActivityName, setNewActivityName] = useState<string>('')
 
+  // Identity: display name and username
+  const [profile, setProfile] = useState<MyProfile | null>(null)
+  const [showEditProfile, setShowEditProfile] = useState<boolean>(false)
+  const [editDisplayName, setEditDisplayName] = useState<string>('')
+  const [editUsername, setEditUsername] = useState<string>('')
+  const [editProfileError, setEditProfileError] = useState<string>('')
+  const [isSavingProfile, setIsSavingProfile] = useState<boolean>(false)
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
+
   // Derived state
   const goalHours = Math.floor((userSettings?.weekly_goal_minutes || 300) / 60)
   const goalMinutes = (userSettings?.weekly_goal_minutes || 300) % 60
@@ -88,10 +98,15 @@ export default function ProfilePage(): React.ReactElement {
   const loadUserData = async (): Promise<void> => {
     setIsLoading(true)
     try {
-      const [settingsResponse, customTypesResponse] = await Promise.all([
+      const [settingsResponse, customTypesResponse, profileResponse] = await Promise.all([
         dbHelpers.getUserSettings(),
-        dbHelpers.getUserCustomWorkoutTypes()
+        dbHelpers.getUserCustomWorkoutTypes(),
+        dbHelpers.getMyProfile()
       ])
+
+      if (profileResponse.data) {
+        setProfile(profileResponse.data)
+      }
 
       if (settingsResponse.data) {
         setUserSettings(settingsResponse.data)
@@ -125,7 +140,16 @@ export default function ProfilePage(): React.ReactElement {
     setIsUpdatingGoal(true)
     try {
       const totalMinutes = tempGoalHours * 60 + tempGoalMinutes
-      await dbHelpers.updateUserSettings({ weekly_goal_minutes: totalMinutes })
+      if (totalMinutes <= 0) {
+        setError('Weekly goal must be more than 0 minutes.')
+        return
+      }
+      const { error: saveError } = await dbHelpers.updateUserSettings({ weekly_goal_minutes: totalMinutes })
+      if (saveError) {
+        setError(saveError.message || 'Failed to save goal')
+        return
+      }
+      setError('')
       const newSettings = { ...userSettings, weekly_goal_minutes: totalMinutes }
       setUserSettings(newSettings)
     } catch (error) {
@@ -244,6 +268,70 @@ export default function ProfilePage(): React.ReactElement {
     }
   }, [workoutTypes])
 
+  // Username can change once every 30 days (the database enforces this too)
+  const usernameLockedUntil: Date | null = (() => {
+    if (!profile?.username || !profile.username_changed_at) return null
+    const unlock = new Date(new Date(profile.username_changed_at).getTime() + 30 * 24 * 60 * 60 * 1000)
+    return unlock > new Date() ? unlock : null
+  })()
+
+  const openEditProfile = useCallback((): void => {
+    setEditDisplayName(profile?.display_name || '')
+    setEditUsername(profile?.username || '')
+    setEditProfileError('')
+    setUsernameStatus('idle')
+    setShowEditProfile(true)
+  }, [profile])
+
+  // Debounced availability check while editing a username
+  useEffect(() => {
+    if (!showEditProfile) return
+    const candidate = editUsername.trim()
+    if (!candidate || candidate.toLowerCase() === (profile?.username || '').toLowerCase()) {
+      setUsernameStatus('idle')
+      return
+    }
+    if (!USERNAME_PATTERN.test(candidate)) {
+      setUsernameStatus('invalid')
+      return
+    }
+    setUsernameStatus('checking')
+    const timer = setTimeout(async () => {
+      const { data } = await dbHelpers.isUsernameAvailable(candidate)
+      setUsernameStatus(data ? 'available' : 'taken')
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [editUsername, showEditProfile, profile])
+
+  const handleSaveProfile = useCallback(async (): Promise<void> => {
+    const name = editDisplayName.trim()
+    const newUsername = editUsername.trim()
+    if (!name) {
+      setEditProfileError('Enter a display name.')
+      return
+    }
+    const usernameChanged = newUsername !== (profile?.username || '')
+    if (usernameChanged && usernameStatus !== 'available') {
+      setEditProfileError(usernameStatus === 'taken' ? 'That username is taken.' : 'Choose an available username.')
+      return
+    }
+
+    setIsSavingProfile(true)
+    try {
+      const updates: { display_name: string; username?: string } = { display_name: name }
+      if (usernameChanged) updates.username = newUsername
+      const { data, error: saveError } = await dbHelpers.updateMyProfile(updates)
+      if (saveError) {
+        setEditProfileError(saveError.message)
+        return
+      }
+      if (data) setProfile(data)
+      setShowEditProfile(false)
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }, [editDisplayName, editUsername, profile, usernameStatus])
+
   const handleSignOut = useCallback(async (): Promise<void> => {
     try {
       const { error } = await signOut()
@@ -303,10 +391,20 @@ export default function ProfilePage(): React.ReactElement {
             <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
               <User className="w-8 h-8 text-white" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">{user?.email}</h2>
-              <p className="text-gray-600">PBGB User</p>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-bold text-gray-800 truncate">
+                {profile?.display_name || 'Your profile'}
+              </h2>
+              {profile?.username && <p className="text-gray-600 truncate">@{profile.username}</p>}
+              <p className="text-sm text-gray-400 truncate">Signed in as {user?.email}</p>
             </div>
+            <button
+              onClick={openEditProfile}
+              aria-label="Edit profile"
+              className="p-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <Pencil className="w-5 h-5" />
+            </button>
           </div>
           <button
             onClick={handleSignOut}
@@ -501,6 +599,85 @@ export default function ProfilePage(): React.ReactElement {
           )}
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white rounded-2xl p-6 m-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Edit profile</h3>
+
+            {editProfileError && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {editProfileError}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="editDisplayName" className="block text-gray-700 font-medium mb-2">Display name</label>
+                <input
+                  id="editDisplayName"
+                  type="text"
+                  value={editDisplayName}
+                  onChange={(e) => setEditDisplayName(e.target.value)}
+                  maxLength={50}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="editUsername" className="block text-gray-700 font-medium mb-2">Username</label>
+                <div className="flex items-center border border-gray-200 rounded-lg focus-within:border-purple-500">
+                  <span className="pl-3 text-gray-400">@</span>
+                  <input
+                    id="editUsername"
+                    type="text"
+                    value={editUsername}
+                    onChange={(e) => setEditUsername(e.target.value.replace(/\s/g, ''))}
+                    maxLength={20}
+                    disabled={!!usernameLockedUntil}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    className="w-full p-3 rounded-lg focus:outline-none disabled:bg-gray-50 disabled:text-gray-400"
+                  />
+                </div>
+                <p className={`mt-1 text-sm ${
+                  usernameStatus === 'available' ? 'text-green-600'
+                    : usernameStatus === 'taken' || usernameStatus === 'invalid' ? 'text-red-600'
+                    : 'text-gray-500'
+                }`}>
+                  {usernameLockedUntil
+                    ? `You can change your username again on ${usernameLockedUntil.toLocaleDateString()}.`
+                    : usernameStatus === 'checking' ? 'Checking…'
+                    : usernameStatus === 'available' ? 'Available'
+                    : usernameStatus === 'taken' ? 'Already taken'
+                    : '3–20 letters, numbers or underscores. You can change it once every 30 days.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => setShowEditProfile(false)}
+                className="flex-1 py-3 px-4 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveProfile}
+                disabled={isSavingProfile}
+                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                  isSavingProfile
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:shadow-lg'
+                }`}
+              >
+                {isSavingProfile ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add New Activity Modal */}
       {showAddNewActivity && (

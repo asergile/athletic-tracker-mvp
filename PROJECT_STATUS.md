@@ -18,8 +18,8 @@ Foundations for profiles and sharing. The spec is a PRD in the PBGB Claude Proje
 ## In flight
 
 - Database security hardening: applied and verified.
-- Profile and identity schema changes: drafted in `supabase/migration-drafts/`, not applied.
-- Next: build the onboarding and backfill screen for the new profile fields, then apply the drafts.
+- Profile and identity: database changes applied; username, display name and age-gate screens built on `staging`, awaiting testing on the test project.
+- Email copy removed from profiles (applied and verified).
 
 ## Open decisions
 
@@ -34,5 +34,5 @@ Foundations for profiles and sharing. The spec is a PRD in the PBGB Claude Proje
   - Debug and test pages reachable in production (`/debug`, `/voice-test`, `/metrics-test`, `/card-playground`)
   - Root-level check scripts and logs (`*.sh`, `*.log`)
   - Unused `openai` dependency
-  - Upgrade `eslint` 8 (past end of support)
+  - Set up ESLint (`npm run lint` prompts for first-time setup) and upgrade from `eslint` 8 (past end of support)
   - Merge or retire the stale `main` branch

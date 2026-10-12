@@ -23,6 +23,13 @@ export default function DashboardPage() {
       }
 
       try {
+        // Profile first: display name, username and date of birth are required
+        const { data: profile } = await dbHelpers.getMyProfile()
+        if (profile && !profile.is_complete) {
+          router.push('/complete-profile')
+          return
+        }
+
         const { data: settings } = await dbHelpers.getUserSettings()
         const completed = settings?.onboarding_completed ?? true
 

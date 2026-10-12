@@ -4,6 +4,31 @@
 
 ---
 
+## 📌 **PIN #3: Sign-in redirects send test-site logins to production**
+**Date:** October 12, 2026
+**Priority:** Medium (blocks real testing on the test project and previews)
+
+### **Issue:**
+Google sign-in and email signup confirmation on the test Vercel project (or any preview URL) return the user to the production Site URL instead of the site they started on. With the PKCE flow, the login likely fails or lands on production, so Google sign-in can't really be tested before promotion.
+
+### **Root cause:**
+`signInWithOAuth` and `signUp` in `src/lib/AuthContext.tsx` passed no redirect address, so Supabase falls back to the Site URL. Password reset already passes `window.location.origin`.
+
+### **Fix:**
+1. Code (done, uncommitted on 2026-10-12): `redirectTo: window.location.origin` on Google sign-in and `emailRedirectTo: window.location.origin` on signup. Safe to ship alone: an address not on Supabase's allow list falls back to the Site URL, same as before.
+2. Supabase → Authentication → URL Configuration: keep Site URL `https://pbgb.ai`; add Redirect URLs for `https://pbgb.ai/**`, `https://www.pbgb.ai/**`, the test project's Vercel domain `/**`, and optionally `https://*-<team-slug>.vercel.app/**` for previews.
+3. Test Google sign-in and a throwaway signup on the test project, then on pbgb.ai.
+
+### **Files affected:**
+- `src/lib/AuthContext.tsx`
+
+### **Status:**
+🟡 **PINNED** — code change made; testing pending.
+
+**Update 2026-10-12:** Redirect URL list already includes the test project (`athletic-tracker-mvp.vercel.app/**`), the staging alias and `www.pbgb.ai/**`. Apex `https://pbgb.ai/**` and `https://pbgb.io/**` added the same day. Remaining: ship the code change and test Google sign-in on the test project, then pbgb.ai. Previews optional.
+
+---
+
 ## 📌 **PIN #2: Data Caching - Eliminate Page Flash on Navigation**
 **Date:** September 30, 2025  
 **Priority:** Medium (UX Enhancement)

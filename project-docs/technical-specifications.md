@@ -85,6 +85,8 @@ Real values live in `.env.local` (not in git) and in Vercel project settings. `.
 
 Never put unapplied SQL in `supabase/migrations/`.
 
+Destructive statements (`DROP` of a column, table, policy or function) time out when Claude applies them through the Supabase connector. Alain runs those in the Supabase SQL Editor; Claude verifies afterward.
+
 ## Mobile and UX
 
 - Primary targets: iOS Safari and Android Chrome. Test mobile first.

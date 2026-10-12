@@ -189,6 +189,178 @@ async function updateUserProfile(profileData: any): Promise<DatabaseResponse<any
   }
 }
 
+// ===== IDENTITY: USERNAME, DISPLAY NAME, DATE OF BIRTH =====
+
+export interface MyProfile {
+  display_name: string | null
+  username: string | null
+  username_changed_at: string | null
+  has_date_of_birth: boolean
+  /** True when display name, username and date of birth are all set */
+  is_complete: boolean
+}
+
+export const USERNAME_PATTERN = /^[A-Za-z0-9_]{3,20}$/
+
+/**
+ * Get the signed-in user's public profile fields plus whether a date of birth is on file.
+ * The date of birth itself is never returned to the UI.
+ */
+async function getMyProfile(): Promise<DatabaseResponse<MyProfile>> {
+  try {
+    const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('Authentication required') }
+    }
+
+    const [profileRes, dobRes] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('display_name, username, username_changed_at')
+        .eq('id', user.id)
+        .maybeSingle(),
+      supabase
+        .from('private_profiles')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+    ])
+
+    if (profileRes.error || dobRes.error) {
+      console.error('Enhanced security - get my profile error:', {
+        code: profileRes.error?.code || dobRes.error?.code,
+        userId: user.id
+      })
+      return { data: null, error: new Error('Unable to retrieve profile') }
+    }
+
+    const displayName = profileRes.data?.display_name ?? null
+    const username = profileRes.data?.username ?? null
+    const hasDob = !!dobRes.data
+
+    return {
+      data: {
+        display_name: displayName,
+        username,
+        username_changed_at: profileRes.data?.username_changed_at ?? null,
+        has_date_of_birth: hasDob,
+        is_complete: !!displayName && !!username && hasDob
+      },
+      error: null
+    }
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'retrieving profile');
+    return { data: null, error: new Error(secureError) }
+  }
+}
+
+/**
+ * Update display name and/or username. Errors come back as user-readable messages.
+ */
+async function updateMyProfile(updates: { display_name?: string; username?: string }): Promise<DatabaseResponse<MyProfile>> {
+  try {
+    const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('Authentication required') }
+    }
+
+    const payload: { display_name?: string; username?: string } = {}
+    if (updates.display_name !== undefined) {
+      payload.display_name = validateProfileData({ display_name: updates.display_name.trim() }).display_name
+    }
+    if (updates.username !== undefined) {
+      const username = updates.username.trim()
+      if (!USERNAME_PATTERN.test(username)) {
+        return { data: null, error: new Error('Usernames are 3–20 letters, numbers or underscores.') }
+      }
+      payload.username = username
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(payload)
+      .eq('id', user.id)
+
+    if (error) {
+      const msg = error.message || ''
+      if (error.code === '23505') {
+        return { data: null, error: new Error('That username is taken.') }
+      }
+      if (msg.includes('username_change_limit')) {
+        return { data: null, error: new Error('You can change your username once every 30 days.') }
+      }
+      if (msg.includes('profiles_username_not_reserved')) {
+        return { data: null, error: new Error('That username is reserved. Try another.') }
+      }
+      if (msg.includes('profiles_username_format')) {
+        return { data: null, error: new Error('Usernames are 3–20 letters, numbers or underscores.') }
+      }
+      console.error('Enhanced security - update my profile error:', { code: error.code, userId: user.id })
+      return { data: null, error: new Error('Unable to update profile') }
+    }
+
+    return getMyProfile()
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'updating profile');
+    return { data: null, error: new Error(secureError) }
+  }
+}
+
+/**
+ * Check whether a username is free (the user's own current username counts as available).
+ */
+async function isUsernameAvailable(username: string): Promise<DatabaseResponse<boolean>> {
+  try {
+    const candidate = username.trim()
+    if (!USERNAME_PATTERN.test(candidate)) {
+      return { data: false, error: null }
+    }
+    const { data, error } = await supabase.rpc('username_available', { p_username: candidate })
+    if (error) {
+      return { data: null, error: new Error('Unable to check username') }
+    }
+    return { data: !!data, error: null }
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'checking username');
+    return { data: null, error: new Error(secureError) }
+  }
+}
+
+/**
+ * Save date of birth once (YYYY-MM-DD). The database rejects under-13 dates;
+ * that case returns the error message 'under_13' so the UI can show the block screen.
+ */
+async function saveDateOfBirth(dateOfBirth: string): Promise<DatabaseResponse<boolean>> {
+  try {
+    const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('Authentication required') }
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
+      return { data: null, error: new Error('Enter a valid date of birth.') }
+    }
+
+    const { error } = await supabase
+      .from('private_profiles')
+      .insert({ user_id: user.id, date_of_birth: dateOfBirth })
+
+    if (error) {
+      const msg = error.message || ''
+      if (msg.includes('under_13')) return { data: null, error: new Error('under_13') }
+      if (msg.includes('dob_in_future') || msg.includes('dob_invalid')) {
+        return { data: null, error: new Error('Enter a valid date of birth.') }
+      }
+      if (error.code === '23505') return { data: true, error: null } // already on file
+      console.error('Enhanced security - save DOB error:', { code: error.code, userId: user.id })
+      return { data: null, error: new Error('Unable to save date of birth') }
+    }
+    return { data: true, error: null }
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'saving date of birth');
+    return { data: null, error: new Error(secureError) }
+  }
+}
+
 // ===== SECURITY & AUDIT FUNCTIONS =====
 
 async function getUserAuditHistory(): Promise<DatabaseArrayResponse<any>> {
@@ -443,7 +615,12 @@ async function getUserSettings(): Promise<DatabaseResponse<any>> {
       weekly_workout_frequency: 4
     };
 
-    return { data: data || defaultSettings, error: null }
+    // The database stores weekly_goal_hours; the UI works in weekly_goal_minutes.
+    const settings = data
+      ? { ...data, weekly_goal_minutes: Math.round(Number(data.weekly_goal_hours ?? 5) * 60) }
+      : defaultSettings
+
+    return { data: settings, error: null }
   } catch (err: any) {
     const secureError = formatSecureError(err, 'retrieving user settings');
     return { data: null, error: new Error(secureError) }
@@ -457,12 +634,20 @@ async function updateUserSettings(settingsData: any): Promise<DatabaseResponse<a
       return { data: null, error: new Error('Authentication required') }
     }
 
+    // The UI sends weekly_goal_minutes; the database column is weekly_goal_hours.
+    const { weekly_goal_minutes, ...rest } = settingsData || {}
+    const row: Record<string, any> = { user_id: user.id, ...rest }
+    if (weekly_goal_minutes !== undefined) {
+      const hours = Math.round((Number(weekly_goal_minutes) / 60) * 100) / 100
+      if (!(hours > 0) || hours > 99.99) {
+        return { data: null, error: new Error('Weekly goal must be more than 0 minutes.') }
+      }
+      row.weekly_goal_hours = hours
+    }
+
     const { data, error } = await supabase
       .from('user_settings')
-      .upsert({
-        user_id: user.id,
-        ...settingsData
-      })
+      .upsert(row)
       .select()
       .single()
 
@@ -1048,6 +1233,10 @@ export const dbHelpers = {
   // Phase 5: Profile Management
   getUserProfile,
   updateUserProfile,
+  getMyProfile,
+  updateMyProfile,
+  isUsernameAvailable,
+  saveDateOfBirth,
   // Phase 6: Security & Audit
   getUserAuditHistory,
   checkSuspiciousActivity,

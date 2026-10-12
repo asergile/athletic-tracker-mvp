@@ -1,6 +1,7 @@
 -- PBGB migration 03: remove email from profiles
 -- Project: PBGB production Supabase database
--- Status: DRAFT for review. Not applied.
+-- Status: APPLIED 2026-10-12 by hand in the Supabase SQL Editor (destructive changes time out via the MCP tool).
+-- Verified afterward: email column gone, signup creates profile + settings, users can update own profile, workouts save.
 --
 -- Apply ONLY after the app no longer reads profiles.email:
 --   grep -rn "email" src/ app/ lib/ | grep -i profile

@@ -1,6 +1,8 @@
 -- PBGB migration 02: Phase 1 identity (PRD R1 username/display name, R2 age gate)
 -- Project: PBGB production Supabase database
--- Status: DRAFT for review. Not applied. Apply after 01_security_hardening.sql.
+-- Status: APPLIED 2026-10-12 (migration phase1_identity). Verified in a rolled-back transaction:
+--   signup, username rules, 30-day change limit, under-13 rejection, DOB immutability,
+--   owner-only DOB reads, anon blocked from username_available.
 
 begin;
 
@@ -140,6 +142,25 @@ $$;
 
 revoke execute on function private.is_minor(uuid) from public, anon;
 grant execute on function private.is_minor(uuid) to authenticated;
+
+-------------------------------------------------------------------------------
+-- Username availability check for the UI (added when applied).
+-- SECURITY DEFINER on purpose: it must see other users' usernames, but returns only a boolean.
+-------------------------------------------------------------------------------
+create or replace function public.username_available(p_username text)
+returns boolean language sql stable security definer set search_path = public, pg_temp as $$
+  select p_username ~ '^[A-Za-z0-9_]{3,20}$'
+    and lower(p_username) not in (
+      'admin','administrator','root','support','help','coach','coaches','parent','parents',
+      'pbgb','goalbuddy','goal_buddy','personalbest','api','app','www','mail','email',
+      'system','null','undefined','settings','login','signup','invite','invites','team',
+      'teams','official','staff','moderator','security','privacy','terms','safesport')
+    and not exists (
+      select 1 from public.profiles
+      where lower(username::text) = lower(p_username) and id <> auth.uid());
+$$;
+revoke execute on function public.username_available(text) from public, anon;
+grant execute on function public.username_available(text) to authenticated;
 
 commit;
 

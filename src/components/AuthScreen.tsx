@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '../lib/AuthContext'
+import { isAgeBlocked } from '../lib/age-gate'
+import AgeBlockedScreen from './AgeBlockedScreen'
 
 const AuthScreen: React.FC = () => {
   const [email, setEmail] = useState<string>('')
@@ -12,6 +14,12 @@ const AuthScreen: React.FC = () => {
   const [resetLoading, setResetLoading] = useState<boolean>(false)
 
   const { signUp, signIn, signInWithGoogle, resetPassword } = useAuth()
+  const [ageBlocked, setAgeBlocked] = useState<boolean>(false)
+
+  // Checked after mount so server and client render the same first frame
+  useEffect(() => {
+    setAgeBlocked(isAgeBlocked())
+  }, [])
 
   const handleCreateAccount = async (): Promise<void> => {
     if (!email || !password) {
@@ -118,6 +126,10 @@ const AuthScreen: React.FC = () => {
 
   const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>): void => {
     e.target.style.borderColor = '#e5e7eb'
+  }
+
+  if (ageBlocked) {
+    return <AgeBlockedScreen />
   }
 
   return (
