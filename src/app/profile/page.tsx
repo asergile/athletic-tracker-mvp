@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Clock, Target, Activity, User, LogOut, Route, Pencil } from 'lucide-react'
+import { Plus, Clock, Target, Activity, User, LogOut, Route, Pencil, KeyRound } from 'lucide-react'
 import { useAuth } from '@/lib/AuthContext'
 import AuthScreen from '@/components/AuthScreen'
 import LoadingScreen from '@/components/LoadingScreen'
@@ -46,7 +46,7 @@ const formatTime = (minutes: number): string => {
 };
 
 export default function ProfilePage(): React.ReactElement {
-  const { user, signOut, loading, isHydrated } = useAuth()
+  const { user, signOut, loading, isHydrated, updatePassword } = useAuth()
   const router = useRouter()
   
   // State
@@ -77,6 +77,12 @@ export default function ProfilePage(): React.ReactElement {
   const [editProfileError, setEditProfileError] = useState<string>('')
   const [isSavingProfile, setIsSavingProfile] = useState<boolean>(false)
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
+
+  // Password change (email-and-password accounts only)
+  const [newPassword, setNewPassword] = useState<string>('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState<string>('')
+  const [isSavingPassword, setIsSavingPassword] = useState<boolean>(false)
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null)
 
   // Derived state
   const goalHours = Math.floor((userSettings?.weekly_goal_minutes || 300) / 60)
@@ -332,6 +338,36 @@ export default function ProfilePage(): React.ReactElement {
     }
   }, [editDisplayName, editUsername, profile, usernameStatus])
 
+  // Google-only accounts have no PBGB password to change
+  const hasPasswordLogin: boolean =
+    !!user?.identities?.some((identity) => identity.provider === 'email') ||
+    !!(user?.app_metadata?.providers as string[] | undefined)?.includes('email')
+
+  const handleChangePassword = useCallback(async (): Promise<void> => {
+    setPasswordMessage(null)
+    if (newPassword.length < 6) {
+      setPasswordMessage({ type: 'error', text: 'Use at least 6 characters.' })
+      return
+    }
+    if (newPassword !== confirmNewPassword) {
+      setPasswordMessage({ type: 'error', text: 'Passwords don’t match.' })
+      return
+    }
+    setIsSavingPassword(true)
+    try {
+      const { error: pwError } = await updatePassword(newPassword)
+      if (pwError) {
+        setPasswordMessage({ type: 'error', text: pwError.message || 'Could not update password.' })
+        return
+      }
+      setNewPassword('')
+      setConfirmNewPassword('')
+      setPasswordMessage({ type: 'success', text: 'Password updated.' })
+    } finally {
+      setIsSavingPassword(false)
+    }
+  }, [newPassword, confirmNewPassword, updatePassword])
+
   const handleSignOut = useCallback(async (): Promise<void> => {
     try {
       const { error } = await signOut()
@@ -414,6 +450,56 @@ export default function ProfilePage(): React.ReactElement {
             <span>Sign Out</span>
           </button>
         </div>
+
+        {/* Change Password */}
+        {hasPasswordLogin && (
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
+              <KeyRound className="w-5 h-5 text-purple-600" />
+              <span>Change Password</span>
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="newPassword" className="block text-gray-700 font-medium mb-2">New password</label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="confirmNewPassword" className="block text-gray-700 font-medium mb-2">Confirm new password</label>
+                <input
+                  id="confirmNewPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                />
+              </div>
+              {passwordMessage && (
+                <p className={`text-sm ${passwordMessage.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
+                  {passwordMessage.text}
+                </p>
+              )}
+              <button
+                onClick={handleChangePassword}
+                disabled={isSavingPassword || !newPassword}
+                className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${
+                  isSavingPassword || !newPassword
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:shadow-lg'
+                }`}
+              >
+                {isSavingPassword ? 'Saving…' : 'Update Password'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Weekly Goal Settings */}
         <div className="bg-white rounded-xl p-6 shadow-lg">

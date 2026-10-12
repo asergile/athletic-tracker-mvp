@@ -63,12 +63,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Deletion failed' }, { status: 500 })
   }
 
-  // Cascading deletes fire the audit trigger, which copies the deleted rows into audit_log
-  // with no user_id. Remove those copies too so none of the child's data is left behind.
+  // Audit rows written without a user_id (signup-time inserts, and copies made by the
+  // cascading deletes) still hold the child's data in old_values/new_values. Remove them too.
   const { error: residueError } = await supabaseAdmin
     .from('audit_log')
     .delete()
-    .or(`old_values->>user_id.eq.${user.id},old_values->>id.eq.${user.id}`)
+    .or(
+      `old_values->>user_id.eq.${user.id},old_values->>id.eq.${user.id},` +
+        `new_values->>user_id.eq.${user.id},new_values->>id.eq.${user.id}`
+    )
   if (residueError) {
     console.error('Underage deletion: audit residue cleanup failed', { code: residueError.code })
   }

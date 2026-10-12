@@ -4,6 +4,28 @@
 
 ---
 
+## 📌 **PIN #4: Move auth emails off Supabase's built-in email service**
+**Date:** October 12, 2026
+**Priority:** High before inviting new users (signup confirmations and password resets will silently stop)
+
+### **Issue:**
+Signup confirmation and password-reset emails go through Supabase's default email service. It's intended for testing only and has very low hourly sending limits, so with real users some emails won't arrive. The invite flow in the profiles and sharing PRD will need a real provider anyway.
+
+### **Proposed solution:**
+1. Pick a transactional email provider (Resend or Postmark).
+2. Verify the sending domain (pbgb.ai) with SPF, DKIM and DMARC records.
+3. In Supabase → Authentication → SMTP settings, switch to the provider's SMTP credentials.
+4. Customize the confirmation and reset email templates with PBGB branding.
+5. Test signup confirmation and password reset end to end.
+
+### **Files affected:**
+- None in code. Supabase dashboard and DNS settings only.
+
+### **Status:**
+🟡 **PINNED** — do before inviting new users or starting the invite feature.
+
+---
+
 ## 📌 **PIN #3: Sign-in redirects send test-site logins to production**
 **Date:** October 12, 2026
 **Priority:** Medium (blocks real testing on the test project and previews)

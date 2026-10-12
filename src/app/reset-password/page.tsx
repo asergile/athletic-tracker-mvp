@@ -4,6 +4,31 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Activity, CheckCircle, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/lib/AuthContext'
+import { supabase } from '@/lib/supabase'
+import LoadingScreen from '@/components/LoadingScreen'
+
+// The reset email returns here with a one-time ?code=... (PKCE flow) or, in the older
+// implicit flow, #type=recovery. Capture it as early as possible: supabase-js strips
+// the code from the URL once it exchanges it for a session.
+const RECOVERY_FLAG = 'pbgb_password_recovery'
+if (typeof window !== 'undefined' && window.location.pathname === '/reset-password') {
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('code') || params.get('type') === 'recovery' || window.location.hash.includes('type=recovery')) {
+    try {
+      sessionStorage.setItem(RECOVERY_FLAG, '1')
+    } catch {
+      /* storage unavailable */
+    }
+  }
+}
+
+function arrivedFromResetLink(): boolean {
+  try {
+    return sessionStorage.getItem(RECOVERY_FLAG) === '1'
+  } catch {
+    return false
+  }
+}
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState('')
@@ -15,23 +40,40 @@ function ResetPasswordForm() {
   
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { updatePassword, user } = useAuth()
+  const { updatePassword, user, loading: authLoading } = useAuth()
+
+  // Supabase also signals a recovery sign-in directly
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        try {
+          sessionStorage.setItem(RECOVERY_FLAG, '1')
+        } catch {
+          /* storage unavailable */
+        }
+        setValidSession(true)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   useEffect(() => {
-    // Check if we have a valid password reset session
-    const checkSession = () => {
-      if (user && searchParams.get('type') === 'recovery') {
-        setValidSession(true)
-      } else if (user && !searchParams.get('type')) {
-        // User is logged in but not from a reset link - redirect to main app
-        router.push('/')
-      } else if (!user) {
-        setError('Invalid or expired reset link. Please request a new password reset.')
-      }
-    }
+    // Wait until the reset link's code has been exchanged for a session
+    if (authLoading) return
 
-    checkSession()
-  }, [user, searchParams, router])
+    const fromResetLink = arrivedFromResetLink() || searchParams.get('type') === 'recovery'
+    if (user && fromResetLink) {
+      setValidSession(true)
+      setError('')
+    } else if (user) {
+      // Signed in but didn't come from a reset link: change the password from Profile instead
+      router.push('/')
+    } else if (fromResetLink) {
+      setError('Invalid or expired reset link. Please request a new password reset.')
+    } else {
+      router.push('/')
+    }
+  }, [user, authLoading, searchParams, router])
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,6 +102,11 @@ function ResetPasswordForm() {
       if (result.error) {
         setError(result.error.message)
       } else {
+        try {
+          sessionStorage.removeItem(RECOVERY_FLAG)
+        } catch {
+          /* storage unavailable */
+        }
         setSuccess(true)
         // Redirect to main app after 3 seconds
         setTimeout(() => {
@@ -161,6 +208,12 @@ function ResetPasswordForm() {
         </div>
       </div>
     )
+  }
+
+
+  // Still exchanging the reset link for a session
+  if (!validSession) {
+    return <LoadingScreen />
   }
 
   return (
