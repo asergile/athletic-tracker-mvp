@@ -1,17 +1,12 @@
 import React from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
+import { BarChart3, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { CalendarDay, MonthSummary } from '../lib/activityGrid'
 import { feelStyle } from '../lib/feelColors'
 import { useHorizontalSwipe } from '../hooks/useHorizontalSwipe'
+import { formatTotalTime } from '../lib/utils'
 
 export const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-
-const formatTotalTime = (minutes: number): string => {
-  if (minutes < 60) return `${minutes}m`
-  const hours = Math.floor(minutes / 60)
-  const rest = minutes % 60
-  return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`
-}
 
 const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? '' : 's'}`
 
@@ -87,6 +82,17 @@ export const MonthNav: React.FC<{
   </div>
 )
 
+/** Opens the Trends page; shared by the month calendar and the week strip. */
+export const TrendsButton: React.FC = () => (
+  <Link
+    href="/trends"
+    className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/20 touch-manipulation"
+  >
+    <BarChart3 className="h-4 w-4" />
+    Trends
+  </Link>
+)
+
 export const WeekdayHeader: React.FC = () => (
   <div className="grid grid-cols-7 justify-items-center">
     {WEEKDAY_LABELS.map((label, i) => (
@@ -131,7 +137,7 @@ const MonthCalendar: React.FC<MonthCalendarProps> = ({
     >
       <div className="flex items-center justify-between">
         <MonthNav title={title} onPrev={onPrevMonth} onNext={onNextMonth} canNext={canNextMonth} />
-        {/* Trends button goes here in Phase 3 */}
+        <TrendsButton />
       </div>
 
       <p className="px-2 mb-3 text-sm text-purple-200">

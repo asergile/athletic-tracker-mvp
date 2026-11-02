@@ -42,6 +42,14 @@ export function formatDateTime(dateString: string): string {
   })
 }
 
+/** Total time for summaries: '45m', '2h', '8h 25m'. */
+export function formatTotalTime(minutes: number): string {
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  const rest = minutes % 60
+  return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`
+}
+
 export function getRatingText(rating: 1 | 2 | 3): string {
   const ratings = {
     1: 'Below Average',

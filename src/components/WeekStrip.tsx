@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react'
 import { ChevronDown } from 'lucide-react'
 import type { CalendarDay } from '../lib/activityGrid'
 import { useHorizontalSwipe } from '../hooks/useHorizontalSwipe'
-import { DayCell, MonthNav, WeekdayHeader } from './MonthCalendar'
+import { DayCell, MonthNav, TrendsButton, WeekdayHeader } from './MonthCalendar'
 
 interface WeekStripProps {
   title: string
@@ -65,7 +65,7 @@ const WeekStrip = forwardRef<HTMLDivElement, WeekStripProps>(function WeekStrip(
             canNext={canNextMonth}
             small
           />
-          {/* Trends button goes here in Phase 3 */}
+          <TrendsButton />
         </div>
         <WeekdayHeader />
         <div className="mt-2 grid grid-cols-7 justify-items-center">

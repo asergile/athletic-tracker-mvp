@@ -11,7 +11,7 @@ import FeedbackButton from '@/components/FeedbackButton'
 import StandardNavigation from '@/components/StandardNavigation'
 import MonthCalendar from '@/components/MonthCalendar'
 import WeekStrip from '@/components/WeekStrip'
-import { getLocalDateString } from '@/lib/utils'
+import { formatTotalTime, getLocalDateString } from '@/lib/utils'
 import {
   buildMonthCalendar,
   buildWeek,
@@ -64,19 +64,6 @@ interface EditingWorkout {
   workout_analysis?: string;
   type: string;
   distanceUnit?: string;
-}
-
-// Shared utilities (copied from AthleticTracker)
-const formatTime = (minutes: number): string => {
-  if (minutes < 60) {
-    return `${minutes}m`
-  }
-  const hours = Math.floor(minutes / 60)
-  const remainingMinutes = minutes % 60
-  if (remainingMinutes === 0) {
-    return `${hours}h`
-  }
-  return `${hours}h ${remainingMinutes}m`
 }
 
 const ratingLabels: Record<number, RatingConfig> = {
@@ -400,7 +387,7 @@ export default function HistoryPage(): React.ReactElement {
                   <div className="flex items-center space-x-6">
                     <div className="flex items-center space-x-2">
                       <Clock className="w-5 h-5 text-gray-600" />
-                      <span className="text-lg font-bold text-gray-900">{formatTime(workout.duration)}</span>
+                      <span className="text-lg font-bold text-gray-900">{formatTotalTime(workout.duration)}</span>
                     </div>
                     {workout.distance && (
                       <div className="flex items-center space-x-2">
