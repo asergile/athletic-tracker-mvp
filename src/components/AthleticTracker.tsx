@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Calendar, TrendingUp, Clock, Zap, Target, Activity, User, Flag, LogOut, BarChart3, Mic } from 'lucide-react';
+import { Plus, Calendar, Clock, Activity, User, Flag, LogOut, BarChart3, Mic } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -8,6 +8,8 @@ import { dbHelpers } from '../lib/security/enhanced-db-helpers';
 import FeedbackButton from './FeedbackButton';
 import VoiceRecorder from './VoiceRecorder';
 import StandardNavigation from './StandardNavigation';
+import ActivityGrid from './ActivityGrid';
+import { getLocalDateString } from '../lib/utils';
 
 // ===== TYPESCRIPT INTERFACES =====
 interface Workout {
@@ -35,18 +37,6 @@ interface UserSettings {
   distance_unit_swimming: string;
   weekly_goal_minutes: number;
   weekly_workout_frequency: number;
-}
-
-interface WeeklyStats {
-  count: number;
-  totalTime: number;
-  avgRating: number;
-}
-
-interface WeeklyGoalProgress {
-  current: string;
-  goal: string;
-  percentage: number;
 }
 
 interface RatingConfig {
@@ -118,9 +108,7 @@ interface LogWorkoutViewProps {
   showSuccess: boolean;
   error: string;
   setCurrentView: (view: ViewType) => void;
-  weeklyGoalProgress: WeeklyGoalProgress;
-  weeklyStats: WeeklyStats;
-  weeklyStreak: number;
+  workouts: Workout[];
   showDatePicker: boolean;
   distanceUnit: string;
   getDistanceUnitOptions: () => string[];
@@ -129,28 +117,6 @@ interface LogWorkoutViewProps {
   handleAddCustomType: (type: string) => Promise<void>;
   handleShowSuccessMessage: () => React.ReactElement;
 }
-
-// ===== HELPER FUNCTIONS =====
-const formatTime = (minutes: number): string => {
-  if (minutes < 60) {
-    return `${minutes}m`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  if (remainingMinutes === 0) {
-    return `${hours}h`;
-  }
-  return `${hours}h ${remainingMinutes}m`;
-};
-
-const getWeekStart = (date: Date): Date => {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);  // Normalize to midnight
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  return d;
-};
 
 // ===== CONSTANTS =====
 const defaultWorkoutTypes: string[] = ['Walking', 'Running', 'Swimming', 'Dryland'];
@@ -183,9 +149,7 @@ const LogWorkoutView: React.FC<LogWorkoutViewProps> = ({
   showSuccess,
   error,
   setCurrentView,
-  weeklyGoalProgress,
-  weeklyStats,
-  weeklyStreak,
+  workouts,
   showDatePicker,
   distanceUnit,
   getDistanceUnitOptions,
@@ -224,42 +188,8 @@ const LogWorkoutView: React.FC<LogWorkoutViewProps> = ({
           />
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
-            <Target className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400 mb-1 sm:mb-2" />
-            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyGoalProgress.current}</p>
-            <div className="w-full bg-gray-300 rounded-full h-1.5 sm:h-2 mt-1 mb-1 relative overflow-hidden">
-              <div 
-                className="bg-green-500 h-1.5 sm:h-2 rounded-full transition-all duration-500 absolute" 
-                style={{width: `${Math.min(weeklyGoalProgress.percentage, 100)}%`}}
-              ></div>
-              {weeklyGoalProgress.percentage > 100 && (
-                <div 
-                  className="bg-gradient-to-r from-yellow-400 to-amber-600 h-1.5 sm:h-2 rounded-full transition-all duration-500 absolute"
-                  style={{
-                    left: '100%',
-                    width: `${Math.min(weeklyGoalProgress.percentage - 100, 100)}%`,
-                    transform: 'translateX(-100%)'
-                  }}
-                ></div>
-              )}
-            </div>
-            <p className="text-purple-200 text-xs text-center truncate">
-              {weeklyGoalProgress.percentage}% Weekly Goal {weeklyGoalProgress.percentage >= 100 && "🎯"}
-            </p>
-          </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
-            <Zap className="w-4 h-4 sm:w-6 sm:h-6 text-purple-400 mb-1 sm:mb-2" />
-            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.count} workouts</p>
-            <p className="text-purple-200 text-xs sm:text-sm truncate">This Week</p>
-          </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
-            <TrendingUp className="w-4 h-4 sm:w-6 sm:h-6 text-green-400 mb-1 sm:mb-2" />
-            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStreak} weeks</p>
-            <p className="text-purple-200 text-xs sm:text-sm truncate">Weekly Streak</p>
-          </div>
-        </div>
+        {/* Activity Grid (replaces the weekly goal / this week / streak cards) */}
+        <ActivityGrid workouts={workouts} />
       </div>
 
       {/* Error Message */}
@@ -476,7 +406,7 @@ const AthleticTracker: React.FC = () => {
     type: '',
     duration: '',
     rating: null,
-    date: new Date().toISOString().split('T')[0],
+    date: getLocalDateString(),
     distance: '',
     distanceUnit: ''
   });
@@ -713,7 +643,7 @@ const AthleticTracker: React.FC = () => {
         type: '',
         duration: '',
         rating: null,
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalDateString(),
         distance: '',
         distanceUnit: ''
       });
@@ -1105,71 +1035,6 @@ const AthleticTracker: React.FC = () => {
     );
   }, [showVoiceExpanded, handleAddVoiceNote, handleSkipToHistory, handleCollapseVoiceModal, handleVoiceUpload, voiceError, isVoiceUploading]);
 
-  // ===== COMPUTED VALUES (FULLY TYPED) =====
-  const weeklyStats = useMemo((): WeeklyStats => {
-    console.log('[AthleticTracker] weeklyStats calculation - workouts.length:', workouts.length);
-    const now = new Date();
-    const weekStart = getWeekStart(now);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 6);
-    console.log('[AthleticTracker] Week range:', weekStart.toISOString().split('T')[0], 'to', weekEnd.toISOString().split('T')[0]);
-    
-    const thisWeekWorkouts = workouts.filter(workout => {
-      const workoutDate = new Date(workout.date + 'T00:00:00');
-      return workoutDate >= weekStart && workoutDate <= weekEnd;
-    });
-
-    console.log('[AthleticTracker] thisWeekWorkouts.length:', thisWeekWorkouts.length);
-    const totalTime = thisWeekWorkouts.reduce((sum, workout) => sum + workout.duration, 0);
-    const avgRating = thisWeekWorkouts.length > 0 
-      ? thisWeekWorkouts.reduce((sum, workout) => sum + workout.rating, 0) / thisWeekWorkouts.length 
-      : 0;
-
-    return {
-      count: thisWeekWorkouts.length,
-      totalTime,
-      avgRating
-    };
-  }, [workouts]);
-
-  const weeklyGoalProgress = useMemo((): WeeklyGoalProgress => {
-    const goalMinutes = userSettings?.weekly_goal_minutes || 300;
-    const currentMinutes = weeklyStats.totalTime;
-    const percentage = Math.round((currentMinutes / goalMinutes) * 100);
-    
-    return {
-      current: formatTime(currentMinutes),
-      goal: formatTime(goalMinutes),
-      percentage
-    };
-  }, [weeklyStats.totalTime, userSettings?.weekly_goal_minutes]);
-
-  const weeklyStreak = useMemo((): number => {
-    let streak = 0;
-    const now = new Date();
-    
-    for (let i = 0; i < 52; i++) {
-      const weekStart = new Date(now);
-      weekStart.setHours(0, 0, 0, 0);  // Normalize to midnight
-      weekStart.setDate(weekStart.getDate() - (i * 7) - (now.getDay() === 0 ? 6 : now.getDay() - 1));
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 6);
-      
-      const weekWorkouts = workouts.filter(workout => {
-        const workoutDate = new Date(workout.date + 'T00:00:00');
-        return workoutDate >= weekStart && workoutDate <= weekEnd;
-      });
-      
-      if (weekWorkouts.length > 0) {
-        streak++;
-      } else {
-        break;
-      }
-    }
-
-    return streak;
-  }, [workouts]);
-
   // ===== RENDER =====
   // Default: Log Workout View
   return (
@@ -1188,9 +1053,7 @@ const AthleticTracker: React.FC = () => {
         showSuccess={showSuccess}
         error={error}
         setCurrentView={setCurrentView}
-        weeklyGoalProgress={weeklyGoalProgress}
-        weeklyStats={weeklyStats}
-        weeklyStreak={weeklyStreak}
+        workouts={workouts}
         showDatePicker={showDatePicker}
         distanceUnit={distanceUnit}
         getDistanceUnitOptions={getDistanceUnitOptions}
