@@ -400,7 +400,7 @@ export default function ProfilePage(): React.ReactElement {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-900 via-cyan-900 to-slate-900">
       {/* Header */}
-      <div className="px-6 pt-12 pb-8">
+      <div className="px-4 pt-12 pb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Profile</h1>
@@ -412,7 +412,7 @@ export default function ProfilePage(): React.ReactElement {
 
       {/* Error Message */}
       {error && (
-        <div className="px-6 mb-4">
+        <div className="px-4 mb-4">
           <div className="bg-red-500 bg-opacity-10 border border-red-500 border-opacity-30 rounded-xl p-4">
             <p className="text-red-200">{error}</p>
           </div>
@@ -420,7 +420,7 @@ export default function ProfilePage(): React.ReactElement {
       )}
 
       {/* Content */}
-      <div className="px-6 pb-8 space-y-6">
+      <div className="px-4 pb-8 space-y-6">
         {/* User Info */}
         <div className="bg-white rounded-xl p-6 shadow-lg">
           <div className="flex items-center space-x-4 mb-4">

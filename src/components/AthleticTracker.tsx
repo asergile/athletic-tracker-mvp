@@ -164,7 +164,7 @@ const LogWorkoutView: React.FC<LogWorkoutViewProps> = ({
       {showSuccess && handleShowSuccessMessage()}
 
       {/* Header */}
-      <div className="px-6 pt-12 pb-8">
+      <div className="px-4 pt-12 pb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Log Workout</h1>
@@ -194,7 +194,7 @@ const LogWorkoutView: React.FC<LogWorkoutViewProps> = ({
 
       {/* Error Message */}
       {error && (
-        <div className="px-6 mb-4">
+        <div className="px-4 mb-4">
           <div className="bg-red-500 bg-opacity-10 border border-red-500 border-opacity-30 rounded-xl p-4">
             <p className="text-red-200">{error}</p>
           </div>
@@ -202,7 +202,7 @@ const LogWorkoutView: React.FC<LogWorkoutViewProps> = ({
       )}
 
       {/* Form */}
-      <div className="px-6 pb-8">
+      <div className="px-4 pb-8">
         <div className="bg-white rounded-3xl p-6 shadow-2xl">
           {/* Workout Type */}
           <div className="mb-8">

@@ -385,7 +385,7 @@ const WeeklyWorkoutView: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header with Standardized 5-Icon Navigation */}
-      <div className="px-6 pt-12 pb-8">
+      <div className="px-4 pt-12 pb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Weekly View</h1>
@@ -491,7 +491,7 @@ const WeeklyWorkoutView: React.FC = () => {
       </div>
 
       {/* Workout Cards */}
-      <div className="px-6 pb-8">
+      <div className="px-4 pb-8">
         {weekDays.map((day: WeekDay) => {
           const dayWorkouts: Workout[] = workoutsByDay[day.date] || [];
           

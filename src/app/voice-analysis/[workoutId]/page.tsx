@@ -572,7 +572,7 @@ export default function VoiceAnalysisPage() {
       onTouchEnd={handleTouchEnd}
     >
       {/* Header with Full Navigation */}
-      <div className="px-6 pt-12 pb-8">
+      <div className="px-4 pt-12 pb-8">
         {/* Top row - Title and StandardNavigation */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -672,7 +672,7 @@ export default function VoiceAnalysisPage() {
       </div>
 
       {/* Content */}
-      <div className="px-6 pb-8">
+      <div className="px-4 pb-8">
         {error && (
           <div className="bg-red-500 bg-opacity-10 border border-red-500 border-opacity-30 rounded-xl p-4 mb-6">
             <p className="text-red-200">{error}</p>
