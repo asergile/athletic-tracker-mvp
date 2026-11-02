@@ -19,7 +19,7 @@ interface ActivityGridProps {
 }
 
 const Square: React.FC<{ day: GridDay }> = ({ day }) => {
-  const base = 'h-[11px] w-[11px] flex-none rounded-[2px]';
+  const base = 'h-[14px] w-[14px] flex-none rounded-[3px]';
   const todayRing = day.isToday ? ' ring-2 ring-white ring-offset-1 ring-offset-blue-900' : '';
   const [first, second] = day.ratings;
 
@@ -73,13 +73,14 @@ const ActivityGrid: React.FC<ActivityGridProps> = ({ workouts }) => {
           openHistory();
         }
       }}
-      className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 mb-8 cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+      className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
     >
       <div className="flex items-start gap-1">
         {/* Day labels stay fixed while the weeks scroll */}
-        <div className="flex flex-none flex-col gap-0.5 pt-4">
+        {/* pt-[17px] = month label row (14px) + 3px gap, so labels line up with the rows */}
+        <div className="flex flex-none flex-col gap-[3px] pt-[17px]">
           {DAY_LABELS.map((label, i) => (
-            <div key={i} className="h-[11px] w-3 text-[9px] leading-[11px] text-blue-200">
+            <div key={i} className="h-[14px] w-3 text-[10px] leading-[14px] text-blue-200">
               {label}
             </div>
           ))}
@@ -88,12 +89,12 @@ const ActivityGrid: React.FC<ActivityGridProps> = ({ workouts }) => {
         {/* p-[3px] / -m-[3px] keeps today's ring from being clipped by the scroll box */}
         <div
           ref={scrollRef}
-          className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto overscroll-x-contain p-[3px] -m-[3px]"
+          className="flex min-w-0 flex-1 gap-[3px] overflow-x-auto overscroll-x-contain p-[3px] -m-[3px]"
           style={{ scrollbarWidth: 'none' }}
         >
           {weeks.map((week) => (
-            <div key={week.start} className="flex flex-none flex-col gap-0.5">
-              <div className="h-3.5 w-[11px] whitespace-nowrap text-[10px] leading-[12px] text-blue-200">
+            <div key={week.start} className="flex flex-none flex-col gap-[3px]">
+              <div className="h-3.5 w-[14px] whitespace-nowrap text-[10px] leading-[12px] text-blue-200">
                 {week.monthLabel}
               </div>
               {week.days.map((day) => (

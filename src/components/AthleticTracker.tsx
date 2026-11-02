@@ -164,7 +164,7 @@ const LogWorkoutView: React.FC<LogWorkoutViewProps> = ({
       {showSuccess && handleShowSuccessMessage()}
 
       {/* Header */}
-      <div className="px-4 pt-12 pb-8">
+      <div className="px-4 pt-12 pb-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Log Workout</h1>
