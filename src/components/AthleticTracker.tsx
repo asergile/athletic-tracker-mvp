@@ -9,7 +9,7 @@ import FeedbackButton from './FeedbackButton';
 import VoiceRecorder from './VoiceRecorder';
 import StandardNavigation from './StandardNavigation';
 import ActivityGrid from './ActivityGrid';
-import { getLocalDateString } from '../lib/utils';
+import { getLocalDateString, parseDateParam } from '../lib/utils';
 
 // ===== TYPESCRIPT INTERFACES =====
 interface Workout {
@@ -469,6 +469,14 @@ const AthleticTracker: React.FC = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const shouldShowDatePicker = urlParams.get('showDatePicker') === 'true';
       setShowDatePicker(shouldShowDatePicker);
+      // History's "Add workout for <date>" passes the day to pre-set. Invalid or
+      // future dates are ignored, so the default stays today.
+      if (shouldShowDatePicker) {
+        const presetDate = parseDateParam(urlParams.get('date'), getLocalDateString());
+        if (presetDate) {
+          setCurrentWorkout(prev => ({ ...prev, date: presetDate }));
+        }
+      }
     }
   }, []);
 

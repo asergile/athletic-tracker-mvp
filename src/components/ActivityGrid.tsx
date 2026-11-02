@@ -2,13 +2,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { buildActivityGrid, GridDay, GridWorkout } from '../lib/activityGrid';
 import { getLocalDateString } from '../lib/utils';
-
-// Feel colors (1 Struggled, 2 Solid, 3 Great). Feel is NOT intensity.
-const FEEL_HEX: Record<number, string> = {
-  1: '#ef4444', // red-500
-  2: '#eab308', // yellow-500
-  3: '#22c55e'  // green-500
-};
+import { feelStyle } from '../lib/feelColors';
 
 const DAY_LABELS = ['M', '', 'W', '', 'F', '', ''];
 
@@ -21,20 +15,11 @@ interface ActivityGridProps {
 const Square: React.FC<{ day: GridDay }> = ({ day }) => {
   const base = 'h-[14px] w-[14px] flex-none rounded-[3px]';
   const todayRing = day.isToday ? ' ring-2 ring-white ring-offset-1 ring-offset-blue-900' : '';
-  const [first, second] = day.ratings;
+  const style = feelStyle(day.ratings);
 
-  let style: React.CSSProperties | undefined;
-  let fill: string;
-  if (first && second) {
-    fill = '';
-    style = { background: `linear-gradient(135deg, ${FEEL_HEX[first]} 50%, ${FEEL_HEX[second]} 50%)` };
-  } else if (first) {
-    fill = '';
-    style = { backgroundColor: FEEL_HEX[first] };
-  } else if (day.isFuture) {
-    fill = ' border border-white/[0.08]';
-  } else {
-    fill = ' bg-white/[0.08]';
+  let fill = '';
+  if (!style) {
+    fill = day.isFuture ? ' border border-white/[0.08]' : ' bg-white/[0.08]';
   }
 
   return <div className={`${base}${fill}${todayRing}`} style={style} />;

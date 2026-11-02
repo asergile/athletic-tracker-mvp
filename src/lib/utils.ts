@@ -88,6 +88,30 @@ export function getLocalDateString(date: Date = new Date()): string {
   return `${year}-${month}-${day}`
 }
 
+/**
+ * Validate a date passed in the URL (e.g. History's "Add workout for <date>").
+ * Returns the date when it is a real calendar date in 'YYYY-MM-DD' form and not
+ * after `today` (also 'YYYY-MM-DD', from getLocalDateString()); otherwise null.
+ * String comparison is safe because both are zero-padded YYYY-MM-DD.
+ */
+export function parseDateParam(value: string | null | undefined, today: string): string | null {
+  if (!value) return null
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!m) return null
+  const year = Number(m[1])
+  const month = Number(m[2])
+  const day = Number(m[3])
+  const check = new Date(Date.UTC(year, month - 1, day))
+  if (
+    check.getUTCFullYear() !== year ||
+    check.getUTCMonth() !== month - 1 ||
+    check.getUTCDate() !== day
+  ) {
+    return null // e.g. 2026-02-30
+  }
+  return value <= today ? value : null
+}
+
 export function formatAttendanceRate(attended: number, planned: number): string {
   if (planned === 0) return '0%'
   const rate = Math.round((attended / planned) * 100)

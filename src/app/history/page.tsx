@@ -1,15 +1,35 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Clock, Activity, Target, Mic, FileText, Edit, ChevronLeft, Flag, User, Calendar, BarChart3, Plus, Route } from 'lucide-react'
+import { Clock, Mic, FileText, Edit, Plus, Route } from 'lucide-react'
 import { useAuth } from '@/lib/AuthContext'
 import AuthScreen from '@/components/AuthScreen'
 import LoadingScreen from '@/components/LoadingScreen'
 import { dbHelpers } from '@/lib/security/enhanced-db-helpers'
 import FeedbackButton from '@/components/FeedbackButton'
 import StandardNavigation from '@/components/StandardNavigation'
+import MonthCalendar from '@/components/MonthCalendar'
+import WeekStrip from '@/components/WeekStrip'
+import { getLocalDateString } from '@/lib/utils'
+import {
+  buildMonthCalendar,
+  buildWeek,
+  groupRatingsByDate,
+  monthName,
+  monthOf,
+  monthTitle,
+  shiftDays,
+  shiftMonth,
+  shortDateLabel,
+  summarizeMonth,
+  weekStartOf
+} from '@/lib/activityGrid'
+
+// getUserWorkouts() returns at most this many rows (newest first).
+const WORKOUT_LOAD_LIMIT = 500
+// Used to place a tapped day's cards below the week strip before it has rendered.
+const STRIP_HEIGHT_ESTIMATE = 150
 
 // TypeScript Interfaces
 interface Workout {
@@ -29,12 +49,6 @@ interface RatingConfig {
   label: string;
   emoji: string;
   color: string;
-}
-
-interface WeeklyStats {
-  count: number;
-  totalTime: number;
-  avgRating: number;
 }
 
 interface EditingWorkout {
@@ -65,15 +79,6 @@ const formatTime = (minutes: number): string => {
   return `${hours}h ${remainingMinutes}m`
 }
 
-const getWeekStart = (date: Date): Date => {
-  const d = new Date(date)
-  d.setHours(0, 0, 0, 0)  // Normalize to midnight
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-  d.setDate(diff)
-  return d
-}
-
 const ratingLabels: Record<number, RatingConfig> = {
   1: { label: 'Struggled', emoji: '😤', color: 'from-red-500 to-red-600' },
   2: { label: 'Solid', emoji: '😊', color: 'from-yellow-500 to-orange-500' },
@@ -90,6 +95,17 @@ export default function HistoryPage(): React.ReactElement {
   const [error, setError] = useState<string>('')
   const [editingWorkout, setEditingWorkout] = useState<EditingWorkout | null>(null)
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
+
+  // Month calendar state (all dates are local 'YYYY-MM-DD' strings)
+  const today = useMemo(() => getLocalDateString(), [])
+  const currentMonth = monthOf(today)
+  const [month, setMonth] = useState<string>(currentMonth)
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [collapsed, setCollapsed] = useState<boolean>(false)
+  const [stripWeek, setStripWeek] = useState<string>(() => weekStartOf(today))
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const stripRef = useRef<HTMLDivElement>(null)
+  const pendingScrollRef = useRef<string | null>(null)
   
   // Load data
   useEffect(() => {
@@ -113,29 +129,89 @@ export default function HistoryPage(): React.ReactElement {
     }
   }
   
-  // Calculate weekly stats
-  const weeklyStats = React.useMemo<WeeklyStats>(() => {
-    const now = new Date()
-    const weekStart = getWeekStart(now)
-    const weekEnd = new Date(weekStart)
-    weekEnd.setDate(weekEnd.getDate() + 6)
-    
-    const thisWeekWorkouts = workouts.filter((workout: Workout) => {
-      const workoutDate = new Date(workout.date + 'T00:00:00')
-      return workoutDate >= weekStart && workoutDate <= weekEnd
-    })
+  // ===== Month calendar data =====
+  const ratingsByDate = useMemo(() => groupRatingsByDate(workouts), [workouts])
+  const monthWeeks = useMemo(() => buildMonthCalendar(month, ratingsByDate, today), [month, ratingsByDate, today])
+  const monthSummary = useMemo(() => summarizeMonth(workouts, month), [workouts, month])
+  // Already newest first: getUserWorkouts orders by date desc, then created_at desc.
+  const monthWorkouts = useMemo(() => workouts.filter(w => monthOf(w.date) === month), [workouts, month])
+  const stripDays = useMemo(() => buildWeek(stripWeek, ratingsByDate, today), [stripWeek, ratingsByDate, today])
 
-    const totalTime = thisWeekWorkouts.reduce((sum: number, workout: Workout) => sum + workout.duration, 0)
-    const avgRating = thisWeekWorkouts.length > 0 
-      ? thisWeekWorkouts.reduce((sum: number, workout: Workout) => sum + workout.rating, 0) / thisWeekWorkouts.length 
-      : 0
+  const canNextMonth = month < currentMonth
+  const canNextWeek = stripWeek < weekStartOf(today)
+  const previousMonth = shiftMonth(month, -1)
+  const oldestLoadedDate = workouts.length > 0 ? workouts[workouts.length - 1].date : null
+  const hasOlderWorkouts = workouts.some(w => w.date < `${month}-01`)
+  // At the load limit, the oldest loaded month and anything before it may be missing workouts.
+  const monthMayBeIncomplete =
+    workouts.length >= WORKOUT_LOAD_LIMIT && !!oldestLoadedDate && month <= monthOf(oldestLoadedDate)
 
-    return {
-      count: thisWeekWorkouts.length,
-      totalTime,
-      avgRating
+  const addWorkoutHref = selectedDate
+    ? `/?showDatePicker=true&date=${selectedDate}`
+    : '/?showDatePicker=true'
+  const addWorkoutLabel = selectedDate ? `Add workout for ${shortDateLabel(selectedDate)}` : 'Add Workout'
+
+  // ===== Month / day navigation =====
+  const goToMonth = (next: string): void => {
+    setMonth(next)
+    setSelectedDate(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleSelectDate = (date: string): void => {
+    if (date === selectedDate) {
+      setSelectedDate(null)
+      return
     }
-  }, [workouts])
+    if (monthOf(date) !== month) setMonth(monthOf(date)) // a dimmed day in the week strip
+    setSelectedDate(date)
+    setStripWeek(weekStartOf(date))
+    pendingScrollRef.current = date
+  }
+
+  // Scroll to the selected day's first card once the list for that month has rendered.
+  useEffect(() => {
+    const date = pendingScrollRef.current
+    if (!date) return
+    pendingScrollRef.current = null
+    const card = document.querySelector(`[data-first-of-day="${date}"]`)
+    if (!card) return // blank day: ring only, no scroll
+    const offset = (stripRef.current?.offsetHeight ?? STRIP_HEIGHT_ESTIMATE) + 16
+    window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' })
+  }, [selectedDate, month])
+
+  // Collapse to the week strip once the month calendar has scrolled off the top.
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([entry]) => {
+      setCollapsed(!entry.isIntersecting && entry.boundingClientRect.top < 0)
+    })
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [loading, isLoading, isHydrated, user])
+
+  // With no day selected, the strip follows the week of the top card on screen.
+  useEffect(() => {
+    if (!collapsed || selectedDate) return
+    let frame = 0
+    const follow = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        const stripBottom = stripRef.current?.getBoundingClientRect().bottom ?? STRIP_HEIGHT_ESTIMATE
+        const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-workout-date]'))
+        const top = cards.find(c => c.getBoundingClientRect().bottom > stripBottom)
+        const date = top?.dataset.workoutDate
+        if (date) setStripWeek(weekStartOf(date))
+      })
+    }
+    follow()
+    window.addEventListener('scroll', follow, { passive: true })
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', follow)
+    }
+  }, [collapsed, selectedDate])
   
   // Voice analysis navigation
   const handleVoiceAnalysis = (workoutId: string): void => {
@@ -204,7 +280,7 @@ export default function HistoryPage(): React.ReactElement {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header with Standardized 5-Icon Navigation */}
-      <div className="px-4 pt-12 pb-8">
+      <div className="px-4 pt-12 pb-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Workout History</h1>
@@ -213,24 +289,19 @@ export default function HistoryPage(): React.ReactElement {
           <StandardNavigation currentPage="history" />
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
-            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400 mb-1 sm:mb-2" />
-            <p className="text-lg sm:text-2xl font-bold text-white">{formatTime(weeklyStats.totalTime)}</p>
-            <p className="text-purple-200 text-xs sm:text-sm truncate">Total Time</p>
-          </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
-            <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-green-400 mb-1 sm:mb-2" />
-            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.count} workouts</p>
-            <p className="text-purple-200 text-xs sm:text-sm truncate">This Week</p>
-          </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-3 sm:p-4 min-h-[100px] sm:min-h-[120px] flex flex-col justify-center items-center text-center">
-            <Target className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400 mb-1 sm:mb-2" />
-            <p className="text-lg sm:text-2xl font-bold text-white">{weeklyStats.avgRating.toFixed(1)}</p>
-            <p className="text-purple-200 text-xs sm:text-sm truncate">Avg Feel</p>
-          </div>
-        </div>
+        {/* Month calendar (replaces the 3 stat cards) */}
+        <MonthCalendar
+          title={monthTitle(month)}
+          weeks={monthWeeks}
+          summary={monthSummary}
+          selectedDate={selectedDate}
+          onSelectDate={handleSelectDate}
+          onPrevMonth={() => goToMonth(previousMonth)}
+          onNextMonth={() => goToMonth(shiftMonth(month, 1))}
+          canNextMonth={canNextMonth}
+        />
+        {/* When this scrolls off the top, the calendar collapses to the week strip */}
+        <div ref={sentinelRef} className="h-px" aria-hidden="true" />
       </div>
 
       {/* Error Message */}
@@ -247,18 +318,20 @@ export default function HistoryPage(): React.ReactElement {
         {/* Add Workout Button */}
         <div className="mb-6">
           <button
-            onClick={() => router.push('/?showDatePicker=true')}
+            onClick={() => router.push(addWorkoutHref)}
             className="w-full flex items-center justify-center space-x-2 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
           >
             <Plus className="w-5 h-5" />
-            <span>Add Workout</span>
+            <span>{addWorkoutLabel}</span>
           </button>
         </div>
         
         {/* Workout List */}
         <div className="space-y-4">
-          {workouts.map((workout: Workout) => {
+          {monthWorkouts.map((workout: Workout, index: number) => {
             const ratingConfig: RatingConfig = ratingLabels[workout.rating]
+            const isFirstOfDay = index === 0 || monthWorkouts[index - 1].date !== workout.date
+            const isSelectedDay = workout.date === selectedDate
             
             const dateParts = workout.date.split('-')
             const date = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]))
@@ -284,7 +357,14 @@ export default function HistoryPage(): React.ReactElement {
             const hasVoiceData = workout.voice_transcription || workout.workout_analysis
 
             return (
-              <div key={workout.id} className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-200 relative">
+              <div
+                key={workout.id}
+                data-workout-date={workout.date}
+                data-first-of-day={isFirstOfDay ? workout.date : undefined}
+                className={`bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-200 relative${
+                  isSelectedDay ? ' outline outline-2 outline-offset-2 outline-white' : ''
+                }`}
+              >
                 {/* Action Buttons - Bigger and better positioned */}
                 <div className="absolute top-4 right-4 flex space-x-3 z-10">
                   <button
@@ -344,13 +424,34 @@ export default function HistoryPage(): React.ReactElement {
           })}
         </div>
 
+        {workouts.length > 0 && monthWorkouts.length === 0 && (
+          <p className="text-center text-purple-200 text-sm py-8">No workouts in {monthName(month)}.</p>
+        )}
+
+        {monthMayBeIncomplete && (
+          <p className="text-center text-purple-300 text-xs pt-4">
+            Only your most recent {WORKOUT_LOAD_LIMIT} workouts are loaded, so this month may be incomplete.
+          </p>
+        )}
+
+        {hasOlderWorkouts && (
+          <div className="text-center pt-6">
+            <button
+              onClick={() => goToMonth(previousMonth)}
+              className="text-sm font-medium text-purple-200 hover:text-white py-2 px-4"
+            >
+              See {monthName(previousMonth)} ›
+            </button>
+          </div>
+        )}
+
         {workouts.length === 0 && (
           <div className="text-center py-12">
             <div className="text-4xl sm:text-6xl mb-4">💪</div>
             <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Start Your Journey</h3>
             <p className="text-purple-200 text-sm sm:text-base px-4 mb-6">Log your first workout to see your progress here</p>
             <button
-              onClick={() => router.push('/?showDatePicker=true')}
+              onClick={() => router.push(addWorkoutHref)}
               className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
             >
               <Plus className="w-5 h-5" />
@@ -499,6 +600,25 @@ export default function HistoryPage(): React.ReactElement {
         </div>
       )}
       
+      {/* Collapsed week strip (B2.4), shown while the month calendar is scrolled away */}
+      {collapsed && (
+        <WeekStrip
+          ref={stripRef}
+          title={monthTitle(month)}
+          month={month}
+          days={stripDays}
+          selectedDate={selectedDate}
+          onSelectDate={handleSelectDate}
+          onPrevMonth={() => goToMonth(previousMonth)}
+          onNextMonth={() => goToMonth(shiftMonth(month, 1))}
+          canNextMonth={canNextMonth}
+          onPrevWeek={() => setStripWeek(shiftDays(stripWeek, -7))}
+          onNextWeek={() => setStripWeek(shiftDays(stripWeek, 7))}
+          canNextWeek={canNextWeek}
+          onExpand={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        />
+      )}
+
       <FeedbackButton />
     </div>
   )
