@@ -65,7 +65,7 @@ const ActivityCard: React.FC<{ activity: ActivityTrend; kind: PeriodKind }> = ({
 
   return (
     <div className="flex w-full flex-col gap-2 rounded-2xl bg-white/10 px-5 py-4 backdrop-blur-sm">
-      <span className="text-[13px] font-bold uppercase tracking-[0.06em] text-purple-200">{activity.name}</span>
+      <span className="text-[13px] font-bold uppercase tracking-[0.06em] text-fuchsia-200">{activity.name}</span>
       <div className="flex items-end gap-1.5">
         <span className="text-[32px] font-bold leading-[38px] text-white">
           {hasDistance
@@ -73,12 +73,12 @@ const ActivityCard: React.FC<{ activity: ActivityTrend; kind: PeriodKind }> = ({
             : formatTotalTime(activity.minutes)}
         </span>
         {hasDistance && (
-          <span className="pb-0.5 text-base font-semibold text-purple-200">{unitLabel(activity.unit!)}</span>
+          <span className="pb-0.5 text-base font-semibold text-fuchsia-200">{unitLabel(activity.unit!)}</span>
         )}
       </div>
-      <span className="text-sm text-purple-200">{details.join(' · ')}</span>
+      <span className="text-sm text-fuchsia-200">{details.join(' · ')}</span>
       <div className="h-px w-full bg-white/[0.12]" />
-      <span className="text-[13px] text-purple-300">{previousText(activity, kind)}</span>
+      <span className="text-[13px] text-fuchsia-300">{previousText(activity, kind)}</span>
     </div>
   )
 }
@@ -95,13 +95,13 @@ const FeelCard: React.FC<{ feel: FeelCounts }> = ({ feel }) => {
 
   return (
     <div className="flex w-full flex-col gap-2 rounded-2xl bg-white/10 px-5 py-4 backdrop-blur-sm">
-      <span className="text-[13px] font-bold uppercase tracking-[0.06em] text-purple-200">How workouts went</span>
+      <span className="text-[13px] font-bold uppercase tracking-[0.06em] text-fuchsia-200">How workouts went</span>
       <div className="flex h-3 w-full overflow-hidden rounded-full">
         {parts.map(p => (
           <div key={p.label} className="h-3" style={{ width: `${(p.count / total) * 100}%`, backgroundColor: p.color }} />
         ))}
       </div>
-      <span className="text-[13px] text-purple-200">{parts.map(p => `${p.count} ${p.label}`).join(' · ')}</span>
+      <span className="text-[13px] text-fuchsia-200">{parts.map(p => `${p.count} ${p.label}`).join(' · ')}</span>
     </div>
   )
 }
@@ -169,7 +169,7 @@ export default function TrendsPage(): React.ReactElement {
   const relative = relativeLabel(period, currentPeriod)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-fuchsia-900 to-slate-900">
       <div className="px-4 pt-12 pb-8">
         {/* Header: back to History, centered title */}
         <div className="mb-5 grid grid-cols-[1fr_auto_1fr] items-center">
@@ -196,7 +196,7 @@ export default function TrendsPage(): React.ReactElement {
                 aria-selected={active}
                 onClick={() => switchTab(tab.kind)}
                 className={`flex-1 rounded-lg py-2 text-sm touch-manipulation ${
-                  active ? 'bg-white font-bold text-purple-950' : 'font-semibold text-purple-200 hover:text-white'
+                  active ? 'bg-white font-bold text-fuchsia-950' : 'font-semibold text-fuchsia-200 hover:text-white'
                 }`}
               >
                 {tab.label}
@@ -218,7 +218,7 @@ export default function TrendsPage(): React.ReactElement {
           </button>
           <div className="flex flex-col items-center">
             <span className="text-[17px] font-bold text-white">{periodLabel(period)}</span>
-            {relative && <span className="text-xs text-purple-200">{relative}</span>}
+            {relative && <span className="text-xs text-fuchsia-200">{relative}</span>}
           </div>
           <button
             type="button"
@@ -237,7 +237,7 @@ export default function TrendsPage(): React.ReactElement {
           <span className="mx-2 font-normal text-white/30">|</span>
           {formatTotalTime(trends.minutes)}
           {kind === 'week' && goalMinutes !== null && (
-            <span className="font-normal text-purple-200"> of {formatTotalTime(goalMinutes)} goal</span>
+            <span className="font-normal text-fuchsia-200"> of {formatTotalTime(goalMinutes)} goal</span>
           )}
         </p>
 
@@ -255,13 +255,13 @@ export default function TrendsPage(): React.ReactElement {
         </div>
 
         {trends.workouts === 0 && !error && (
-          <p className="py-8 text-center text-sm text-purple-200">
+          <p className="py-8 text-center text-sm text-fuchsia-200">
             {relative ? `No workouts ${relative.toLowerCase()}.` : `No workouts in ${periodLabel(period)}.`}
           </p>
         )}
 
         {mayBeIncomplete && (
-          <p className="pt-4 text-center text-xs text-purple-300">
+          <p className="pt-4 text-center text-xs text-fuchsia-300">
             Only your most recent {WORKOUT_LOAD_LIMIT} workouts are loaded, so these numbers may be incomplete.
           </p>
         )}
