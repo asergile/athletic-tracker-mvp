@@ -395,8 +395,6 @@ export default function GoalsPage(): React.ReactElement {
                 router.push('/')
               } else if (view === 'profile') {
                 router.push('/profile')
-              } else if (view === 'weekly') {
-                router.push('/weekly-view')
               } else if (view === 'history') {
                 router.push('/history')
               }

@@ -179,8 +179,6 @@ const LogWorkoutView: React.FC<LogWorkoutViewProps> = ({
                 window.location.href = '/goals'
               } else if (view === 'profile') {
                 window.location.href = '/profile'
-              } else if (view === 'weekly') {
-                window.location.href = '/weekly-view'
               } else if (view === 'history') {
                 window.location.href = '/history'
               }
