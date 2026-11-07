@@ -14,6 +14,8 @@ import {
   formatSecureError
 } from './input-validation'
 import { getLocalDateString } from '../utils'
+import { cleanSeasonName, validateSeason } from '../seasons'
+import type { Season, SeasonFields } from '../seasons'
 
 // ===== TYPESCRIPT INTERFACES =====
 
@@ -1201,6 +1203,152 @@ async function deleteCustomWorkoutType(typeName: string): Promise<DatabaseRespon
   }
 }
 
+// ===== SEASONS FUNCTIONS =====
+// A season is a named date range used as a lens in Trends. Workouts are never
+// linked to it, so deleting a season leaves workouts untouched.
+
+const SEASON_COLUMNS = 'id, name, start_date, end_date, created_at'
+
+async function getUserSeasons(): Promise<DatabaseArrayResponse<Season>> {
+  try {
+    const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: [], error: new Error('Authentication required') }
+    }
+
+    const { data, error } = await supabase
+      .from('seasons')
+      .select(SEASON_COLUMNS)
+      .eq('user_id', user.id)
+      .order('start_date', { ascending: false })
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Enhanced security - get seasons error:', {
+        code: error.code,
+        userId: user.id,
+        message: error.message?.substring(0, 100)
+      });
+      return { data: [], error: new Error('Unable to retrieve seasons') }
+    }
+
+    return { data: (data || []) as Season[], error: null }
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'retrieving seasons');
+    return { data: [], error: new Error(secureError) }
+  }
+}
+
+/** Cleaned fields ready to save, or the validation message for the form. */
+function prepareSeason(fields: SeasonFields): { row: SeasonFields | null; message: string | null } {
+  const row: SeasonFields = {
+    name: cleanSeasonName(fields.name),
+    start_date: fields.start_date,
+    end_date: fields.end_date
+  }
+  const message = validateSeason(row)
+  return message ? { row: null, message } : { row, message: null }
+}
+
+async function createSeason(fields: SeasonFields): Promise<DatabaseResponse<Season>> {
+  try {
+    const { row, message } = prepareSeason(fields)
+    if (!row) {
+      return { data: null, error: new Error(message || 'Invalid season') }
+    }
+
+    const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('Authentication required') }
+    }
+
+    const { data, error } = await supabase
+      .from('seasons')
+      .insert([{ ...row, user_id: user.id }])
+      .select(SEASON_COLUMNS)
+      .single()
+
+    if (error) {
+      console.error('Enhanced security - create season error:', {
+        code: error.code,
+        userId: user.id,
+        message: error.message?.substring(0, 100)
+      });
+      return { data: null, error: new Error('Unable to save season') }
+    }
+
+    return { data: data as Season, error: null }
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'creating season');
+    return { data: null, error: new Error(secureError) }
+  }
+}
+
+async function updateSeason(seasonId: string, fields: SeasonFields): Promise<DatabaseResponse<Season>> {
+  try {
+    const { row, message } = prepareSeason(fields)
+    if (!row) {
+      return { data: null, error: new Error(message || 'Invalid season') }
+    }
+
+    const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('Authentication required') }
+    }
+
+    const { data, error } = await supabase
+      .from('seasons')
+      .update(row)
+      .eq('id', seasonId)
+      .eq('user_id', user.id)
+      .select(SEASON_COLUMNS)
+      .single()
+
+    if (error) {
+      console.error('Enhanced security - update season error:', {
+        code: error.code,
+        userId: user.id,
+        message: error.message?.substring(0, 100)
+      });
+      return { data: null, error: new Error('Unable to save season') }
+    }
+
+    return { data: data as Season, error: null }
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'updating season');
+    return { data: null, error: new Error(secureError) }
+  }
+}
+
+async function deleteSeason(seasonId: string): Promise<DatabaseResponse<null>> {
+  try {
+    const { data: { user }, error: userError }: AuthResponse = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { data: null, error: new Error('Authentication required') }
+    }
+
+    const { error } = await supabase
+      .from('seasons')
+      .delete()
+      .eq('id', seasonId)
+      .eq('user_id', user.id)
+
+    if (error) {
+      console.error('Enhanced security - delete season error:', {
+        code: error.code,
+        userId: user.id,
+        message: error.message?.substring(0, 100)
+      });
+      return { data: null, error: new Error('Unable to delete season') }
+    }
+
+    return { data: null, error: null }
+  } catch (err: any) {
+    const secureError = formatSecureError(err, 'deleting season');
+    return { data: null, error: new Error(secureError) }
+  }
+}
+
 // ===== EXPORT =====
 
 export const dbHelpers = {
@@ -1230,6 +1378,11 @@ export const dbHelpers = {
   getUserCustomWorkoutTypes,
   addCustomWorkoutType,
   deleteCustomWorkoutType,
+  // Seasons (Activity Grid Phase 4)
+  getUserSeasons,
+  createSeason,
+  updateSeason,
+  deleteSeason,
   // Phase 5: Profile Management
   getUserProfile,
   updateUserProfile,
