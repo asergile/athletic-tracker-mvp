@@ -144,19 +144,26 @@ export function findSameNameOverlap<T extends Season>(fields: SeasonFields, seas
   )
 }
 
+/** Seasons that have started (current or ended). Trends never shows upcoming seasons: they have no data yet. */
+export const startedSeasons = <T extends Season>(seasons: T[], today: string): T[] =>
+  seasons.filter(s => s.start_date <= today)
+
 /**
- * The season Trends opens on: the last one viewed if it still exists, else the
- * one that started most recently, else (none started yet) the next to start.
+ * The season Trends opens on. A current season always wins: the last one
+ * viewed among the current ones, else the one that started most recently.
+ * With none current, the most recently ended. Upcoming seasons are never picked.
  */
 export function defaultSeason<T extends Season>(seasons: T[], today: string, lastViewedId?: string | null): T | null {
-  if (seasons.length === 0) return null
-  const lastViewed = lastViewedId ? seasons.find(s => s.id === lastViewedId) : undefined
-  if (lastViewed) return lastViewed
-  const started = seasons.filter(s => s.start_date <= today)
-  if (started.length > 0) {
-    return started.reduce((best, s) => (s.start_date > best.start_date ? s : best))
+  const started = startedSeasons(seasons, today)
+  if (started.length === 0) return null
+  const current = started.filter(s => s.end_date >= today)
+  if (current.length > 0) {
+    const lastViewed = lastViewedId ? current.find(s => s.id === lastViewedId) : undefined
+    return lastViewed ?? current.reduce((best, s) => (s.start_date > best.start_date ? s : best))
   }
-  return seasons.reduce((best, s) => (s.start_date < best.start_date ? s : best))
+  return started.reduce((best, s) =>
+    s.end_date > best.end_date || (s.end_date === best.end_date && s.start_date > best.start_date) ? s : best
+  )
 }
 
 /** Oldest start first; ties by end date then name, so ‹ › order is stable. */

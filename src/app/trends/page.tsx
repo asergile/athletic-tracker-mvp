@@ -17,6 +17,7 @@ import {
   seasonStatus,
   seasonsByStart,
   seasonWeeks,
+  startedSeasons,
   weekNumber,
   type Season
 } from '@/lib/seasons'
@@ -142,11 +143,9 @@ const FeelCard: React.FC<{ feel: FeelCounts }> = ({ feel }) => {
   )
 }
 
-/** 'Week 9' (current), '22 weeks' (ended) or 'Upcoming'. Weeks are Monday-based; Week 1 holds the start date. */
+/** 'Week 9' (current) or '22 weeks' (ended). Weeks are Monday-based; Week 1 holds the start date. */
 const seasonProgress = (season: Season, today: string): string => {
-  const status = seasonStatus(season, today)
-  if (status === 'upcoming') return 'Upcoming'
-  if (status === 'current') return `Week ${weekNumber(season.start_date, today)}`
+  if (seasonStatus(season, today) === 'current') return `Week ${weekNumber(season.start_date, today)}`
   const weeks = seasonWeeks(season)
   return `${weeks} week${weeks === 1 ? '' : 's'}`
 }
@@ -157,13 +156,13 @@ const navButtonClass =
 /** Season picker (wireframe C2): ‹ › step by start date; the chip opens the phone's native picker. */
 const SeasonNav: React.FC<{
   season: Season
-  seasons: Season[]        // newest start first, as loaded
+  seasons: Season[]        // started seasons only, newest start first
   older: Season | null
   newer: Season | null
   today: string
   onSelect: (id: string) => void
 }> = ({ season, seasons, older, newer, today, onSelect }) => {
-  const active = seasons.filter(s => seasonStatus(s, today) !== 'ended')
+  const current = seasons.filter(s => seasonStatus(s, today) === 'current')
   const past = seasons.filter(s => seasonStatus(s, today) === 'ended')
   const several = seasons.length > 1
 
@@ -192,9 +191,9 @@ const SeasonNav: React.FC<{
               onChange={(e) => onSelect(e.target.value)}
               className="absolute inset-0 h-full w-full cursor-pointer text-base opacity-0"
             >
-              {active.length > 0 && (
-                <optgroup label="Current & upcoming">
-                  {active.map(s => <option key={s.id} value={s.id}>{seasonLabel(s)}</option>)}
+              {current.length > 0 && (
+                <optgroup label="Current">
+                  {current.map(s => <option key={s.id} value={s.id}>{seasonLabel(s)}</option>)}
                 </optgroup>
               )}
               {past.length > 0 && (
@@ -250,7 +249,8 @@ export default function TrendsPage(): React.ReactElement {
         if (workoutsResponse.error) setError('Failed to load workouts')
         setWorkouts(workoutsResponse.data || [])
         // Seasons are optional: if they fail to load, the Season tab just doesn't show.
-        const loadedSeasons = seasonsResponse.error ? [] : seasonsResponse.data
+        // Upcoming seasons have no data yet, so Trends only gets seasons that have started.
+        const loadedSeasons = seasonsResponse.error ? [] : startedSeasons(seasonsResponse.data, today)
         setSeasons(loadedSeasons)
         setSeasonId(defaultSeason(loadedSeasons, today, readLastSeason())?.id ?? null)
         const goal = Number(settingsResponse.data?.weekly_goal_minutes)
@@ -317,12 +317,8 @@ export default function TrendsPage(): React.ReactElement {
 
   let emptyText = relative ? `No workouts ${relative.toLowerCase()}.` : `No workouts in ${periodLabel(period)}.`
   if (season) {
-    const status = seasonStatus(season, today)
     const label = seasonLabel(season)
-    emptyText =
-      status === 'upcoming' ? `${label} starts ${shortDateLabel(season.start_date)}.`
-        : status === 'current' ? `No workouts in ${label} yet.`
-        : `No workouts in ${label}.`
+    emptyText = seasonStatus(season, today) === 'current' ? `No workouts in ${label} yet.` : `No workouts in ${label}.`
   }
 
   return (

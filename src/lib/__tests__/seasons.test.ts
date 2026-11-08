@@ -11,6 +11,7 @@ import {
   seasonLabel,
   seasonStatus,
   seasonsByStart,
+  startedSeasons,
   seasonsOverlap,
   seasonWeeks,
   seasonYears,
@@ -185,28 +186,52 @@ describe('findSameNameOverlap', () => {
 })
 
 describe('defaultSeason (Trends picker)', () => {
+  // TODAY = 2026-11-04
+  const pastOld = s({ id: 'old', start_date: '2024-10-01', end_date: '2025-02-28' })
   const past = s({ id: 'past', start_date: '2025-10-01', end_date: '2026-02-28' })
+  const pastLongAgoStartLateEnd = s({ id: 'block', start_date: '2025-03-01', end_date: '2026-06-30' })
   const current = s({ id: 'cur', start_date: '2026-08-10', end_date: '2026-11-30' })
-  const startedLater = s({ id: 'later', start_date: '2026-11-02', end_date: '2027-02-20' })
-  const upcoming = s({ id: 'up', start_date: '2026-12-01', end_date: '2027-03-01' })
-  const upcomingSooner = s({ id: 'soon', start_date: '2026-11-20', end_date: '2027-01-01' })
+  const currentLater = s({ id: 'later', start_date: '2026-11-02', end_date: '2027-02-20' })
+  const upcoming = s({ id: 'up', start_date: '2026-11-05', end_date: '2027-03-01' })
 
-  it('returns null with no seasons', () => {
+  it('returns null with no seasons, or only upcoming ones', () => {
     expect(defaultSeason([], TODAY)).toBeNull()
+    expect(defaultSeason([upcoming], TODAY)).toBeNull()
   })
 
-  it('prefers the last viewed season when it still exists', () => {
-    expect(defaultSeason([past, current, upcoming], TODAY, 'past')?.id).toBe('past')
-    expect(defaultSeason([past, current, upcoming], TODAY, 'deleted')?.id).toBe('cur')
+  it('picks the most recently started current season, never an upcoming one', () => {
+    expect(defaultSeason([past, current, currentLater, upcoming], TODAY)?.id).toBe('later')
+    expect(defaultSeason([current, upcoming], TODAY)?.id).toBe('cur')
   })
 
-  it('otherwise picks the most recently started season, ignoring upcoming ones', () => {
-    expect(defaultSeason([past, current, startedLater, upcoming], TODAY)?.id).toBe('later')
-    expect(defaultSeason([past, upcoming], TODAY)?.id).toBe('past')
+  it('uses the last viewed season only to choose among current ones', () => {
+    expect(defaultSeason([current, currentLater], TODAY, 'cur')?.id).toBe('cur')
+    expect(defaultSeason([past, current], TODAY, 'past')?.id).toBe('cur')
+    expect(defaultSeason([past, current], TODAY, 'up')?.id).toBe('cur')
+    expect(defaultSeason([current, currentLater], TODAY, 'deleted')?.id).toBe('later')
   })
 
-  it('picks the next to start when none has started', () => {
-    expect(defaultSeason([upcoming, upcomingSooner], TODAY)?.id).toBe('soon')
+  it('counts a season that starts or ends today as current', () => {
+    const startsToday = s({ id: 'st', start_date: TODAY, end_date: '2026-12-01' })
+    const endsToday = s({ id: 'et', start_date: '2026-10-01', end_date: TODAY })
+    expect(defaultSeason([past, startsToday], TODAY)?.id).toBe('st')
+    expect(defaultSeason([past, endsToday], TODAY)?.id).toBe('et')
+  })
+
+  it('with none current, picks the most recently ended season', () => {
+    expect(defaultSeason([pastOld, past, upcoming], TODAY)?.id).toBe('past')
+    expect(defaultSeason([past, pastLongAgoStartLateEnd], TODAY)?.id).toBe('block')
+  })
+})
+
+describe('startedSeasons', () => {
+  it('keeps current and ended seasons, drops upcoming ones', () => {
+    const list = [
+      s({ id: 'up', start_date: '2026-11-05', end_date: '2027-01-01' }),
+      s({ id: 'cur', start_date: TODAY, end_date: '2026-12-01' }),
+      s({ id: 'past' })
+    ]
+    expect(startedSeasons(list, TODAY).map(x => x.id)).toEqual(['cur', 'past'])
   })
 })
 
