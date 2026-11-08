@@ -23,7 +23,7 @@ Anything in `archive/` is history, not current state.
 
 - Propose before changing code or files, and wait for explicit approval. Bug reports and screenshots are for discussion, not automatic fixes.
 - Alain runs all git operations. Propose commit messages; never commit or push.
-- `staging` is the deploy branch. Vercel builds every push to `staging`. Promotion to production is a manual step in the Vercel dashboard. `main` is stale.
+- `staging` is the deploy branch. Vercel builds every push to `staging`. Promotion to production is a manual step in the Vercel dashboard. `main` was retired on 2026-11-08.
 - Database changes follow the migrations workflow in the tech spec: draft, approve, apply, then move into `supabase/migrations/` with a rollback.
 - "Let's put a pin in that" means: add the item to `project-docs/pinned-items.md` (date, issue, cause, proposed fix, files) and carry on with the current task.
 
@@ -31,8 +31,10 @@ Anything in `archive/` is history, not current state.
 
 - Treat every migration as a production change: additive first, applied by hand by Alain in the Supabase SQL Editor before pushing code that reads it. Never apply a migration from a session.
 - Calendar dates are `'YYYY-MM-DD'` strings from `getLocalDateString()`, compared as strings. Never derive a calendar date from `toISOString()`.
-- Next and Vitest resolve `.js` before `.ts`: `src/lib/supabase.js` is the file that runs, not `supabase.ts`. Don't add a `.js` file next to a `.ts` one.
-- Checks before a commit: `npm test` and `npm run type-check`. `npm run lint` isn't set up yet.
+- Each module is a single `.ts`/`.tsx` file. Never add a `.js` file next to a `.ts` one: Next and Vitest resolve `.js` first.
+- New tables get no grants by default. Each migration grants `authenticated` exactly what its RLS policies allow (see migrations 04 and 05); `anon` gets nothing.
+- Text is stored as typed, with no HTML escaping; React escapes it on render. Never render stored text as HTML.
+- Checks before a commit: `npm test`, `npm run type-check` and `npm run lint`. `next build` (and so every Vercel deploy) fails on lint errors; warnings are allowed.
 - If a failure state is known (an error with nowhere to show, a stuck spinner, a double tap), handle it before it ships instead of noting it.
 - Workouts load capped at the newest 500. Anything that spans a long period says when its numbers may be incomplete.
 - Commands for Alain: zsh, no inline `#` comments in command blocks, always start with `cd ~/Projects/athletic-tracker-mvp`. Add files to commits by name.

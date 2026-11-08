@@ -1,5 +1,5 @@
 -- PBGB migration 04: seasons (Activity Grid Phase 4a)
--- Project: PBGB production Supabase database (staging and production share it)
+-- Project: PBGB Supabase database
 -- Status: APPLIED 2026-11-07 by hand in the Supabase SQL Editor. Verified afterward: RLS on, 4 owner-only
 --   policies, check constraints present, only authenticated has select/insert/update/delete, Security Advisor clean.
 --
