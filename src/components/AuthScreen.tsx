@@ -300,7 +300,7 @@ const AuthScreen: React.FC = () => {
           {/* Instructions */}
           <div style={{ marginTop: '20px', padding: '12px', background: '#ecfdf5', borderRadius: '8px', border: '1px solid #84cc16' }}>
             <p style={{ fontSize: '14px', color: '#166534', margin: 0 }}>
-              <strong>Easiest:</strong> Use "Continue with Google" above.<br/>
+              <strong>Easiest:</strong> Use &quot;Continue with Google&quot; above.<br/>
               <strong>Or:</strong> Create account with email/password.
             </p>
           </div>
@@ -336,7 +336,7 @@ const AuthScreen: React.FC = () => {
             </h2>
             
             <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '20px' }}>
-              Enter your email address and we'll send you a link to reset your password.
+              Enter your email address and we&apos;ll send you a link to reset your password.
             </p>
 
             {/* Reset Email Input */}

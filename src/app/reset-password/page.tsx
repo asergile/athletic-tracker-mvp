@@ -143,7 +143,7 @@ function ResetPasswordForm() {
             Password Updated!
           </h1>
           <p style={{ color: '#6b7280', fontSize: '16px', marginBottom: '20px' }}>
-            Your password has been successfully updated. You'll be redirected to the app in a few seconds.
+            Your password has been successfully updated. You&apos;ll be redirected to the app in a few seconds.
           </p>
           <button
             onClick={() => router.push('/')}

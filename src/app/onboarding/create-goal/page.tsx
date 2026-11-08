@@ -129,7 +129,7 @@ export default function CreateFirstGoalPage(): React.ReactElement {
           <div className="text-8xl mb-6 animate-bounce">🎉</div>
           <h1 className="text-4xl font-bold text-white mb-4">Goal Created!</h1>
           <p className="text-xl text-white text-opacity-90 mb-8">
-            You're all set! Now let's log your first workout and start banking hours toward your goal.
+            You&apos;re all set! Now let&apos;s log your first workout and start banking hours toward your goal.
           </p>
           <button
             onClick={() => router.push('/')}
@@ -153,7 +153,7 @@ export default function CreateFirstGoalPage(): React.ReactElement {
             Create Your First Goal
           </h1>
           <p className="text-white text-opacity-90 text-lg">
-            Set a target event and we'll help you stay on track
+            Set a target event and we&apos;ll help you stay on track
           </p>
         </div>
 
@@ -208,7 +208,7 @@ export default function CreateFirstGoalPage(): React.ReactElement {
           <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-5">
             <label className="flex items-center text-white font-semibold mb-3">
               <Target className="w-5 h-5 mr-2" />
-              What's your athletic goal? (Optional)
+              What&apos;s your athletic goal? (Optional)
             </label>
             <input
               type="text"
