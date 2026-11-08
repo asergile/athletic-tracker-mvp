@@ -20,8 +20,6 @@ If this file disagrees with the code, the code wins. Fix this file.
 
 Check `package.json` for exact versions rather than copying them here.
 
-The `openai` package is still installed but no code uses it. Remove it in the next dependency cleanup.
-
 ## Environment variables
 
 | Variable | Where it's used | Exposed to the browser? |

@@ -8,7 +8,8 @@ A voice-first workout tracking application built for competitive swimmers. Athle
 - Node.js 18+ 
 - npm or yarn
 - Supabase account
-- OpenAI API account
+- AssemblyAI account (speech-to-text)
+- Anthropic API account (workout analysis)
 
 ### 1. Clone and Install
 ```bash
@@ -27,7 +28,8 @@ Edit `.env.local` with your credentials:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-OPENAI_API_KEY=your_openai_api_key
+ASSEMBLYAI_API_KEY=your_assemblyai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
@@ -48,7 +50,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the application.
 ### Tech Stack
 - **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes, Supabase (PostgreSQL)
-- **AI Processing**: OpenAI Whisper (speech-to-text) + GPT-4 (workout parsing)
+- **AI Processing**: AssemblyAI (speech-to-text) + Claude (workout analysis)
 - **Authentication**: Supabase Auth
 - **Deployment**: Vercel (recommended)
 
@@ -70,13 +72,9 @@ src/
 │   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Home page
 ├── components/            # React components
-│   ├── ui/               # Base UI components
-│   ├── VoiceRecorder.tsx # Voice recording interface
-│   ├── WorkoutReview.tsx # AI result review/editing
-│   └── WorkoutHistory.tsx # Historical workouts
+│   └── VoiceRecorder.tsx # Voice recording interface
 ├── lib/                  # Utility libraries
 │   ├── supabase.ts      # Database client
-│   ├── openai.ts        # AI processing
 │   └── utils.ts         # Helper functions
 └── types/               # TypeScript definitions
     ├── index.ts         # Core data types
@@ -98,7 +96,8 @@ src/
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Yes |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | Yes |
-| `OPENAI_API_KEY` | OpenAI API key | Yes |
+| `ASSEMBLYAI_API_KEY` | AssemblyAI API key | Yes |
+| `ANTHROPIC_API_KEY` | Anthropic API key | Yes |
 | `NEXT_PUBLIC_APP_URL` | Application URL | Yes |
 
 ## 🎯 User Flow
@@ -154,7 +153,7 @@ npm run start
 ## 🔒 Security
 
 - **Row Level Security**: Database access restricted to authenticated users
-- **API Protection**: OpenAI API key secured server-side
+- **API Protection**: AI API keys secured server-side
 - **Data Privacy**: Voice recordings processed temporarily, not stored
 - **CORS**: Configured for production domains only
 

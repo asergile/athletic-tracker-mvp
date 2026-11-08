@@ -1,10 +1,3 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
 export function formatDistance(yards: number): string {
   if (yards >= 1760) {
     const miles = (yards / 1760).toFixed(1)

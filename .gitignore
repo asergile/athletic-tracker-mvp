@@ -67,3 +67,7 @@ test-input-backup/
 working-*.js
 production-backup/
 temp/
+
+# Local working folders (screenshots, Claude session outputs)
+/Claude outputs/
+/Screenshots/

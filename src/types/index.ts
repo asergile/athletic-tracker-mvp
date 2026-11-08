@@ -24,7 +24,6 @@ export interface ProcessedWorkoutData {
   stroke_analysis?: StrokeDistribution
   segments?: WorkoutSegment[]
   performance_metrics?: PerformanceMetrics
-  // Additional properties needed by WorkoutHistory
   sets?: any
   stroke_distribution?: any
   achievements?: any
@@ -57,7 +56,6 @@ export interface WorkoutParsingResult {
   total_time: number
   workout_type: string
   notes?: string
-  // Additional properties needed by WorkoutReview
   workout_data?: {
     sets: any
     stroke_distribution: any
@@ -78,7 +76,6 @@ export interface WorkoutSet {
   rest_time?: number
   pace?: number
   description?: string
-  // Additional properties needed by WorkoutReview
   type?: string      // Workout set type (warmup, main, cooldown, drill)
   stroke?: string    // Alternative to stroke_type
   interval?: string  // Interval description
