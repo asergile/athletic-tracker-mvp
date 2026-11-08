@@ -917,18 +917,18 @@ const AthleticTracker: React.FC = () => {
     setVoiceError('');
 
     try {
-      // Get auth token - copying from voice-test approach  
+      // Get auth token
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
         throw new Error('No valid session found');
       }
 
-      // Create form data - copying from voice-test approach
+      // Create form data
       const formData = new FormData();
       formData.append('audio', audioBlob, 'workout-voice-note.webm');
       formData.append('workoutId', lastLoggedWorkoutId);
 
-      // Upload and transcribe - copying from voice-test approach
+      // Upload and transcribe
       const response = await fetch('/api/upload', {
         method: 'POST',
         headers: {
