@@ -371,12 +371,17 @@ export default function GoalsPage(): React.ReactElement {
     return Math.ceil(weeksRemaining * weeklyFrequency)
   }, [userSettings?.weekly_workout_frequency])
 
-  if (loading || isLoading || !isHydrated) {
+  if (loading || !isHydrated) {
     return <LoadingScreen />
   }
 
   if (!user) {
     return <AuthScreen />
+  }
+
+  // Data loads only once there is a user, so check this after the sign-in screen.
+  if (isLoading) {
+    return <LoadingScreen />
   }
 
   return (

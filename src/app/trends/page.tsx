@@ -303,12 +303,17 @@ export default function TrendsPage(): React.ReactElement {
     writeLastSeason(id)
   }
 
-  if (loading || isLoading || !isHydrated) {
+  if (loading || !isHydrated) {
     return <LoadingScreen />
   }
 
   if (!user) {
     return <AuthScreen />
+  }
+
+  // Data loads only once there is a user, so check this after the sign-in screen.
+  if (isLoading) {
+    return <LoadingScreen />
   }
 
   const relative = isSeason ? '' : relativeLabel(period, currentPeriod)
