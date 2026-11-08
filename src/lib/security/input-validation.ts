@@ -2,6 +2,7 @@
 // Builds on existing security foundation with enterprise-grade validation
 
 import { getLocalDateString } from '../utils'
+import { isCalendarDate } from '../seasons'
 
 /**
  * SECURITY PRINCIPLE: Defense in Depth
@@ -16,7 +17,6 @@ interface SanitizeTextOptions {
   maxLength?: number
   minLength?: number
   allowNewlines?: boolean
-  allowHtml?: boolean
   trim?: boolean
 }
 
@@ -30,7 +30,9 @@ interface SanitizeNumberOptions {
 
 interface SanitizeDateOptions {
   required?: boolean
+  /** 'YYYY-MM-DD', compared as a string */
   minDate?: string | null
+  /** 'YYYY-MM-DD', compared as a string */
   maxDate?: string | null
 }
 
@@ -69,7 +71,10 @@ interface ValidatedProfileData {
 // ===== INPUT SANITIZATION FUNCTIONS =====
 
 /**
- * Sanitize text input - prevents XSS and normalizes data
+ * Sanitize text input - trims, normalizes newlines and enforces length.
+ * Text is stored as typed: no HTML escaping. React escapes text when it renders,
+ * and nothing in the app renders stored text as HTML. (Escaping here used to store
+ * "Women's" as "Women&#x27;s", which then displayed literally.)
  * @param input - Raw text input
  * @param options - Validation options
  * @returns Sanitized text
@@ -83,7 +88,6 @@ export function sanitizeText(input: any, options: SanitizeTextOptions = {}): str
     maxLength = 255,
     minLength = 0,
     allowNewlines = false,
-    allowHtml = false,
     trim = true
   } = options;
 
@@ -92,16 +96,6 @@ export function sanitizeText(input: any, options: SanitizeTextOptions = {}): str
   // Trim whitespace if enabled
   if (trim) {
     sanitized = sanitized.trim();
-  }
-
-  // Remove or escape HTML tags
-  if (!allowHtml) {
-    sanitized = sanitized
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;')
-      .replace(/\//g, '&#x2F;');
   }
 
   // Handle newlines
@@ -224,10 +218,13 @@ export function sanitizeNumber(input: any, options: SanitizeNumberOptions = {}):
 }
 
 /**
- * Sanitize date input
+ * Sanitize a calendar date.
+ * 'YYYY-MM-DD' strings must be real dates and pass through unchanged. Anything else
+ * (a Date or a timestamp) becomes the local calendar date - never toISOString(),
+ * which gives the UTC date. Bounds are 'YYYY-MM-DD' strings compared as strings.
  * @param input - Date input
  * @param options - Validation options
- * @returns ISO date string (YYYY-MM-DD)
+ * @returns 'YYYY-MM-DD'
  */
 export function sanitizeDate(input: any, options: SanitizeDateOptions = {}): string | null {
   const {
@@ -243,34 +240,31 @@ export function sanitizeDate(input: any, options: SanitizeDateOptions = {}): str
     return null;
   }
 
-  let date: Date;
-  
-  if (typeof input === 'string') {
-    // Handle YYYY-MM-DD format
-    if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
-      date = new Date(input + 'T00:00:00.000Z');
-    } else {
-      date = new Date(input);
-    }
-  } else {
-    date = new Date(input);
-  }
+  let dateStr: string;
 
-  if (isNaN(date.getTime())) {
-    throw new Error('Invalid date format');
+  if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    if (!isCalendarDate(input)) {
+      throw new Error('Invalid date format');
+    }
+    dateStr = input;
+  } else {
+    const date = input instanceof Date ? input : new Date(input);
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date format');
+    }
+    dateStr = getLocalDateString(date);
   }
 
   // Validate date ranges
-  if (minDate && date < new Date(minDate)) {
-    throw new Error(`Date must be after ${minDate}`);
+  if (minDate && dateStr < minDate) {
+    throw new Error(`Date must be on or after ${minDate}`);
   }
 
-  if (maxDate && date > new Date(maxDate)) {
-    throw new Error(`Date must be before ${maxDate}`);
+  if (maxDate && dateStr > maxDate) {
+    throw new Error(`Date must be on or before ${maxDate}`);
   }
 
-  // Return ISO date string (YYYY-MM-DD)
-  return date.toISOString().split('T')[0];
+  return dateStr;
 }
 
 // ===== WORKOUT-SPECIFIC VALIDATION =====
@@ -284,8 +278,7 @@ export function validateWorkoutType(workoutType: any): string {
   return sanitizeText(workoutType, {
     maxLength: 50,
     minLength: 1,
-    allowNewlines: false,
-    allowHtml: false
+    allowNewlines: false
   });
 }
 
@@ -384,8 +377,7 @@ export function validateDisplayName(displayName: any): string {
   return sanitizeText(displayName, {
     maxLength: 50,
     minLength: 1,
-    allowNewlines: false,
-    allowHtml: false
+    allowNewlines: false
   });
 }
 
@@ -419,7 +411,7 @@ export function validateWorkoutData(workoutData: WorkoutData): ValidatedWorkoutD
       rating: validateRating(workoutData.rating),
       date: sanitizeDate(workoutData.date, {
         required: false,
-        maxDate: new Date().toISOString().split('T')[0] // No future dates (comparison bound only - UTC is fine here)
+        maxDate: getLocalDateString() // No future dates (the athlete's local today)
       }) || getLocalDateString()
     };
 

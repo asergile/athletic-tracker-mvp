@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
+  sanitizeText,
   sanitizeDate,
   validateWorkoutData,
+  validateDisplayName,
   validateDuration,
   validateRating,
 } from '../input-validation'
@@ -69,6 +71,59 @@ describe('sanitizeDate', () => {
 
   it('throws on unparseable input', () => {
     expect(() => sanitizeDate('not-a-date', { required: false })).toThrow('Invalid date format')
+  })
+
+  it('rejects dates that do not exist instead of rolling them over', () => {
+    expect(() => sanitizeDate('2026-02-31', { required: false })).toThrow('Invalid date format')
+    expect(() => sanitizeDate('2026-13-01', { required: false })).toThrow('Invalid date format')
+    expect(sanitizeDate('2028-02-29', { required: false })).toBe('2028-02-29')
+  })
+
+  it('compares bounds as YYYY-MM-DD strings, inclusive', () => {
+    expect(sanitizeDate('2026-11-08', { maxDate: '2026-11-08' })).toBe('2026-11-08')
+    expect(() => sanitizeDate('2026-11-09', { maxDate: '2026-11-08' })).toThrow()
+    expect(sanitizeDate('2026-11-08', { minDate: '2026-11-08' })).toBe('2026-11-08')
+    expect(() => sanitizeDate('2026-11-07', { minDate: '2026-11-08' })).toThrow()
+  })
+
+  it('turns a Date into its local calendar date', () => {
+    const d = new Date(2026, 0, 31, 23, 30) // local Jan 31, 11:30pm
+    expect(sanitizeDate(d)).toBe('2026-01-31')
+  })
+})
+
+describe('validateWorkoutData - no future dates', () => {
+  it("accepts today's local date", () => {
+    const today = getLocalDateString()
+    const result = validateWorkoutData({ workout_type: 'Running', duration: 30, rating: 2, date: today })
+    expect(result.date).toBe(today)
+  })
+
+  it('rejects a date after local today', () => {
+    expect(() =>
+      validateWorkoutData({ workout_type: 'Running', duration: 30, rating: 2, date: '2999-01-01' })
+    ).toThrow('Workout validation failed')
+  })
+})
+
+describe('sanitizeText - stored as typed', () => {
+  it('keeps apostrophes, quotes, slashes and angle brackets', () => {
+    expect(sanitizeText("Women's Relay")).toBe("Women's Relay")
+    expect(sanitizeText('Coach "K" A/B <3')).toBe('Coach "K" A/B <3')
+  })
+
+  it('trims and turns newlines into spaces by default', () => {
+    expect(sanitizeText('  Easy\nswim  ')).toBe('Easy swim')
+  })
+
+  it('counts real characters toward maxLength', () => {
+    const name = "'".repeat(50)
+    expect(sanitizeText(name, { maxLength: 50 })).toBe(name)
+    expect(sanitizeText("x'yz", { maxLength: 2 })).toBe("x'")
+  })
+
+  it('keeps an apostrophe in a display name', () => {
+    expect(validateDisplayName("D'Angelo")).toBe("D'Angelo")
   })
 })
 
