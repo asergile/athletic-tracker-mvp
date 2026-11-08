@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   cleanSeasonName,
   daysBetween,
+  defaultSeason,
   findSameNameOverlap,
   inSeason,
   isCalendarDate,
@@ -9,6 +10,7 @@ import {
   seasonDateRange,
   seasonLabel,
   seasonStatus,
+  seasonsByStart,
   seasonsOverlap,
   seasonWeeks,
   seasonYears,
@@ -179,5 +181,43 @@ describe('findSameNameOverlap', () => {
 
   it('ignores the season being edited', () => {
     expect(findSameNameOverlap(seasons[0], seasons, 'w1')).toBeNull()
+  })
+})
+
+describe('defaultSeason (Trends picker)', () => {
+  const past = s({ id: 'past', start_date: '2025-10-01', end_date: '2026-02-28' })
+  const current = s({ id: 'cur', start_date: '2026-08-10', end_date: '2026-11-30' })
+  const startedLater = s({ id: 'later', start_date: '2026-11-02', end_date: '2027-02-20' })
+  const upcoming = s({ id: 'up', start_date: '2026-12-01', end_date: '2027-03-01' })
+  const upcomingSooner = s({ id: 'soon', start_date: '2026-11-20', end_date: '2027-01-01' })
+
+  it('returns null with no seasons', () => {
+    expect(defaultSeason([], TODAY)).toBeNull()
+  })
+
+  it('prefers the last viewed season when it still exists', () => {
+    expect(defaultSeason([past, current, upcoming], TODAY, 'past')?.id).toBe('past')
+    expect(defaultSeason([past, current, upcoming], TODAY, 'deleted')?.id).toBe('cur')
+  })
+
+  it('otherwise picks the most recently started season, ignoring upcoming ones', () => {
+    expect(defaultSeason([past, current, startedLater, upcoming], TODAY)?.id).toBe('later')
+    expect(defaultSeason([past, upcoming], TODAY)?.id).toBe('past')
+  })
+
+  it('picks the next to start when none has started', () => {
+    expect(defaultSeason([upcoming, upcomingSooner], TODAY)?.id).toBe('soon')
+  })
+})
+
+describe('seasonsByStart', () => {
+  it('orders oldest start first without changing the input', () => {
+    const list = [
+      s({ id: 'b', start_date: '2026-11-02', end_date: '2027-02-20' }),
+      s({ id: 'a', start_date: '2025-10-01' }),
+      s({ id: 'c', start_date: '2026-11-02', end_date: '2026-11-30' }) // same start, ends sooner
+    ]
+    expect(seasonsByStart(list).map(x => x.id)).toEqual(['a', 'c', 'b'])
+    expect(list.map(x => x.id)).toEqual(['b', 'a', 'c'])
   })
 })

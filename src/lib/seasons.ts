@@ -143,3 +143,29 @@ export function findSameNameOverlap<T extends Season>(fields: SeasonFields, seas
     ) ?? null
   )
 }
+
+/**
+ * The season Trends opens on: the last one viewed if it still exists, else the
+ * one that started most recently, else (none started yet) the next to start.
+ */
+export function defaultSeason<T extends Season>(seasons: T[], today: string, lastViewedId?: string | null): T | null {
+  if (seasons.length === 0) return null
+  const lastViewed = lastViewedId ? seasons.find(s => s.id === lastViewedId) : undefined
+  if (lastViewed) return lastViewed
+  const started = seasons.filter(s => s.start_date <= today)
+  if (started.length > 0) {
+    return started.reduce((best, s) => (s.start_date > best.start_date ? s : best))
+  }
+  return seasons.reduce((best, s) => (s.start_date < best.start_date ? s : best))
+}
+
+/** Oldest start first; ties by end date then name, so ‹ › order is stable. */
+export function seasonsByStart<T extends Season>(seasons: T[]): T[] {
+  return [...seasons].sort(
+    (a, b) =>
+      a.start_date.localeCompare(b.start_date) ||
+      a.end_date.localeCompare(b.end_date) ||
+      a.name.localeCompare(b.name) ||
+      a.id.localeCompare(b.id)
+  )
+}

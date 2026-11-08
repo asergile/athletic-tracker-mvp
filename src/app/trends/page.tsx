@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/lib/AuthContext'
 import AuthScreen from '@/components/AuthScreen'
 import LoadingScreen from '@/components/LoadingScreen'
@@ -10,6 +10,16 @@ import FeedbackButton from '@/components/FeedbackButton'
 import { dbHelpers } from '@/lib/security/enhanced-db-helpers'
 import { formatTotalTime, getLocalDateString } from '@/lib/utils'
 import { FEEL_HEX } from '@/lib/feelColors'
+import { shortDateLabel } from '@/lib/activityGrid'
+import {
+  defaultSeason,
+  seasonLabel,
+  seasonStatus,
+  seasonsByStart,
+  seasonWeeks,
+  weekNumber,
+  type Season
+} from '@/lib/seasons'
 import {
   buildTrends,
   formatDistance,
@@ -28,10 +38,30 @@ import {
 // getUserWorkouts() returns at most this many rows (newest first).
 const WORKOUT_LOAD_LIMIT = 500
 
-const TABS: { kind: PeriodKind; label: string }[] = [
+type TabKind = PeriodKind | 'season'
+
+const TABS: { kind: TabKind; label: string }[] = [
   { kind: 'week', label: 'Week' },
-  { kind: 'month', label: 'Month' }
+  { kind: 'month', label: 'Month' },
+  { kind: 'season', label: 'Season' }
 ]
+
+// Last season viewed on this device (per-viewer convenience; never required).
+const LAST_SEASON_KEY = 'pbgb.trends.lastSeasonId'
+const readLastSeason = (): string | null => {
+  try {
+    return window.localStorage.getItem(LAST_SEASON_KEY)
+  } catch {
+    return null
+  }
+}
+const writeLastSeason = (id: string): void => {
+  try {
+    window.localStorage.setItem(LAST_SEASON_KEY, id)
+  } catch {
+    // Private mode or storage blocked: the picker just falls back to the default.
+  }
+}
 
 const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? '' : 's'}`
 
@@ -43,10 +73,11 @@ const relativeLabel = (period: Period, current: Period): string => {
   return ''
 }
 
-/** 'Last week: 16,200 yds' – same terms as the card headline. */
-const previousText = (activity: ActivityTrend, kind: PeriodKind): string => {
+/** 'Last week: 16,200 yds' – same terms as the card headline; null when there is no comparison (seasons). */
+const previousText = (activity: ActivityTrend, kind: TabKind): string | null => {
   const label = kind === 'week' ? 'Last week' : 'Last month'
   const { previous, unit, distance } = activity
+  if (!previous) return null
   if (previous.sessions === 0) return `${label}: none`
   if (distance !== null && unit) {
     return previous.distance === null
@@ -56,7 +87,8 @@ const previousText = (activity: ActivityTrend, kind: PeriodKind): string => {
   return `${label}: ${formatTotalTime(previous.minutes)}`
 }
 
-const ActivityCard: React.FC<{ activity: ActivityTrend; kind: PeriodKind }> = ({ activity, kind }) => {
+const ActivityCard: React.FC<{ activity: ActivityTrend; kind: TabKind }> = ({ activity, kind }) => {
+  const comparison = previousText(activity, kind)
   const hasDistance = activity.distance !== null && activity.unit !== null
   const details: string[] = []
   if (hasDistance) details.push(formatTotalTime(activity.minutes))
@@ -77,8 +109,12 @@ const ActivityCard: React.FC<{ activity: ActivityTrend; kind: PeriodKind }> = ({
         )}
       </div>
       <span className="text-sm text-fuchsia-200">{details.join(' · ')}</span>
-      <div className="h-px w-full bg-white/[0.12]" />
-      <span className="text-[13px] text-fuchsia-300">{previousText(activity, kind)}</span>
+      {comparison && (
+        <>
+          <div className="h-px w-full bg-white/[0.12]" />
+          <span className="text-[13px] text-fuchsia-300">{comparison}</span>
+        </>
+      )}
     </div>
   )
 }
@@ -106,17 +142,99 @@ const FeelCard: React.FC<{ feel: FeelCounts }> = ({ feel }) => {
   )
 }
 
+/** 'Week 9' (current), '22 weeks' (ended) or 'Upcoming'. Weeks are Monday-based; Week 1 holds the start date. */
+const seasonProgress = (season: Season, today: string): string => {
+  const status = seasonStatus(season, today)
+  if (status === 'upcoming') return 'Upcoming'
+  if (status === 'current') return `Week ${weekNumber(season.start_date, today)}`
+  const weeks = seasonWeeks(season)
+  return `${weeks} week${weeks === 1 ? '' : 's'}`
+}
+
+const navButtonClass =
+  'flex h-9 w-9 flex-none items-center justify-center rounded-lg text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent'
+
+/** Season picker (wireframe C2): ‹ › step by start date; the chip opens the phone's native picker. */
+const SeasonNav: React.FC<{
+  season: Season
+  seasons: Season[]        // newest start first, as loaded
+  older: Season | null
+  newer: Season | null
+  today: string
+  onSelect: (id: string) => void
+}> = ({ season, seasons, older, newer, today, onSelect }) => {
+  const active = seasons.filter(s => seasonStatus(s, today) !== 'ended')
+  const past = seasons.filter(s => seasonStatus(s, today) === 'ended')
+  const several = seasons.length > 1
+
+  return (
+    <div className="mb-3 flex items-center justify-between gap-2">
+      <button
+        type="button"
+        onClick={() => older && onSelect(older.id)}
+        disabled={!older}
+        aria-label="Previous season"
+        className={navButtonClass}
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+      <div className="flex min-w-0 flex-col items-center">
+        <div className="relative max-w-full">
+          <div className="flex min-w-0 items-center gap-1 rounded-lg bg-white/10 px-3 py-1">
+            <span className="truncate text-[17px] font-bold text-white">{seasonLabel(season)}</span>
+            {several && <ChevronDown className="h-4 w-4 flex-none text-white" />}
+          </div>
+          {several && (
+            // Invisible native select over the chip. text-base (16px) stops iOS zooming on focus.
+            <select
+              aria-label="Choose a season"
+              value={season.id}
+              onChange={(e) => onSelect(e.target.value)}
+              className="absolute inset-0 h-full w-full cursor-pointer text-base opacity-0"
+            >
+              {active.length > 0 && (
+                <optgroup label="Current & upcoming">
+                  {active.map(s => <option key={s.id} value={s.id}>{seasonLabel(s)}</option>)}
+                </optgroup>
+              )}
+              {past.length > 0 && (
+                <optgroup label="Past">
+                  {past.map(s => <option key={s.id} value={s.id}>{seasonLabel(s)}</option>)}
+                </optgroup>
+              )}
+            </select>
+          )}
+        </div>
+        <span className="mt-1 text-xs text-fuchsia-200">
+          {shortDateLabel(season.start_date)} – {shortDateLabel(season.end_date)} · {seasonProgress(season, today)}
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={() => newer && onSelect(newer.id)}
+        disabled={!newer}
+        aria-label="Next season"
+        className={navButtonClass}
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+    </div>
+  )
+}
+
 export default function TrendsPage(): React.ReactElement {
   const { user, loading, isHydrated } = useAuth()
 
   const [workouts, setWorkouts] = useState<TrendsWorkout[]>([])
+  const [seasons, setSeasons] = useState<Season[]>([])
+  const [seasonId, setSeasonId] = useState<string | null>(null)
   const [goalMinutes, setGoalMinutes] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string>('')
 
   // Always opens on Week (not the last-viewed tab).
   const today = useMemo(() => getLocalDateString(), [])
-  const [kind, setKind] = useState<PeriodKind>('week')
+  const [kind, setKind] = useState<TabKind>('week')
   const [period, setPeriod] = useState<Period>(() => periodFor('week', today))
 
   useEffect(() => {
@@ -124,12 +242,17 @@ export default function TrendsPage(): React.ReactElement {
     const load = async (): Promise<void> => {
       setIsLoading(true)
       try {
-        const [workoutsResponse, settingsResponse] = await Promise.all([
+        const [workoutsResponse, settingsResponse, seasonsResponse] = await Promise.all([
           dbHelpers.getUserWorkouts(),
-          dbHelpers.getUserSettings()
+          dbHelpers.getUserSettings(),
+          dbHelpers.getUserSeasons()
         ])
         if (workoutsResponse.error) setError('Failed to load workouts')
         setWorkouts(workoutsResponse.data || [])
+        // Seasons are optional: if they fail to load, the Season tab just doesn't show.
+        const loadedSeasons = seasonsResponse.error ? [] : seasonsResponse.data
+        setSeasons(loadedSeasons)
+        setSeasonId(defaultSeason(loadedSeasons, today, readLastSeason())?.id ?? null)
         const goal = Number(settingsResponse.data?.weekly_goal_minutes)
         setGoalMinutes(Number.isFinite(goal) && goal > 0 ? goal : null)
       } catch (err) {
@@ -140,22 +263,44 @@ export default function TrendsPage(): React.ReactElement {
       }
     }
     load()
-  }, [user])
+  }, [user, today])
 
-  const currentPeriod = useMemo(() => periodFor(kind, today), [kind, today])
-  const trends = useMemo(() => buildTrends(workouts, period), [workouts, period])
+  const isSeason = kind === 'season'
+  const season = isSeason ? seasons.find(s => s.id === seasonId) ?? null : null
+  const orderedSeasons = useMemo(() => seasonsByStart(seasons), [seasons])
+  const seasonIndex = season ? orderedSeasons.findIndex(s => s.id === season.id) : -1
+  const olderSeason = seasonIndex > 0 ? orderedSeasons[seasonIndex - 1] : null
+  const newerSeason =
+    seasonIndex >= 0 && seasonIndex < orderedSeasons.length - 1 ? orderedSeasons[seasonIndex + 1] : null
+
+  const currentPeriod = useMemo(() => periodFor(kind === 'season' ? 'week' : kind, today), [kind, today])
+  // Seasons: totals for the season's own dates, no comparison (v1). Overlapping seasons are independent.
+  const trends = useMemo(
+    () =>
+      season
+        ? buildTrends(workouts, { start: season.start_date, end: season.end_date }, null)
+        : buildTrends(workouts, period),
+    [workouts, period, season]
+  )
 
   // Workouts are newest first, so the last one is the oldest loaded.
   const oldestLoadedDate = workouts.length > 0 ? workouts[workouts.length - 1].date : null
-  const canPrev = !!oldestLoadedDate && period.start > periodFor(kind, oldestLoadedDate).start
+  const canPrev = !!oldestLoadedDate && period.start > periodFor(period.kind, oldestLoadedDate).start
   const canNext = period.start < currentPeriod.start
   // At the load limit, this period or the one it is compared with may be missing older workouts.
   const mayBeIncomplete =
-    workouts.length >= WORKOUT_LOAD_LIMIT && !!oldestLoadedDate && shiftPeriod(period, -1).start <= oldestLoadedDate
+    workouts.length >= WORKOUT_LOAD_LIMIT &&
+    !!oldestLoadedDate &&
+    (season ? season.start_date : shiftPeriod(period, -1).start) <= oldestLoadedDate
 
-  const switchTab = (next: PeriodKind): void => {
+  const switchTab = (next: TabKind): void => {
     setKind(next)
-    setPeriod(periodFor(next, today))
+    if (next !== 'season') setPeriod(periodFor(next, today))
+  }
+
+  const selectSeason = (id: string): void => {
+    setSeasonId(id)
+    writeLastSeason(id)
   }
 
   if (loading || isLoading || !isHydrated) {
@@ -166,7 +311,19 @@ export default function TrendsPage(): React.ReactElement {
     return <AuthScreen />
   }
 
-  const relative = relativeLabel(period, currentPeriod)
+  const relative = isSeason ? '' : relativeLabel(period, currentPeriod)
+  // The Season tab only exists when the athlete has at least one season.
+  const tabs = TABS.filter(tab => tab.kind !== 'season' || seasons.length > 0)
+
+  let emptyText = relative ? `No workouts ${relative.toLowerCase()}.` : `No workouts in ${periodLabel(period)}.`
+  if (season) {
+    const status = seasonStatus(season, today)
+    const label = seasonLabel(season)
+    emptyText =
+      status === 'upcoming' ? `${label} starts ${shortDateLabel(season.start_date)}.`
+        : status === 'current' ? `No workouts in ${label} yet.`
+        : `No workouts in ${label}.`
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-fuchsia-900 to-slate-900">
@@ -184,9 +341,9 @@ export default function TrendsPage(): React.ReactElement {
           <div />
         </div>
 
-        {/* Week | Month tabs (Season comes with seasons) */}
+        {/* Week | Month | Season tabs (Season only when the athlete has seasons) */}
         <div role="tablist" className="mb-4 flex w-full gap-1 rounded-xl bg-white/10 p-1">
-          {TABS.map(tab => {
+          {tabs.map(tab => {
             const active = tab.kind === kind
             return (
               <button
@@ -205,7 +362,17 @@ export default function TrendsPage(): React.ReactElement {
           })}
         </div>
 
-        {/* Period navigation: back through history, never into the future */}
+        {season ? (
+          <SeasonNav
+            season={season}
+            seasons={seasons}
+            older={olderSeason}
+            newer={newerSeason}
+            today={today}
+            onSelect={selectSeason}
+          />
+        ) : (
+        /* Period navigation: back through history, never into the future */
         <div className="mb-3 flex items-center justify-between">
           <button
             type="button"
@@ -230,6 +397,7 @@ export default function TrendsPage(): React.ReactElement {
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
+        )}
 
         {/* Summary: workouts | total time (Week adds goal progress) */}
         <p className="mb-5 text-center text-sm font-semibold text-white">
@@ -256,7 +424,7 @@ export default function TrendsPage(): React.ReactElement {
 
         {trends.workouts === 0 && !error && (
           <p className="py-8 text-center text-sm text-fuchsia-200">
-            {relative ? `No workouts ${relative.toLowerCase()}.` : `No workouts in ${periodLabel(period)}.`}
+            {emptyText}
           </p>
         )}
 

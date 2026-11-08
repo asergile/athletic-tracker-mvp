@@ -1,6 +1,6 @@
 /**
- * Trends page aggregation (wireframe C1): per-activity totals for a week or
- * month, unit conversion, and feel counts.
+ * Trends page aggregation (wireframes C1, C2): per-activity totals for a week,
+ * month or season, unit conversion, and feel counts.
  *
  * Pure and string-based like activityGrid.ts: dates are local calendar dates
  * 'YYYY-MM-DD' and all date math goes through the activityGrid helpers.
@@ -21,10 +21,15 @@ export interface TrendsWorkout {
   created_at?: string
 }
 
-export interface Period {
+/** Any inclusive date range, e.g. a season's start_date..end_date. */
+export interface DateRange {
+  start: string                   // 'YYYY-MM-DD'
+  end: string                     // 'YYYY-MM-DD', inclusive
+}
+
+export interface Period extends DateRange {
   kind: PeriodKind
-  start: string                   // Monday, or the 1st of the month
-  end: string                     // Sunday, or the last day of the month (inclusive)
+  // start: Monday, or the 1st of the month; end: Sunday, or the last day of the month
 }
 
 export interface ActivityTrend {
@@ -39,12 +44,13 @@ export interface ActivityTrend {
   unit: DistanceUnit | null
   /** Sessions without a distance; only counted when `distance` is not null. */
   missingDistance: number
+  /** The comparison period's numbers, or null when there is no comparison (seasons). */
   previous: {
     sessions: number
     minutes: number
     /** Total in `unit`, or null when no previous session logged a distance (or `unit` is null). */
     distance: number | null
-  }
+  } | null
 }
 
 export interface FeelCounts {
@@ -88,7 +94,7 @@ export function periodLabel(period: Period): string {
 }
 
 /** String comparison is safe: all dates are zero-padded 'YYYY-MM-DD'. */
-export const inPeriod = (date: string, period: Period): boolean =>
+export const inPeriod = (date: string, period: DateRange): boolean =>
   DATE_RE.test(date) && date >= period.start && date <= period.end
 
 // ===== Units =====
@@ -228,20 +234,29 @@ const mostUsedName = (list: TrendsWorkout[]): string => {
 }
 
 /**
- * Totals for one period, with each activity compared to the previous period
- * (the full previous week or month). Units come from all the given workouts.
+ * Totals for one range, with each activity compared to `compareWith`.
+ * Left out for a week or month, it is the full previous week or month; pass
+ * null for no comparison (seasons, v1). Units come from all the given workouts.
+ * Ranges are independent, so overlapping seasons each get their own totals.
  */
-export function buildTrends(workouts: TrendsWorkout[], period: Period): PeriodTrends {
+export function buildTrends(
+  workouts: TrendsWorkout[],
+  period: Period | DateRange,
+  compareWith?: DateRange | null
+): PeriodTrends {
   const units = preferredUnits(workouts)
-  const previousPeriod = shiftPeriod(period, -1)
+  const previousRange =
+    compareWith !== undefined ? compareWith : 'kind' in period ? shiftPeriod(period, -1) : null
   const current = workouts.filter(w => inPeriod(w.date, period))
-  const previousGroups = groupByActivity(workouts.filter(w => inPeriod(w.date, previousPeriod)))
+  const previousGroups = previousRange
+    ? groupByActivity(workouts.filter(w => inPeriod(w.date, previousRange)))
+    : null
 
   const activities: ActivityTrend[] = []
   groupByActivity(current).forEach((list, key) => {
     const unit = units.get(key) ?? null
     const distance = unit ? sumDistance(list, unit) : null
-    const previous = previousGroups.get(key) || []
+    const previous = previousGroups ? previousGroups.get(key) || [] : null
     activities.push({
       key,
       name: mostUsedName(list),
@@ -250,7 +265,7 @@ export function buildTrends(workouts: TrendsWorkout[], period: Period): PeriodTr
       distance,
       unit: distance === null ? null : unit,
       missingDistance: distance === null ? 0 : list.filter(w => !loggedDistance(w)).length,
-      previous: {
+      previous: previous && {
         sessions: previous.length,
         minutes: sumMinutes(previous),
         distance: unit && distance !== null ? sumDistance(previous, unit) : null

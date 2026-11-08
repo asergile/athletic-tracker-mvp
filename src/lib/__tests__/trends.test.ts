@@ -155,8 +155,8 @@ describe('buildTrends', () => {
     const swim = trends.activities[0]
     expect(swim.distance).toBeNull()
     expect(swim.missingDistance).toBe(0)
-    expect(swim.previous.distance).toBeNull()
-    expect(swim.previous.minutes).toBe(60)
+    expect(swim.previous!.distance).toBeNull()
+    expect(swim.previous!.minutes).toBe(60)
   })
 
   it('compares to the full previous period in the same unit', () => {
@@ -168,13 +168,13 @@ describe('buildTrends', () => {
       w({ workout_type: 'Running', duration: 30, date: '2026-10-27' })
     ], week)
     const swim = trends.activities.find(a => a.key === 'swimming')!
-    expect(swim.previous.sessions).toBe(2)
-    expect(swim.previous.minutes).toBe(90)
-    expect(swim.previous.distance).toBeCloseTo(1093.61, 1)
+    expect(swim.previous!.sessions).toBe(2)
+    expect(swim.previous!.minutes).toBe(90)
+    expect(swim.previous!.distance).toBeCloseTo(1093.61, 1)
 
     const run = trends.activities.find(a => a.key === 'running')!
-    expect(run.previous.sessions).toBe(1)
-    expect(run.previous.distance).toBeNull() // sessions last week, none with distance
+    expect(run.previous!.sessions).toBe(1)
+    expect(run.previous!.distance).toBeNull() // sessions last week, none with distance
   })
 
   it('reports no previous sessions when the activity is new this period', () => {
@@ -194,5 +194,46 @@ describe('buildTrends', () => {
   it('returns an empty summary for a period with no workouts', () => {
     const trends = buildTrends([w({ date: '2026-10-01' })], week)
     expect(trends).toEqual({ workouts: 0, minutes: 0, activities: [], feel: { great: 0, solid: 0, struggled: 0 } })
+  })
+})
+
+describe('buildTrends for a season (any date range, no comparison)', () => {
+  // Winter crosses Jan 1; XC overlaps its start.
+  const winter = { start: '2025-11-01', end: '2026-02-28' }
+  const xc = { start: '2025-08-10', end: '2025-11-07' }
+  const data = [
+    w({ date: '2025-08-10', workout_type: 'Running', duration: 30 }),   // XC first day
+    w({ date: '2025-11-01', duration: 60 }),                            // both: Winter first day, inside XC
+    w({ date: '2025-11-07', workout_type: 'Running', duration: 40 }),   // both: XC last day
+    w({ date: '2025-12-31', duration: 50 }),                            // Winter, before Jan 1
+    w({ date: '2026-01-01', duration: 70 }),                            // Winter, after Jan 1
+    w({ date: '2026-02-28', duration: 20 }),                            // Winter last day
+    w({ date: '2026-03-01', duration: 99 }),                            // after Winter
+    w({ date: '2025-10-31', duration: 99, workout_type: 'Dryland' })    // XC only
+  ]
+
+  it('gives overlapping seasons their own totals, counting both end days and across Jan 1', () => {
+    const w1 = buildTrends(data, winter, null)
+    expect(w1.workouts).toBe(5)
+    expect(w1.minutes).toBe(60 + 40 + 50 + 70 + 20)
+
+    const x1 = buildTrends(data, xc, null)
+    expect(x1.workouts).toBe(4)
+    expect(x1.minutes).toBe(30 + 60 + 40 + 99)
+  })
+
+  it('has no comparison when compareWith is null', () => {
+    const trends = buildTrends(data, winter, null)
+    expect(trends.activities.length).toBeGreaterThan(0)
+    expect(trends.activities.every(a => a.previous === null)).toBe(true)
+  })
+
+  it('has no comparison for a plain date range even when compareWith is left out', () => {
+    expect(buildTrends(data, winter).activities.every(a => a.previous === null)).toBe(true)
+  })
+
+  it('still compares a week with the previous week when compareWith is left out', () => {
+    const swim = buildTrends([w({}), w({ date: '2026-10-28' })], periodFor('week', TODAY)).activities[0]
+    expect(swim.previous).toEqual({ sessions: 1, minutes: 60, distance: null })
   })
 })
