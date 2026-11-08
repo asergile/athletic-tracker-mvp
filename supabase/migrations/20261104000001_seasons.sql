@@ -1,6 +1,7 @@
 -- PBGB migration 04: seasons (Activity Grid Phase 4a)
 -- Project: PBGB production Supabase database (staging and production share it)
--- Status: NOT APPLIED
+-- Status: APPLIED 2026-11-07 by hand in the Supabase SQL Editor. Verified afterward: RLS on, 4 owner-only
+--   policies, check constraints present, only authenticated has select/insert/update/delete, Security Advisor clean.
 --
 -- A season is a user-named date range with a required start and end: a sport's season,
 -- a training block, any span. It is a lens for Trends: every workout dated inside it

@@ -10,6 +10,7 @@ import { dbHelpers, USERNAME_PATTERN } from '@/lib/security/enhanced-db-helpers'
 import type { MyProfile } from '@/lib/security/enhanced-db-helpers'
 import FeedbackButton from '@/components/FeedbackButton'
 import StandardNavigation from '@/components/StandardNavigation'
+import SeasonsCard from '@/components/SeasonsCard'
 
 // TypeScript Interfaces
 interface UserSettings {
@@ -450,6 +451,9 @@ export default function ProfilePage(): React.ReactElement {
             <span>Sign Out</span>
           </button>
         </div>
+
+        {/* Seasons */}
+        <SeasonsCard />
 
         {/* Change Password */}
         {hasPasswordLogin && (
